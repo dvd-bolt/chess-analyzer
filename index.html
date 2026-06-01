@@ -671,11 +671,12 @@
     
     // onDrop MUST be synchronous — chessboard.js ignores Promise returns,
     // so an async function's 'return "snapback"' is silently swallowed.
-    function onDrop(source, target) {
+    function onDrop(source, target, piece, newPos, oldPos, orientation) {
+      clearBestMoveHighlight();
       clearLegalDots();
-
+      
       const prevFen = chess_game.fen();
-      const move = chess_game.move({
+      let move = chess_game.move({
         from: source,
         to: target,
         promotion: 'q'
@@ -943,6 +944,10 @@
     // ==================================================================
     // Info panel + Gemini comment
     // ==================================================================
+    function clearBestMoveHighlight() {
+      $('#board .square-55d63').removeClass('highlight-best-move');
+    }
+
     function updateInfoPanel() {
       clearBestMoveHighlight();
       if (currentIdx < 0 || currentIdx >= movesData.length) {
