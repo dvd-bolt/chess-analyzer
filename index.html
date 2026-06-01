@@ -210,13 +210,46 @@
     .moves-list::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
 
     .move-chip {
+      display: flex; align-items: center; gap: 4px;
       padding: 4px 8px; border-radius: 6px; font-size: .75rem; font-weight: 500;
       cursor: pointer; background: #1e1e2a; color: #a0a0b4;
       transition: background .15s, color .15s; border: 1px solid transparent;
     }
     .move-chip:hover { background: #2d2d40; color: #e2e2e8; }
-    .move-chip.active { background: #7c3aed; color: #fff; border-color: #a78bfa; }
-    .move-chip .chip-icon { margin-right: 2px; }
+    .move-chip.active { background: #3a3a50; color: #fff; border-color: #7c3aed; }
+    
+    .chip-badge {
+      width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .45rem; font-weight: 800; color: #fff;
+    }
+    /* Cat CSS for chips uses same logic as report */
+
+    /* Tabs */
+    .tabs-container {
+      display: none; /* hidden until analyzed */
+      gap: 4px; margin-bottom: 12px;
+      background: #1e1e2a; padding: 4px; border-radius: 10px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px; border: none; border-radius: 6px;
+      background: transparent; color: #737388; font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: background .2s, color .2s;
+    }
+    .tab-btn.active {
+      background: #3a3a50; color: #e2e2e8; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+
+    /* Opening Badge */
+    .opening-badge {
+      font-size: .7rem; background: rgba(167, 139, 250, 0.15); color: #a78bfa;
+      padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block;
+    }
+
+    /* Coach avatar inside infoCard */
+    .info-coach-avatar {
+      font-size: 1.8rem; line-height: 1; margin-right: 8px;
+    }
 
     /* Legal move dots (Chess.com style) */
     .legal-move-dot {
@@ -238,6 +271,11 @@
       pointer-events: none;
       z-index: 10;
       box-sizing: border-box;
+    }
+
+    /* Best move highlight */
+    .highlight-best-move {
+      box-shadow: inset 0 0 0 4px rgba(129, 182, 76, 0.8);
     }
 
     /* ============ Game Report (Chess.com style) ============ */
@@ -441,33 +479,42 @@
       <button id="analyzeBtn">🔍 Анализировать</button>
       <div id="status" class="status"></div>
 
-      <!-- Move info -->
-      <div class="info-card" id="infoCard" style="display:none;">
-        <h3>Текущий ход</h3>
-        <div class="move-display">
-          <span class="move-icon" id="moveIcon">🌟</span>
-          <div class="move-details">
-            <span class="move-san" id="moveSan">—</span>
-            <span class="move-category" id="moveCategory">—</span>
-            <span class="move-cpl" id="moveCpl"></span>
-          </div>
-        </div>
-
-        <!-- Gemini coach -->
-        <div class="gemini-block" id="geminiBlock">
-          <div class="gemini-block-header">
-            <span>✨</span> Совет тренера Gemini
-          </div>
-          <div class="gemini-comment" id="geminiComment">—</div>
-        </div>
-
-        <div class="move-counter" id="moveCounter">— / —</div>
+      <!-- Tabs -->
+      <div class="tabs-container" id="tabsContainer">
+        <button class="tab-btn active" id="tabMoves">Ходы партии</button>
+        <button class="tab-btn" id="tabReport">Отчет о партии</button>
       </div>
 
-      <div class="moves-list" id="movesList"></div>
+      <div id="contentMoves" style="display:none;">
+        <!-- Move info -->
+        <div class="info-card" id="infoCard">
+          <h3>Текущий ход</h3>
+          <div class="move-display">
+            <span class="info-coach-avatar" id="infoCoachAvatar">😐</span>
+            <div class="move-details">
+              <span class="move-san" id="moveSan">—</span>
+              <div id="openingName" class="opening-badge" style="display:none;"></div>
+              <span class="move-category" id="moveCategory">—</span>
+              <span class="move-cpl" id="moveCpl"></span>
+            </div>
+          </div>
+
+          <!-- Gemini coach -->
+          <div class="gemini-block" id="geminiBlock">
+            <div class="gemini-block-header">
+              <span>✨</span> Совет тренера Gemini
+            </div>
+            <div class="gemini-comment" id="geminiComment">—</div>
+          </div>
+
+          <div class="move-counter" id="moveCounter">— / —</div>
+        </div>
+
+        <div class="moves-list" id="movesList"></div>
+      </div>
 
       <!-- Game Report (Chess.com style) -->
-      <div class="report-card" id="reportCard">
+      <div class="report-card" id="reportCard" style="display:none;">
         <!-- Coach -->
         <div class="coach-row">
           <div class="coach-avatar">🧔</div>
@@ -917,32 +964,72 @@
         const m = getCurrentMoveData();
         if (m) {
             const moveNum = Math.floor(currentIdx / 2) + 1;
-            const dots = m.color === 'white' ? '.' : '...';
-    
-            icon.textContent = m.icon;
-            san.textContent  = `${moveNum}${dots} ${m.san}`;
-            cat.textContent  = m.category;
-            cat.className    = `move-category ${categoryClass(m.category)}`;
-            cpl.textContent  = `CPL: ${m.cpl}`;
-            counter.textContent = `${currentIdx + 1} / ${getActiveMovesList().length}`;
-    
-            // Gemini comment
-            if (m.comment) {
-              gemini.textContent = m.comment;
-              gemini.className = 'gemini-comment';
-            } else {
-              gemini.textContent = 'Комментарий отсутствует';
-              gemini.className = 'gemini-comment empty';
-            }
-        }
+      clearBestMoveHighlight();
+      if (currentIdx < 0 || currentIdx >= movesData.length) {
+        document.getElementById('moveSan').textContent = '—';
+        document.getElementById('moveCategory').textContent = '—';
+        document.getElementById('moveCpl').textContent = '';
+        document.getElementById('geminiComment').textContent = '—';
+        document.getElementById('moveCounter').textContent = '— / —';
+        document.getElementById('openingName').style.display = 'none';
+        document.getElementById('infoCoachAvatar').textContent = '😐';
+        return;
+      }
+      
+      const m = movesData[currentIdx];
+      document.getElementById('moveSan').textContent = m.san;
+      document.getElementById('moveCategory').textContent = m.category;
+      
+      if (m.cpl > 0) {
+        document.getElementById('moveCpl').textContent = `Потеря: ${m.cpl} cp`;
+      } else {
+        document.getElementById('moveCpl').textContent = 'Точный ход';
       }
 
-      // highlight chip
-      document.querySelectorAll('.move-chip').forEach((el, i) => {
-        el.classList.toggle('active', i === currentIdx);
-      });
-      const activeChip = document.querySelector('.move-chip.active');
-      if (activeChip) activeChip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (m.opening) {
+        document.getElementById('openingName').textContent = m.opening;
+        document.getElementById('openingName').style.display = 'inline-block';
+      } else {
+        document.getElementById('openingName').style.display = 'none';
+      }
+
+      // Coach emotion
+      let emotion = '😐';
+      if (m.cat_key === 'blunder' || m.cat_key === 'mistake') {
+        emotion = '😱';
+        // Highlight best move if available
+        if (m.best_move) {
+          const fromSq = m.best_move.substring(0, 2);
+          const toSq = m.best_move.substring(2, 4);
+          $('#board .square-' + fromSq).addClass('highlight-best-move');
+          $('#board .square-' + toSq).addClass('highlight-best-move');
+        }
+      } else if (m.cat_key === 'book') {
+        emotion = '🤓';
+      } else if (['brilliant', 'great', 'best', 'excellent'].includes(m.cat_key)) {
+        emotion = '😃';
+      }
+      document.getElementById('infoCoachAvatar').textContent = emotion;
+
+      const commEl = document.getElementById('geminiComment');
+      if (m.comment) {
+        commEl.textContent = m.comment;
+        commEl.className = 'gemini-comment';
+      } else {
+        commEl.textContent = 'Ожидание комментария...';
+        commEl.className = 'gemini-comment empty';
+      }
+
+      const total = movesData.length;
+      document.getElementById('moveCounter').textContent = `Ход ${currentIdx + 1} из ${total}`;
+
+      // Update active chip
+      document.querySelectorAll('.move-chip').forEach(c => c.classList.remove('active'));
+      const activeChip = document.querySelector(`.move-chip[data-index="${currentIdx}"]`);
+      if (activeChip) {
+        activeChip.classList.add('active');
+        activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
 
       updateEvalDisplay();
       updateChartIndicator();
@@ -992,25 +1079,34 @@
     // ==================================================================
     // Move chips
     // ==================================================================
+    function getCatDef(key) {
+      return CAT_DEFS.find(c => c.key === key) || { icon: '', css: '' };
+    }
+
     function buildMoveChips() {
       const container = document.getElementById('movesList');
       container.innerHTML = '';
-      
-      // Mainline
       const limit = inVariation ? branchPoint : movesData.length - 1;
       for (let i = 0; i <= limit; i++) {
         const m = movesData[i];
         const chip = document.createElement('span');
         chip.className = 'move-chip';
+        chip.dataset.index = i;
         const moveNum = Math.floor(i / 2) + 1;
-        const prefix = m.color === 'white' ? `${moveNum}. ` : '';
-        chip.innerHTML = `<span class="chip-icon">${m.icon}</span>${prefix}${m.san}`;
+        const prefix = m.color === 'white' ? `${moveNum}. ` : (i === 0 ? `${moveNum}... ` : '');
+        
+        const cat = getCatDef(m.cat_key);
+        let badgeHtml = '';
+        if (cat.icon) {
+          badgeHtml = `<span class="chip-badge ${cat.css}">${cat.icon}</span>`;
+        }
+
+        chip.innerHTML = `${badgeHtml}${prefix}${m.san}`;
         chip.addEventListener('click', () => goToIndex(i, false));
         container.appendChild(chip);
       }
 
-      // Variation
-      if (inVariation) {
+      if (inVariation && variationMoves.length > 0) {
         const div = document.createElement('div');
         div.style.width = '100%'; div.style.height = '4px'; div.style.background = 'transparent';
         container.appendChild(div);
@@ -1022,7 +1118,14 @@
           const actualIndex = branchPoint + 1 + i;
           const moveNum = Math.floor(actualIndex / 2) + 1;
           const prefix = m.color === 'white' ? `${moveNum}. ` : (i === 0 ? `${moveNum}... ` : '');
-          chip.innerHTML = `<span class="chip-icon">${m.icon}</span>${prefix}${m.san}`;
+          
+          const cat = getCatDef(m.cat_key || 'good');
+          let badgeHtml = '';
+          if (cat.icon) {
+            badgeHtml = `<span class="chip-badge ${cat.css}">${cat.icon}</span>`;
+          }
+
+          chip.innerHTML = `${badgeHtml}${prefix}${m.san}`;
           chip.addEventListener('click', () => goToIndex(actualIndex, true));
           container.appendChild(chip);
         }
@@ -1141,7 +1244,8 @@
         chess_game.reset();
         board.position('start', false);
 
-        document.getElementById('infoCard').style.display = '';
+        document.getElementById('tabsContainer').style.display = 'flex';
+        showTab('report');
         document.getElementById('chartWrap').style.display = '';
 
         buildMoveChips();
@@ -1179,6 +1283,23 @@
       { key: 'miss',       icon: '❌', label: 'Упущение',      css: 'cat-miss' },
       { key: 'blunder',    icon: '??', label: 'Зевок',         css: 'cat-blunder' },
     ];
+
+    function showTab(tabName) {
+      if (tabName === 'moves') {
+        document.getElementById('tabMoves').classList.add('active');
+        document.getElementById('tabReport').classList.remove('active');
+        document.getElementById('contentMoves').style.display = 'block';
+        document.getElementById('reportCard').style.display = 'none';
+      } else {
+        document.getElementById('tabReport').classList.add('active');
+        document.getElementById('tabMoves').classList.remove('active');
+        document.getElementById('reportCard').style.display = 'flex';
+        document.getElementById('contentMoves').style.display = 'none';
+      }
+    }
+
+    document.getElementById('tabMoves').addEventListener('click', () => showTab('moves'));
+    document.getElementById('tabReport').addEventListener('click', () => showTab('report'));
 
     function stageIcon(status) {
       if (status === 'check') return '<span class="stage-check">✔</span>';
@@ -1247,8 +1368,9 @@
     // New game button
     document.getElementById('btnNewGame').addEventListener('click', () => {
       document.getElementById('pgnInput').value = '';
+      document.getElementById('tabsContainer').style.display = 'none';
       document.getElementById('reportCard').style.display = 'none';
-      document.getElementById('infoCard').style.display = 'none';
+      document.getElementById('contentMoves').style.display = 'none';
       document.getElementById('chartWrap').style.display = 'none';
       document.getElementById('movesList').innerHTML = '';
       movesData = [];
@@ -1257,8 +1379,9 @@
       board.position('start', false);
     });
 
-    // View report button — scroll to first move
+    // View report button — switch to moves tab and scroll to first move
     document.getElementById('btnViewReport').addEventListener('click', () => {
+      showTab('moves');
       if (movesData.length) goToIndex(0, false);
     });
   </script>

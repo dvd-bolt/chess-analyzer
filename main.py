@@ -80,6 +80,24 @@ CHESSCOM_HEADERS = {
     "User-Agent": "ChessAnalyzerApp/1.0 (educational project)",
 }
 
+# Базовый словарь популярных дебютов (MVP)
+OPENINGS = {
+    "e4 e5 Nf3 Nc6 Bb5": "Испанская партия",
+    "e4 e5 Nf3 Nc6 Bc4": "Итальянская партия",
+    "e4 e5 Nf3 Nc6 d4": "Шотландская партия",
+    "e4 e5 Nf3 Nf6": "Русская партия",
+    "e4 c5": "Сицилианская защита",
+    "e4 e6": "Французская защита",
+    "e4 c6": "Защита Каро-Канн",
+    "e4 d6": "Защита Пирца-Уфимцева",
+    "d4 d5 c4": "Ферзевый гамбит",
+    "d4 Nf6 c4 e6 Nc3 Bb4": "Защита Нимцовича",
+    "d4 Nf6 c4 g6": "Староиндийская защита / Защита Грюнфельда",
+    "d4 f5": "Голландская защита",
+    "c4 e5": "Английское начало",
+    "Nf3 d5": "Дебют Рети",
+}
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -165,6 +183,18 @@ def categorize_move(
     return "blunder", "Зевок", "??"
 
 
+def detect_opening(san_moves: list[str]) -> str:
+    """Определяет дебют по строке ходов."""
+    history = " ".join(san_moves)
+    detected = ""
+    # Ищем самое длинное совпадение
+    for seq, name in OPENINGS.items():
+        if history.startswith(seq):
+            if len(seq) > len(detected):
+                detected = name
+    return detected
+
+
 def estimate_elo(accuracy: float) -> int:
     """Грубая оценка ELO по точности партии."""
     if accuracy >= 98: return 2700
@@ -207,13 +237,13 @@ def compute_stats(moves_data: list[dict]) -> dict:
 
     for m in moves_data:
         color = m["color"]
-        cpl = m["cpl"]
-        side_cpls[color].append(cpl)
+        cpl_clamped = min(m["cpl"], 300)  # clamp to 300 to avoid destroying accuracy on mates
+        side_cpls[color].append(cpl_clamped)
         cat_key = m.get("cat_key", "good")
         if cat_key in cats[color]:
             cats[color][cat_key] += 1
         stage = m.get("stage", "middlegame")
-        stage_cpls[color][stage].append(cpl)
+        stage_cpls[color][stage].append(cpl_clamped)
 
     def accuracy(cpls: list) -> float:
         if not cpls:
@@ -422,6 +452,7 @@ def analyze(request: PGNRequest):
     # --- 2. Анализ ходов ---
     moves_data: list[dict] = []
     game_log: list[dict] = []
+    san_history: list[str] = []
     board = game.board()
     engine: Optional[chess.engine.SimpleEngine] = None
 
@@ -432,6 +463,7 @@ def analyze(request: PGNRequest):
         for move in game.mainline_moves():
             side = board.turn
             san = board.san(move)
+            san_history.append(san)
 
             # Best move from engine BEFORE making the move
             info_before = engine.analyse(
@@ -444,7 +476,10 @@ def analyze(request: PGNRequest):
             material_before_side = get_material_value(board, side)
             total_mat = get_total_material(board)
             stage = detect_stage(move_index, total_mat)
-            is_book = move_index < 10 and total_mat >= 70  # rough heuristic
+            
+            # Opening detection
+            opening_name = detect_opening(san_history) if move_index < 20 else ""
+            is_book = bool(opening_name)
 
             board.push(move)
 
@@ -480,6 +515,8 @@ def analyze(request: PGNRequest):
                 "icon": icon,
                 "comment": "",
                 "stage": stage,
+                "opening": opening_name,
+                "best_move": best_move.uci() if best_move else None,
             })
 
             game_log.append({
