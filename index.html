@@ -90,13 +90,20 @@
       min-width: 300px; max-width: 420px; flex: 1;
     }
 
-    /* Controls */
-    .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .mode-toggle { display: flex; background: #16161f; border-radius: 8px; border: 1px solid #2a2a3a; overflow: hidden; }
-    .mode-toggle button { flex: 1; padding: 8px 12px; border: none; background: transparent; color: #737388; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; }
-    .mode-toggle button.active { background: #2d2d40; color: #fff; }
-    #clearBoardBtn { padding: 8px 12px; border: 1px solid #ef4444; border-radius: 8px; background: rgba(239,68,68,.1); color: #ef4444; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; display: none; }
-    #clearBoardBtn:hover { background: rgba(239,68,68,.2); }
+    /* Variations */
+    #returnMainBtn {
+      display: none; padding: 10px 14px; border: 1px solid #3b82f6; border-radius: 8px;
+      background: rgba(59,130,246,.15); color: #60a5fa; font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: all .2s; width: 100%; text-align: center; margin-bottom: 12px;
+    }
+    #returnMainBtn:hover { background: rgba(59,130,246,.25); }
+
+    .variation-chip {
+      background: rgba(255, 255, 255, 0.05); color: #a78bfa; border: 1px dashed rgba(167,139,250,.3);
+    }
+    .variation-chip.active {
+      background: rgba(167,139,250,.2); border: 1px solid #a78bfa; color: #fff;
+    }
 
     /* Chess.com loader */
     .chesscom-row {
@@ -247,13 +254,7 @@
     <!-- Right: Panel -->
     <div class="side-panel">
 
-      <div class="controls-row">
-        <div class="mode-toggle">
-          <button id="modePgnBtn" class="active">Просмотр PGN</button>
-          <button id="modeSandboxBtn">Песочница</button>
-        </div>
-        <button id="clearBoardBtn">Очистить доску</button>
-      </div>
+      <button id="returnMainBtn">↩ Вернуться к главной партии</button>
 
       <!-- Chess.com loader -->
       <div class="chesscom-row">
@@ -312,64 +313,49 @@
     let chess_game = new Chess();
     let board = null;
     let evalChart = null;
-    let isSandboxMode = false;
+    
+    let branchPoint = -1;
+    let variationMoves = [];
+    let inVariation = false;
 
     // ==================================================================
-    // Sandbox Mode Toggle
+    // Variations Logic
     // ==================================================================
-    document.getElementById('modePgnBtn').addEventListener('click', (e) => {
-      isSandboxMode = false;
-      e.target.classList.add('active');
-      document.getElementById('modeSandboxBtn').classList.remove('active');
-      document.getElementById('clearBoardBtn').style.display = 'none';
+    document.getElementById('returnMainBtn').addEventListener('click', () => {
+      exitVariation();
     });
+
+    function exitVariation() {
+      if (!inVariation) return;
+      inVariation = false;
+      variationMoves = [];
+      document.getElementById('returnMainBtn').style.display = 'none';
+      goToIndex(branchPoint, false);
+    }
     
-    document.getElementById('modeSandboxBtn').addEventListener('click', (e) => {
-      isSandboxMode = true;
-      e.target.classList.add('active');
-      document.getElementById('modePgnBtn').classList.remove('active');
-      document.getElementById('clearBoardBtn').style.display = '';
-      
-      // Reset for sandbox
-      chess_game.reset();
-      board.position('start', false);
-      movesData = [];
-      currentIdx = -1;
-      
-      document.getElementById('infoCard').style.display = 'none';
-      document.getElementById('chartWrap').style.display = 'none';
-      
-      buildMoveChips();
-      buildChart();
-      updateInfoPanel();
-    });
+    function getCurrentMoveData() {
+        if (!inVariation) {
+            return currentIdx >= 0 && currentIdx < movesData.length ? movesData[currentIdx] : null;
+        } else {
+            const varIdx = currentIdx - branchPoint - 1;
+            return varIdx >= 0 && varIdx < variationMoves.length ? variationMoves[varIdx] : null;
+        }
+    }
     
-    document.getElementById('clearBoardBtn').addEventListener('click', () => {
-      chess_game.reset();
-      board.position('start', false);
-      movesData = [];
-      currentIdx = -1;
-      
-      document.getElementById('infoCard').style.display = 'none';
-      document.getElementById('chartWrap').style.display = 'none';
-      
-      buildMoveChips();
-      buildChart();
-      updateInfoPanel();
-    });
+    function getActiveMovesList() {
+        if (!inVariation) return movesData;
+        return movesData.slice(0, branchPoint + 1).concat(variationMoves);
+    }
 
     // ==================================================================
     // Init board
     // ==================================================================
     
     function onDragStart(source, piece, position, orientation) {
-      if (!isSandboxMode) return false;
       return true;
     }
     
     async function onDrop(source, target) {
-      if (!isSandboxMode) return 'snapback';
-    
       const prevFen = chess_game.fen();
       const move = chess_game.move({
         from: source,
@@ -381,24 +367,42 @@
     
       const fen = chess_game.fen();
       const san = move.san;
+      
+      // Is it following mainline?
+      if (!inVariation && currentIdx + 1 < movesData.length && movesData[currentIdx + 1].san === san) {
+          goToIndex(currentIdx + 1, false);
+          return;
+      }
+      
+      // Deviate or extend variation
+      if (!inVariation) {
+          inVariation = true;
+          branchPoint = currentIdx;
+          variationMoves = [];
+          document.getElementById('returnMainBtn').style.display = 'block';
+      } else {
+          // Truncate variation if deviating from current variation branch
+          const varIdx = currentIdx - branchPoint - 1;
+          if (varIdx < variationMoves.length - 1) {
+             variationMoves = variationMoves.slice(0, varIdx + 1);
+          }
+      }
+      
+      const prevMoveData = getCurrentMoveData();
     
-      // Add temp move to UI
       const tempMove = {
         san: san,
         color: move.color === 'w' ? 'white' : 'black',
         cpl: 0,
-        eval: movesData.length > 0 ? movesData[movesData.length-1].eval : 0,
+        eval: prevMoveData ? prevMoveData.eval : 0,
         score_display: '',
         category: 'Анализ...',
         icon: '⏳',
         comment: ''
       };
       
-      if (currentIdx < movesData.length - 1) {
-        movesData = movesData.slice(0, currentIdx + 1);
-      }
-      movesData.push(tempMove);
-      currentIdx = movesData.length - 1;
+      variationMoves.push(tempMove);
+      currentIdx = branchPoint + variationMoves.length;
       
       document.getElementById('infoCard').style.display = '';
       document.getElementById('chartWrap').style.display = '';
@@ -406,7 +410,6 @@
       buildMoveChips();
       updateInfoPanel();
     
-      // Ajax call
       try {
         const resp = await fetch('/analyze_position', {
           method: 'POST',
@@ -415,7 +418,12 @@
         });
         if (resp.ok) {
           const data = await resp.json();
-          movesData[currentIdx] = data; // update with real data
+          // Update the specific move that was just made in the variation array
+          // Since network is async, find it by index or just update the latest.
+          const vIdx = currentIdx - branchPoint - 1;
+          if (vIdx >= 0 && vIdx < variationMoves.length) {
+              variationMoves[vIdx] = data;
+          }
           buildMoveChips();
           buildChart();
           updateInfoPanel();
@@ -467,12 +475,13 @@
       const bar = document.getElementById('evalBar');
       bar.style.visibility = 'visible';
 
-      if (currentIdx < 0 || currentIdx >= movesData.length) {
+      if (currentIdx < 0) {
         el.textContent = '0.0';
         el.className = 'eval-score equal';
         return;
       }
-      const m = movesData[currentIdx];
+      const m = getCurrentMoveData();
+      if (!m) return;
       const display = formatEval(m);
       el.textContent = display;
 
@@ -492,11 +501,12 @@
     // ==================================================================
     function buildChart() {
       const ctx = document.getElementById('evalChart').getContext('2d');
-      const labels = movesData.map((m, i) => {
+      const activeMoves = getActiveMovesList();
+      const labels = activeMoves.map((m, i) => {
         const num = Math.floor(i / 2) + 1;
         return m.color === 'white' ? `${num}.` : `${num}…`;
       });
-      const data = movesData.map(m => Math.max(-1500, Math.min(1500, m.eval)) / 100);
+      const data = activeMoves.map(m => Math.max(-1500, Math.min(1500, m.eval)) / 100);
 
       if (evalChart) evalChart.destroy();
 
@@ -599,34 +609,36 @@
       const counter = document.getElementById('moveCounter');
       const gemini  = document.getElementById('geminiComment');
 
-      if (currentIdx < 0 || currentIdx >= movesData.length) {
+      if (currentIdx < 0) {
         icon.textContent = '♟';
         san.textContent  = 'Начальная позиция';
         cat.textContent  = '';
         cat.className    = 'move-category';
         cpl.textContent  = '';
-        counter.textContent = `0 / ${movesData.length}`;
+        counter.textContent = `0 / ${getActiveMovesList().length}`;
         gemini.textContent = 'Выберите ход для получения совета';
         gemini.className = 'gemini-comment empty';
       } else {
-        const m = movesData[currentIdx];
-        const moveNum = Math.floor(currentIdx / 2) + 1;
-        const dots = m.color === 'white' ? '.' : '...';
-
-        icon.textContent = m.icon;
-        san.textContent  = `${moveNum}${dots} ${m.san}`;
-        cat.textContent  = m.category;
-        cat.className    = `move-category ${categoryClass(m.category)}`;
-        cpl.textContent  = `CPL: ${m.cpl}`;
-        counter.textContent = `${currentIdx + 1} / ${movesData.length}`;
-
-        // Gemini comment
-        if (m.comment) {
-          gemini.textContent = m.comment;
-          gemini.className = 'gemini-comment';
-        } else {
-          gemini.textContent = 'Комментарий отсутствует';
-          gemini.className = 'gemini-comment empty';
+        const m = getCurrentMoveData();
+        if (m) {
+            const moveNum = Math.floor(currentIdx / 2) + 1;
+            const dots = m.color === 'white' ? '.' : '...';
+    
+            icon.textContent = m.icon;
+            san.textContent  = `${moveNum}${dots} ${m.san}`;
+            cat.textContent  = m.category;
+            cat.className    = `move-category ${categoryClass(m.category)}`;
+            cpl.textContent  = `CPL: ${m.cpl}`;
+            counter.textContent = `${currentIdx + 1} / ${getActiveMovesList().length}`;
+    
+            // Gemini comment
+            if (m.comment) {
+              gemini.textContent = m.comment;
+              gemini.className = 'gemini-comment';
+            } else {
+              gemini.textContent = 'Комментарий отсутствует';
+              gemini.className = 'gemini-comment empty';
+            }
         }
       }
 
@@ -644,13 +656,39 @@
     // ==================================================================
     // Navigation
     // ==================================================================
-    function goToIndex(idx) {
+    function goToIndex(idx, isVariationMove = false) {
       chess_game.reset();
-      if (idx >= 0) {
-        for (let i = 0; i <= idx && i < movesData.length; i++) {
-          chess_game.move(movesData[i].san);
+      
+      if (!inVariation || !isVariationMove) {
+        // We are clicking mainline or we are in variation but clicked a mainline chip
+        if (inVariation && !isVariationMove) {
+            if (idx <= branchPoint) {
+                exitVariation();
+                return; // exitVariation calls goToIndex(branchPoint)
+            } else {
+                exitVariation(); // Exit variation to jump further in mainline
+            }
+        }
+        if (idx >= 0) {
+          for (let i = 0; i <= idx && i < movesData.length; i++) {
+            chess_game.move(movesData[i].san);
+          }
+        }
+      } else {
+        // Playing through variation tree
+        if (branchPoint >= 0) {
+          for (let i = 0; i <= branchPoint && i < movesData.length; i++) {
+            chess_game.move(movesData[i].san);
+          }
+        }
+        const varIdx = idx - branchPoint - 1;
+        if (varIdx >= 0) {
+            for (let i = 0; i <= varIdx && i < variationMoves.length; i++) {
+              chess_game.move(variationMoves[i].san);
+            }
         }
       }
+      
       currentIdx = idx;
       board.position(chess_game.fen(), true);
       updateInfoPanel();
@@ -662,29 +700,70 @@
     function buildMoveChips() {
       const container = document.getElementById('movesList');
       container.innerHTML = '';
-      movesData.forEach((m, i) => {
+      
+      // Mainline
+      const limit = inVariation ? branchPoint : movesData.length - 1;
+      for (let i = 0; i <= limit; i++) {
+        const m = movesData[i];
         const chip = document.createElement('span');
         chip.className = 'move-chip';
         const moveNum = Math.floor(i / 2) + 1;
         const prefix = m.color === 'white' ? `${moveNum}. ` : '';
         chip.innerHTML = `<span class="chip-icon">${m.icon}</span>${prefix}${m.san}`;
-        chip.addEventListener('click', () => goToIndex(i));
+        chip.addEventListener('click', () => goToIndex(i, false));
         container.appendChild(chip);
-      });
+      }
+
+      // Variation
+      if (inVariation) {
+        const div = document.createElement('div');
+        div.style.width = '100%'; div.style.height = '4px'; div.style.background = 'transparent';
+        container.appendChild(div);
+        
+        for (let i = 0; i < variationMoves.length; i++) {
+          const m = variationMoves[i];
+          const chip = document.createElement('span');
+          chip.className = 'move-chip variation-chip';
+          const actualIndex = branchPoint + 1 + i;
+          const moveNum = Math.floor(actualIndex / 2) + 1;
+          const prefix = m.color === 'white' ? `${moveNum}. ` : (i === 0 ? `${moveNum}... ` : '');
+          chip.innerHTML = `<span class="chip-icon">${m.icon}</span>${prefix}${m.san}`;
+          chip.addEventListener('click', () => goToIndex(actualIndex, true));
+          container.appendChild(chip);
+        }
+      }
     }
 
     // ==================================================================
     // Nav buttons
     // ==================================================================
-    document.getElementById('btnStart').addEventListener('click', () => goToIndex(-1));
+    document.getElementById('btnStart').addEventListener('click', () => goToIndex(-1, false));
     document.getElementById('btnPrev').addEventListener('click', () => {
-      if (currentIdx > -1) goToIndex(currentIdx - 1);
+      if (currentIdx > -1) {
+          if (inVariation && currentIdx === branchPoint + 1) {
+              exitVariation();
+          } else {
+              goToIndex(currentIdx - 1, inVariation);
+          }
+      }
     });
     document.getElementById('btnNext').addEventListener('click', () => {
-      if (currentIdx < movesData.length - 1) goToIndex(currentIdx + 1);
+      if (inVariation) {
+          if (currentIdx - branchPoint - 1 < variationMoves.length - 1) {
+              goToIndex(currentIdx + 1, true);
+          }
+      } else {
+          if (currentIdx < movesData.length - 1) {
+              goToIndex(currentIdx + 1, false);
+          }
+      }
     });
     document.getElementById('btnEnd').addEventListener('click', () => {
-      if (movesData.length) goToIndex(movesData.length - 1);
+      if (inVariation) {
+          if (variationMoves.length) goToIndex(branchPoint + variationMoves.length, true);
+      } else {
+          if (movesData.length) goToIndex(movesData.length - 1, false);
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -759,6 +838,10 @@
         const data = await resp.json();
         movesData = data.moves_data;
         currentIdx = -1;
+        inVariation = false;
+        branchPoint = -1;
+        variationMoves = [];
+        document.getElementById('returnMainBtn').style.display = 'none';
 
         chess_game.reset();
         board.position('start', false);
