@@ -944,35 +944,19 @@
     // Info panel + Gemini comment
     // ==================================================================
     function updateInfoPanel() {
-      const icon = document.getElementById('moveIcon');
-      const san  = document.getElementById('moveSan');
-      const cat  = document.getElementById('moveCategory');
-      const cpl  = document.getElementById('moveCpl');
-      const counter = document.getElementById('moveCounter');
-      const gemini  = document.getElementById('geminiComment');
-
-      if (currentIdx < 0) {
-        icon.textContent = '♟';
-        san.textContent  = 'Начальная позиция';
-        cat.textContent  = '';
-        cat.className    = 'move-category';
-        cpl.textContent  = '';
-        counter.textContent = `0 / ${getActiveMovesList().length}`;
-        gemini.textContent = 'Выберите ход для получения совета';
-        gemini.className = 'gemini-comment empty';
-      } else {
-        const m = getCurrentMoveData();
-        if (m) {
-            const moveNum = Math.floor(currentIdx / 2) + 1;
       clearBestMoveHighlight();
       if (currentIdx < 0 || currentIdx >= movesData.length) {
         document.getElementById('moveSan').textContent = '—';
         document.getElementById('moveCategory').textContent = '—';
         document.getElementById('moveCpl').textContent = '';
-        document.getElementById('geminiComment').textContent = '—';
-        document.getElementById('moveCounter').textContent = '— / —';
+        document.getElementById('geminiComment').textContent = 'Выберите ход для получения совета';
+        document.getElementById('geminiComment').className = 'gemini-comment empty';
+        document.getElementById('moveCounter').textContent = `0 / ${getActiveMovesList().length}`;
         document.getElementById('openingName').style.display = 'none';
         document.getElementById('infoCoachAvatar').textContent = '😐';
+        
+        updateEvalDisplay();
+        updateChartIndicator();
         return;
       }
       
