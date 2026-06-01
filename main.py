@@ -8,13 +8,8 @@ import io
 import json
 import os
 
-# Перенаправляем все системные запросы Python на стабильный HTTP-порт нашего VPN
-os.environ["HTTP_PROXY"] = "http://127.0.0.1:10809"
-os.environ["HTTPS_PROXY"] = "http://127.0.0.1:10809"
-os.environ["ALL_PROXY"] = "http://127.0.0.1:10809"
-os.environ["http_proxy"] = "http://127.0.0.1:10809"
-os.environ["https_proxy"] = "http://127.0.0.1:10809"
-os.environ["all_proxy"] = "http://127.0.0.1:10809"
+import urllib.request
+urllib.request.getproxies = lambda: {}
 
 import re
 from pathlib import Path
