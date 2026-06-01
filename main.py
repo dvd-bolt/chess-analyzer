@@ -8,10 +8,13 @@ import io
 import json
 import os
 
-# Принудительно отключаем прокси, перезаписывая их пустыми строками (блокирует чтение реестра Windows)
-proxy_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"]
-for var in proxy_vars:
-    os.environ[var] = ""
+# Перенаправляем все системные запросы Python на стабильный HTTP-порт нашего VPN
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:10809"
+os.environ["HTTPS_PROXY"] = "http://127.0.0.1:10809"
+os.environ["ALL_PROXY"] = "http://127.0.0.1:10809"
+os.environ["http_proxy"] = "http://127.0.0.1:10809"
+os.environ["https_proxy"] = "http://127.0.0.1:10809"
+os.environ["all_proxy"] = "http://127.0.0.1:10809"
 
 import re
 from pathlib import Path
