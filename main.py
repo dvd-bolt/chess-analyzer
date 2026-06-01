@@ -8,9 +8,10 @@ import io
 import json
 import os
 
-# Очистка системных прокси (чтобы httpx не падал на socks4)
-for var in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"]:
-    os.environ.pop(var, None)
+# Принудительно отключаем прокси, перезаписывая их пустыми строками (блокирует чтение реестра Windows)
+proxy_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"]
+for var in proxy_vars:
+    os.environ[var] = ""
 
 import re
 from pathlib import Path
