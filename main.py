@@ -14,7 +14,7 @@ from typing import Optional
 import chess
 import chess.engine
 import chess.pgn
-import google.generativeai as genai
+from google import genai
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -28,10 +28,9 @@ from pydantic import BaseModel
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-gemini_model = None
+gemini_client = None
 if GEMINI_API_KEY and GEMINI_API_KEY != "PLACEHOLDER":
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel("gemini-2.0-flash")
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ---------------------------------------------------------------------------
 # App & CORS
@@ -129,7 +128,7 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
     Отправляет полный лог партии в Gemini одним запросом.
     Возвращает dict {index: comment}.
     """
-    if gemini_model is None:
+    if gemini_client is None:
         return {}
 
     prompt = (
@@ -147,9 +146,10 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
     )
 
     try:
-        response = gemini_model.generate_content(
-            prompt,
-            generation_config={"response_mime_type": "application/json"},
+        response = gemini_client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+            config={'response_mime_type': 'application/json'},
         )
         text = response.text.strip()
         # Подстраховка: убираем ```json ... ``` если модель всё равно обернула

@@ -3,5 +3,5 @@ uvicorn
 python-chess
 pydantic
 python-dotenv
-google-generativeai
+google-genai
 requests
