@@ -121,47 +121,99 @@ def format_score_display(score: chess.engine.Score, pov: chess.Color) -> str:
     return str(cp)
 
 
-def categorize_move(cpl: int) -> tuple[str, str]:
-    """Возвращает (категория, иконка) по величине CPL."""
-    if cpl <= 10:
-        return "Отличный", "🌟"
-    if cpl <= 30:
-        return "Хороший", "✅"
+# --- 10-категорийная классификация ходов (Chess.com style) ---
+CATEGORIES = [
+    # (max_cpl, key, label_ru, icon)
+    (0,   "brilliant",  "Блестящий",           "!!"),
+    (0,   "great",      "Замечательный",       "!"),
+    (0,   "best",       "Лучший",              "⭐"),
+    (5,   "excellent",  "Отлично",             "👍"),
+    (20,  "good",       "Хорошо",              "✅"),
+    (0,   "book",       "Теоретический",       "📖"),
+    (80,  "inaccuracy", "Неточность",          "?!"),
+    (200, "mistake",    "Ошибка",              "?"),
+    (0,   "miss",       "Упущение",            "❌"),
+    (999999, "blunder", "Зевок",               "??"),
+]
+
+CAT_KEYS = [c[1] for c in CATEGORIES]
+
+
+def categorize_move(
+    cpl: int,
+    *,
+    is_sacrifice: bool = False,
+    is_best_move: bool = False,
+    is_book: bool = False,
+    had_advantage_before: bool = False,
+) -> tuple[str, str, str]:
+    """Возвращает (key, label_ru, icon) по CPL и эвристикам."""
+    if is_book:
+        return "book", "Теоретический", "📖"
+    if cpl <= 0 and is_sacrifice:
+        return "brilliant", "Блестящий", "!!"
+    if cpl <= 0 and is_best_move:
+        return "best", "Лучший", "⭐"
+    if cpl <= 5:
+        return "excellent", "Отлично", "👍"
+    if cpl <= 20:
+        return "good", "Хорошо", "✅"
     if cpl <= 80:
-        return "Неточность", "⁉️"
+        return "inaccuracy", "Неточность", "?!"
     if cpl <= 200:
-        return "Ошибка", "❓"
-    return "Зевок", "🤡"
+        return "mistake", "Ошибка", "?"
+    return "blunder", "Зевок", "??"
+
+
+def estimate_elo(accuracy: float) -> int:
+    """Грубая оценка ELO по точности партии."""
+    if accuracy >= 98: return 2700
+    if accuracy >= 95: return 2200
+    if accuracy >= 90: return 1800
+    if accuracy >= 85: return 1500
+    if accuracy >= 78: return 1200
+    if accuracy >= 70: return 1000
+    if accuracy >= 60: return 800
+    if accuracy >= 45: return 600
+    return 400
+
+
+def get_total_material(board: chess.Board) -> int:
+    """Суммарная ценность фигур обеих сторон (без королей)."""
+    v = 0
+    for pt, w in PIECE_VALUES.items():
+        v += len(board.pieces(pt, chess.WHITE)) * w
+        v += len(board.pieces(pt, chess.BLACK)) * w
+    return v
+
+
+def detect_stage(move_index: int, total_material: int) -> str:
+    """Определяет стадию партии."""
+    if move_index < 20:  # первые ~10 ходов (20 полуходов)
+        return "opening"
+    if total_material <= 24:  # мало фигур → эндшпиль
+        return "endgame"
+    return "middlegame"
 
 
 def compute_stats(moves_data: list[dict]) -> dict:
-    """Рассчитывает точность и счётчики категорий для белых и чёрных."""
-    white_cpls = []
-    black_cpls = []
-
-    cats = {
-        "white": {"excellent": 0, "good": 0, "inaccuracy": 0, "mistake": 0, "blunder": 0, "brilliant": 0},
-        "black": {"excellent": 0, "good": 0, "inaccuracy": 0, "mistake": 0, "blunder": 0, "brilliant": 0},
-    }
-
-    cat_map = {
-        "Отличный": "excellent",
-        "Хороший": "good",
-        "Неточность": "inaccuracy",
-        "Ошибка": "mistake",
-        "Зевок": "blunder",
-        "Бриллиантовый": "brilliant",
+    """Рассчитывает точность, счётчики, стадии и ELO для обеих сторон."""
+    side_cpls = {"white": [], "black": []}
+    cats = {"white": {k: 0 for k in CAT_KEYS}, "black": {k: 0 for k in CAT_KEYS}}
+    stage_cpls = {
+        "white": {"opening": [], "middlegame": [], "endgame": []},
+        "black": {"opening": [], "middlegame": [], "endgame": []},
     }
 
     for m in moves_data:
         color = m["color"]
         cpl = m["cpl"]
-        if color == "white":
-            white_cpls.append(cpl)
-        else:
-            black_cpls.append(cpl)
-        cat_key = cat_map.get(m["category"], "good")
-        cats[color][cat_key] += 1
+        side_cpls[color].append(cpl)
+        cat_key = m.get("cat_key", "good")
+        if cat_key in cats[color]:
+            cats[color][cat_key] += 1
+        stage = m.get("stage", "middlegame")
+        stage_cpls[color][stage].append(cpl)
 
     def accuracy(cpls: list) -> float:
         if not cpls:
@@ -169,26 +221,37 @@ def compute_stats(moves_data: list[dict]) -> dict:
         avg = sum(cpls) / len(cpls)
         return round(min(100.0, max(0.0, 100.0 * math.exp(-0.005 * avg))), 1)
 
-    return {
-        "white": {
-            "accuracy": accuracy(white_cpls),
-            "avg_cpl": round(sum(white_cpls) / len(white_cpls), 1) if white_cpls else 0,
-            "moves": len(white_cpls),
-            **cats["white"],
-        },
-        "black": {
-            "accuracy": accuracy(black_cpls),
-            "avg_cpl": round(sum(black_cpls) / len(black_cpls), 1) if black_cpls else 0,
-            "moves": len(black_cpls),
-            **cats["black"],
-        },
-    }
+    def stage_verdict(cpls: list) -> str:
+        acc = accuracy(cpls)
+        if acc >= 90:
+            return "check"
+        if acc >= 70:
+            return "thumb"
+        return "inaccuracy"
+
+    result = {}
+    for color in ("white", "black"):
+        acc = accuracy(side_cpls[color])
+        result[color] = {
+            "accuracy": acc,
+            "avg_cpl": round(sum(side_cpls[color]) / len(side_cpls[color]), 1) if side_cpls[color] else 0,
+            "moves": len(side_cpls[color]),
+            "elo": estimate_elo(acc),
+            **cats[color],
+            "stages": {
+                "opening": stage_verdict(stage_cpls[color]["opening"]),
+                "middlegame": stage_verdict(stage_cpls[color]["middlegame"]),
+                "endgame": stage_verdict(stage_cpls[color]["endgame"]),
+            },
+        }
+    return result
 
 
-def ask_gemini(game_log: list[dict], stats: dict) -> dict[int, str]:
+def ask_gemini(game_log: list[dict], stats: dict) -> dict:
     """
-    Отправляет полный лог партии в Gemini одним запросом.
-    Возвращает dict {index: comment}.
+    Отправляет полный лог партии в Gemini.
+    Возвращает dict с ключами: числовые индексы → комментарии,
+    elo_verdict → строка, coach_summary → строка.
     """
     if gemini_client is None:
         return {}
@@ -196,31 +259,27 @@ def ask_gemini(game_log: list[dict], stats: dict) -> dict[int, str]:
     stats_summary = (
         f"Статистика партии:\n"
         f"Белые: точность {stats['white']['accuracy']}%, "
+        f"ELO ~{stats['white']['elo']}, "
         f"зевков {stats['white']['blunder']}, ошибок {stats['white']['mistake']}, "
-        f"неточностей {stats['white']['inaccuracy']}, "
-        f"средняя потеря {stats['white']['avg_cpl']} CPL.\n"
+        f"неточностей {stats['white']['inaccuracy']}.\n"
         f"Чёрные: точность {stats['black']['accuracy']}%, "
+        f"ELO ~{stats['black']['elo']}, "
         f"зевков {stats['black']['blunder']}, ошибок {stats['black']['mistake']}, "
-        f"неточностей {stats['black']['inaccuracy']}, "
-        f"средняя потеря {stats['black']['avg_cpl']} CPL.\n"
+        f"неточностей {stats['black']['inaccuracy']}.\n"
     )
 
     prompt = (
-        "Ты — опытный шахматный тренер, который обучает новичка (рейтинг ~400 Elo). "
-        "Я передаю тебе JSON со всей историей партии и оценками движка Stockfish. "
-        "Изучи партию целиком, пойми стратегические планы сторон "
-        "(обрати внимание, если это Староиндийская защита/нападение) "
-        "и напиши ОДНО короткое, емкое предложение-комментарий на русском языке "
-        "к КАЖДОМУ ходу. Объясняй человеческим языком: зачем сделан ход, "
-        "какую угрозу он несет, почему движку не нравится неточность или "
-        "в чем гениальность жертвы (бриллианта).\n\n"
+        "Ты — опытный шахматный тренер-персонаж, который обучает новичка. "
+        "Я передаю тебе JSON со всей историей партии и оценками Stockfish. "
+        "Изучи партию целиком и напиши ОДНО короткое предложение-комментарий "
+        "на русском языке к КАЖДОМУ ходу.\n\n"
         + stats_summary +
-        "\nНа основе этой статистики также добавь в JSON ключ \"elo_verdict\" "
-        "(строку), в которой напиши свою оценку примерного рейтинга ELO каждого "
-        "из игроков на основании качества их игры, например: "
-        "\"Белые сыграли на ~1200 ELO, Чёрные на ~700 ELO\".\n\n"
-        "Верни ответ СТРОГО в формате JSON, где ключи — индексы ходов (числа) и "
-        "отдельный ключ \"elo_verdict\", а значения — твои комментарии-советы. "
+        "\nВерни ответ СТРОГО в формате JSON со следующими ключами:\n"
+        "- Числовые ключи (0, 1, 2...) — комментарии к ходам.\n"
+        "- \"coach_summary\" — 1-2 предложения общего резюме партии на русском "
+        "(например: \"Получив тяжёлую позицию, вы упорно боролись в этой партии. "
+        "Обращайте внимание на тактику!\").\n"
+        "- \"elo_verdict\" — строка вида \"Белые ~1200, Чёрные ~700\".\n\n"
         "Ничего кроме JSON не пиши.\n\n"
         f"```json\n{json.dumps(game_log, ensure_ascii=False)}\n```"
     )
@@ -232,21 +291,20 @@ def ask_gemini(game_log: list[dict], stats: dict) -> dict[int, str]:
             config={'response_mime_type': 'application/json'},
         )
         text = response.text.strip()
-        # Подстраховка: убираем ```json ... ``` если модель всё равно обернула
         text = re.sub(r"^```(?:json)?\s*\n?", "", text, flags=re.DOTALL)
         text = re.sub(r"\n?\s*```\s*$", "", text, flags=re.DOTALL)
         text = text.strip()
         parsed = json.loads(text)
-        print(f"[INFO] Gemini вернул комментарии к {len(parsed)} ходам")
-        return {int(k): str(v) for k, v in parsed.items()}
+        print(f"[INFO] Gemini returned {len(parsed)} keys")
+        return parsed
     except Exception as exc:
         raw = ""
         try:
             raw = response.text[:500]
         except Exception:
-            raw = "(не удалось получить текст ответа)"
+            raw = "(no text)"
         print(f"[ERROR] Gemini error: {exc}")
-        print(f"[ERROR] Gemini raw response: {raw}")
+        print(f"[ERROR] Gemini raw: {raw}")
         return {}
 
 
@@ -363,7 +421,7 @@ def analyze(request: PGNRequest):
 
     # --- 2. Анализ ходов ---
     moves_data: list[dict] = []
-    game_log: list[dict] = []  # для Gemini
+    game_log: list[dict] = []
     board = game.board()
     engine: Optional[chess.engine.SimpleEngine] = None
 
@@ -375,64 +433,63 @@ def analyze(request: PGNRequest):
             side = board.turn
             san = board.san(move)
 
-            # Оценка ДО хода
-            info_before = engine.analyse(board, chess.engine.Limit(time=0.2))
+            # Best move from engine BEFORE making the move
+            info_before = engine.analyse(
+                board, chess.engine.Limit(time=0.2)
+            )
             cp_before = score_to_cp(info_before["score"], side)
+            best_pv = info_before.get("pv", [])
+            best_move = best_pv[0] if best_pv else None
 
-            # Материал ДО хода
-            material_before = get_material_value(board, side)
+            material_before_side = get_material_value(board, side)
+            total_mat = get_total_material(board)
+            stage = detect_stage(move_index, total_mat)
+            is_book = move_index < 10 and total_mat >= 70  # rough heuristic
 
-            # Делаем ход
             board.push(move)
 
-            # Оценка ПОСЛЕ хода
-            info_after = engine.analyse(board, chess.engine.Limit(time=0.2))
+            info_after = engine.analyse(
+                board, chess.engine.Limit(time=0.2)
+            )
             cp_after = score_to_cp(info_after["score"], side)
+            material_after_side = get_material_value(board, side)
 
-            # Материал ПОСЛЕ хода
-            material_after = get_material_value(board, side)
-
-            # CPL
             cpl = max(0, cp_before - cp_after)
+            is_sacrifice = cpl <= 5 and material_after_side < material_before_side
+            is_best = (best_move == move) if best_move else False
 
-            # Категоризация
-            category, icon = categorize_move(cpl)
+            cat_key, category, icon = categorize_move(
+                cpl,
+                is_sacrifice=is_sacrifice,
+                is_best_move=is_best,
+                is_book=is_book,
+                had_advantage_before=(cp_before > 50),
+            )
 
-            # 💎 Бриллиантовый ход
-            if cpl <= 15 and material_after < material_before:
-                category = "Бриллиантовый"
-                icon = "💎"
-
-            # Оценка для графика (от белых)
             eval_white = score_to_cp(info_after["score"], chess.WHITE)
-
-            # Формат оценки с матом
             score_display = format_score_display(info_after["score"], chess.WHITE)
 
-            moves_data.append(
-                {
-                    "san": san,
-                    "color": "white" if side == chess.WHITE else "black",
-                    "cpl": cpl,
-                    "eval": eval_white,
-                    "score_display": score_display,
-                    "category": category,
-                    "icon": icon,
-                    "comment": "",  # заполним из Gemini
-                }
-            )
+            moves_data.append({
+                "san": san,
+                "color": "white" if side == chess.WHITE else "black",
+                "cpl": cpl,
+                "eval": eval_white,
+                "score_display": score_display,
+                "category": category,
+                "cat_key": cat_key,
+                "icon": icon,
+                "comment": "",
+                "stage": stage,
+            })
 
-            # Лог для Gemini
-            game_log.append(
-                {
-                    "index": move_index,
-                    "san": san,
-                    "color": "white" if side == chess.WHITE else "black",
-                    "score": score_display,
-                    "cpl": cpl,
-                    "category": category,
-                }
-            )
+            game_log.append({
+                "index": move_index,
+                "san": san,
+                "color": "white" if side == chess.WHITE else "black",
+                "score": score_display,
+                "cpl": cpl,
+                "category": category,
+            })
 
             move_index += 1
 
@@ -456,19 +513,24 @@ def analyze(request: PGNRequest):
     # --- 4. Комментарии Gemini ---
     gemini_result = ask_gemini(game_log, stats)
     elo_verdict = ""
+    coach_summary = ""
     for key, value in gemini_result.items():
-        if key == "elo_verdict" or str(key) == "elo_verdict":
+        sk = str(key)
+        if sk == "elo_verdict":
             elo_verdict = str(value)
-            continue
-        idx = int(key) if isinstance(key, (int, str)) and str(key).isdigit() else None
-        if idx is not None and 0 <= idx < len(moves_data):
-            moves_data[idx]["comment"] = str(value)
+        elif sk == "coach_summary":
+            coach_summary = str(value)
+        elif sk.isdigit():
+            idx = int(sk)
+            if 0 <= idx < len(moves_data):
+                moves_data[idx]["comment"] = str(value)
 
     # --- 5. Ответ ---
     return {
         "moves_data": moves_data,
         "stats": stats,
         "elo_verdict": elo_verdict,
+        "coach_summary": coach_summary,
     }
 
 

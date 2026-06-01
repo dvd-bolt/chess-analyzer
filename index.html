@@ -240,69 +240,153 @@
       box-sizing: border-box;
     }
 
-    /* Game Report */
+    /* ============ Game Report (Chess.com style) ============ */
     .report-card {
-      display: none; background: #16161f; border: 1px solid #2a2a3a;
-      border-radius: 12px; padding: 18px; flex-direction: column; gap: 16px;
+      display: none; background: #262626; border-radius: 12px;
+      flex-direction: column; gap: 0; overflow: hidden;
+      border: 1px solid #333;
     }
-    .report-card h3 {
-      font-size: .75rem; text-transform: uppercase; letter-spacing: 1px;
-      color: #737388; margin: 0;
-    }
-    .accuracy-row {
-      display: flex; gap: 12px;
-    }
-    .accuracy-block {
-      flex: 1; border-radius: 10px; padding: 14px; text-align: center;
-      display: flex; flex-direction: column; gap: 4px;
-    }
-    .accuracy-block.white-block {
-      background: #f0f0f0; color: #1a1a2e;
-    }
-    .accuracy-block.black-block {
-      background: #1e1e2a; color: #e2e2e8; border: 1px solid #2a2a3a;
-    }
-    .accuracy-pct {
-      font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums;
-      line-height: 1.1;
-    }
-    .accuracy-label {
-      font-size: .7rem; text-transform: uppercase; letter-spacing: .8px; opacity: .6;
-    }
-    .accuracy-bar {
-      width: 100%; height: 6px; border-radius: 3px; background: rgba(0,0,0,.15);
-      overflow: hidden; margin-top: 4px;
-    }
-    .accuracy-bar-fill {
-      height: 100%; border-radius: 3px; transition: width .6s ease;
-    }
-    .white-block .accuracy-bar-fill { background: #1a1a2e; }
-    .black-block .accuracy-bar-fill { background: #a78bfa; }
 
-    .cat-grid {
-      display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px 12px;
-      align-items: center; font-size: .82rem;
+    /* Coach bubble */
+    .coach-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 16px 16px 12px;
+      background: #2b2b2b;
     }
-    .cat-grid-header {
-      font-size: .68rem; text-transform: uppercase; letter-spacing: .6px;
-      color: #52526a; font-weight: 600; text-align: center;
+    .coach-avatar {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #5b8c5a 0%, #3a6b39 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
     }
-    .cat-label { display: flex; align-items: center; gap: 6px; color: #a0a0b4; }
-    .cat-label .cat-icon { font-size: 1rem; }
-    .cat-count { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .cat-count.w { color: #e2e2e8; }
-    .cat-count.b { color: #a0a0b4; }
+    .coach-bubble {
+      background: #f0f0f0; color: #1a1a1a; border-radius: 12px;
+      padding: 10px 14px; font-size: .85rem; line-height: 1.45;
+      position: relative; flex: 1;
+    }
+    .coach-bubble::before {
+      content: ''; position: absolute; left: -6px; top: 14px;
+      border: 6px solid transparent; border-right-color: #f0f0f0;
+      border-left: 0;
+    }
 
-    .elo-verdict {
-      margin-top: 4px; padding: 12px 14px; border-radius: 8px;
-      background: linear-gradient(135deg, rgba(124,58,237,.1), rgba(110,231,183,.08));
-      border: 1px solid rgba(167,139,250,.2);
-      font-size: .85rem; line-height: 1.5; color: #d0d0dc;
+    /* Player row + accuracy */
+    .players-accuracy {
+      display: flex; gap: 8px; padding: 12px 16px;
     }
-    .elo-verdict-header {
-      font-size: .68rem; text-transform: uppercase; letter-spacing: .8px;
-      color: #a78bfa; font-weight: 600; margin-bottom: 6px;
-      display: flex; align-items: center; gap: 5px;
+    .player-acc-block {
+      flex: 1; border-radius: 8px; padding: 10px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .player-acc-block.winner {
+      background: #f0f0f0; color: #1a1a1a;
+    }
+    .player-acc-block.loser {
+      background: #333; color: #999;
+    }
+    .player-acc-name {
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; opacity: .7;
+    }
+    .player-acc-pct {
+      font-size: 1.8rem; font-weight: 800; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .player-acc-sub {
+      font-size: .65rem; opacity: .5; text-transform: uppercase; letter-spacing: .6px;
+    }
+    .acc-progress {
+      width: 100%; height: 5px; border-radius: 3px;
+      background: rgba(0,0,0,.2); margin-top: 4px; overflow: hidden;
+    }
+    .acc-progress-fill {
+      height: 100%; border-radius: 3px; transition: width .8s ease;
+    }
+    .winner .acc-progress-fill { background: #1a1a1a; }
+    .loser .acc-progress-fill { background: #81b64c; }
+
+    /* Move category grid — centered icons */
+    .cat-grid-v2 {
+      display: flex; flex-direction: column; gap: 0;
+      padding: 4px 16px 8px;
+    }
+    .cat-row {
+      display: grid; grid-template-columns: 1fr 36px 1fr;
+      align-items: center; padding: 5px 0;
+      border-bottom: 1px solid #333;
+    }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-cnt-w { text-align: right; padding-right: 10px; font-weight: 700; font-size: .95rem; color: #e2e2e8; font-variant-numeric: tabular-nums; }
+    .cat-cnt-b { text-align: left; padding-left: 10px; font-weight: 700; font-size: .95rem; color: #999; font-variant-numeric: tabular-nums; }
+    .cat-icon-circle {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800; color: #fff;
+      margin: 0 auto; letter-spacing: -.5px;
+    }
+    .cat-brilliant  { background: #1baca6; }
+    .cat-great      { background: #5c8bb0; }
+    .cat-best       { background: #98bc4b; }
+    .cat-excellent  { background: #98bc4b; }
+    .cat-good       { background: #97af8b; }
+    .cat-book       { background: #a88652; }
+    .cat-inaccuracy { background: #e6a735; }
+    .cat-mistake    { background: #e08a30; }
+    .cat-miss       { background: #c45c4a; }
+    .cat-blunder    { background: #ca3431; }
+
+    /* ELO rating block */
+    .elo-row {
+      display: flex; gap: 8px; padding: 8px 16px 12px;
+    }
+    .elo-block {
+      flex: 1; border-radius: 8px; padding: 10px; text-align: center;
+    }
+    .elo-block.elo-high { background: #f0f0f0; color: #1a1a1a; }
+    .elo-block.elo-low  { background: #333; color: #999; }
+    .elo-title {
+      font-size: .6rem; text-transform: uppercase; letter-spacing: .8px;
+      opacity: .6; margin-bottom: 2px;
+    }
+    .elo-number {
+      font-size: 1.6rem; font-weight: 800; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Stage breakdown */
+    .stages-section {
+      padding: 8px 16px 12px;
+      border-top: 1px solid #333;
+    }
+    .stages-title {
+      font-size: .65rem; text-transform: uppercase; letter-spacing: 1px;
+      color: #666; margin-bottom: 8px; text-align: center;
+    }
+    .stage-row {
+      display: grid; grid-template-columns: 30px 1fr 30px;
+      align-items: center; padding: 4px 0; gap: 8px;
+    }
+    .stage-icon { text-align: center; font-size: .9rem; }
+    .stage-label { text-align: center; font-size: .82rem; color: #aaa; }
+    .stage-check { color: #81b64c; }
+    .stage-thumb { color: #e6a735; }
+    .stage-inacc { color: #e08a30; }
+
+    /* Action buttons */
+    .report-actions {
+      display: flex; gap: 8px; padding: 8px 16px 14px;
+    }
+    .report-btn {
+      flex: 1; padding: 12px; border-radius: 8px; border: none;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .report-btn:hover { opacity: .85; }
+    .btn-new-game {
+      background: #404040; color: #e2e2e8;
+    }
+    .btn-view-report {
+      background: #81b64c; color: #fff;
     }
   </style>
 </head>
@@ -382,56 +466,69 @@
 
       <div class="moves-list" id="movesList"></div>
 
-      <!-- Game Report -->
+      <!-- Game Report (Chess.com style) -->
       <div class="report-card" id="reportCard">
-        <h3>📊 Отчёт о партии</h3>
+        <!-- Coach -->
+        <div class="coach-row">
+          <div class="coach-avatar">🧔</div>
+          <div class="coach-bubble" id="coachBubble">Анализирую партию…</div>
+        </div>
 
-        <div class="accuracy-row">
-          <div class="accuracy-block white-block">
-            <span class="accuracy-label">Белые</span>
-            <span class="accuracy-pct" id="whiteAccuracy">0%</span>
-            <div class="accuracy-bar"><div class="accuracy-bar-fill" id="whiteAccBar" style="width:0%"></div></div>
+        <!-- Accuracy -->
+        <div class="players-accuracy">
+          <div class="player-acc-block winner" id="whiteAccBlock">
+            <span class="player-acc-name">Белые</span>
+            <span class="player-acc-pct" id="whiteAccPct">0%</span>
+            <span class="player-acc-sub">Точность</span>
+            <div class="acc-progress"><div class="acc-progress-fill" id="whiteAccBar" style="width:0%"></div></div>
           </div>
-          <div class="accuracy-block black-block">
-            <span class="accuracy-label">Чёрные</span>
-            <span class="accuracy-pct" id="blackAccuracy">0%</span>
-            <div class="accuracy-bar"><div class="accuracy-bar-fill" id="blackAccBar" style="width:0%"></div></div>
+          <div class="player-acc-block loser" id="blackAccBlock">
+            <span class="player-acc-name">Чёрные</span>
+            <span class="player-acc-pct" id="blackAccPct">0%</span>
+            <span class="player-acc-sub">Точность</span>
+            <div class="acc-progress"><div class="acc-progress-fill" id="blackAccBar" style="width:0%"></div></div>
           </div>
         </div>
 
-        <div class="cat-grid">
-          <div></div>
-          <div class="cat-grid-header">♘ Белые</div>
-          <div class="cat-grid-header">♞ Чёрные</div>
+        <!-- Category grid -->
+        <div class="cat-grid-v2" id="catGrid"></div>
 
-          <div class="cat-label"><span class="cat-icon">💎</span> Бриллиант</div>
-          <div class="cat-count w" id="wBrilliant">0</div>
-          <div class="cat-count b" id="bBrilliant">0</div>
-
-          <div class="cat-label"><span class="cat-icon">🌟</span> Отличный</div>
-          <div class="cat-count w" id="wExcellent">0</div>
-          <div class="cat-count b" id="bExcellent">0</div>
-
-          <div class="cat-label"><span class="cat-icon">✅</span> Хороший</div>
-          <div class="cat-count w" id="wGood">0</div>
-          <div class="cat-count b" id="bGood">0</div>
-
-          <div class="cat-label"><span class="cat-icon">⁉️</span> Неточность</div>
-          <div class="cat-count w" id="wInaccuracy">0</div>
-          <div class="cat-count b" id="bInaccuracy">0</div>
-
-          <div class="cat-label"><span class="cat-icon">❓</span> Ошибка</div>
-          <div class="cat-count w" id="wMistake">0</div>
-          <div class="cat-count b" id="bMistake">0</div>
-
-          <div class="cat-label"><span class="cat-icon">🤡</span> Зевок</div>
-          <div class="cat-count w" id="wBlunder">0</div>
-          <div class="cat-count b" id="bBlunder">0</div>
+        <!-- ELO rating -->
+        <div class="elo-row">
+          <div class="elo-block elo-high" id="eloBlockW">
+            <div class="elo-title">Рейтинг партии</div>
+            <div class="elo-number" id="eloWhite">—</div>
+          </div>
+          <div class="elo-block elo-low" id="eloBlockB">
+            <div class="elo-title">Рейтинг партии</div>
+            <div class="elo-number" id="eloBlack">—</div>
+          </div>
         </div>
 
-        <div class="elo-verdict" id="eloVerdict" style="display:none;">
-          <div class="elo-verdict-header">✨ Оценка уровня игры</div>
-          <span id="eloVerdictText"></span>
+        <!-- Stages -->
+        <div class="stages-section">
+          <div class="stages-title">Разбивка по стадиям</div>
+          <div class="stage-row">
+            <div class="stage-icon" id="stageOpenW"></div>
+            <div class="stage-label">Дебют</div>
+            <div class="stage-icon" id="stageOpenB"></div>
+          </div>
+          <div class="stage-row">
+            <div class="stage-icon" id="stageMidW"></div>
+            <div class="stage-label">Миттельшпиль</div>
+            <div class="stage-icon" id="stageMidB"></div>
+          </div>
+          <div class="stage-row">
+            <div class="stage-icon" id="stageEndW"></div>
+            <div class="stage-label">Эндшпиль</div>
+            <div class="stage-icon" id="stageEndB"></div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="report-actions">
+          <button class="report-btn btn-new-game" id="btnNewGame">Новая партия</button>
+          <button class="report-btn btn-view-report" id="btnViewReport">Смотреть отчет</button>
         </div>
       </div>
     </div>
@@ -1052,7 +1149,7 @@
         updateInfoPanel();
 
         // Render Game Report
-        if (data.stats) renderReport(data.stats, data.elo_verdict);
+        if (data.stats) renderReport(data.stats, data.elo_verdict, data.coach_summary);
 
         const hasComments = movesData.some(m => m.comment);
         status.className = 'status success';
@@ -1068,41 +1165,102 @@
     });
 
     // ==================================================================
-    // Game Report
+    // Game Report (Chess.com style)
     // ==================================================================
-    function renderReport(stats, eloVerdict) {
+    const CAT_DEFS = [
+      { key: 'brilliant',  icon: '!!', label: 'Блестящий',     css: 'cat-brilliant' },
+      { key: 'great',      icon: '!',  label: 'Замечательный', css: 'cat-great' },
+      { key: 'best',       icon: '⭐', label: 'Лучший',        css: 'cat-best' },
+      { key: 'excellent',  icon: '👍', label: 'Отлично',       css: 'cat-excellent' },
+      { key: 'good',       icon: '✅', label: 'Хорошо',        css: 'cat-good' },
+      { key: 'book',       icon: '📖', label: 'Теоретический', css: 'cat-book' },
+      { key: 'inaccuracy', icon: '?!', label: 'Неточность',    css: 'cat-inaccuracy' },
+      { key: 'mistake',    icon: '?',  label: 'Ошибка',        css: 'cat-mistake' },
+      { key: 'miss',       icon: '❌', label: 'Упущение',      css: 'cat-miss' },
+      { key: 'blunder',    icon: '??', label: 'Зевок',         css: 'cat-blunder' },
+    ];
+
+    function stageIcon(status) {
+      if (status === 'check') return '<span class="stage-check">✔</span>';
+      if (status === 'thumb') return '<span class="stage-thumb">👍</span>';
+      return '<span class="stage-inacc">?!</span>';
+    }
+
+    function renderReport(stats, eloVerdict, coachSummary) {
       const card = document.getElementById('reportCard');
       card.style.display = 'flex';
 
-      // Accuracy
-      document.getElementById('whiteAccuracy').textContent = stats.white.accuracy + '%';
-      document.getElementById('blackAccuracy').textContent = stats.black.accuracy + '%';
-      document.getElementById('whiteAccBar').style.width = stats.white.accuracy + '%';
-      document.getElementById('blackAccBar').style.width = stats.black.accuracy + '%';
+      // Coach
+      document.getElementById('coachBubble').textContent =
+        coachSummary || 'Партия проанализирована. Изучите отчёт ниже!';
 
-      // Category counters
-      document.getElementById('wBrilliant').textContent = stats.white.brilliant || 0;
-      document.getElementById('bBrilliant').textContent = stats.black.brilliant || 0;
-      document.getElementById('wExcellent').textContent = stats.white.excellent || 0;
-      document.getElementById('bExcellent').textContent = stats.black.excellent || 0;
-      document.getElementById('wGood').textContent = stats.white.good || 0;
-      document.getElementById('bGood').textContent = stats.black.good || 0;
-      document.getElementById('wInaccuracy').textContent = stats.white.inaccuracy || 0;
-      document.getElementById('bInaccuracy').textContent = stats.black.inaccuracy || 0;
-      document.getElementById('wMistake').textContent = stats.white.mistake || 0;
-      document.getElementById('bMistake').textContent = stats.black.mistake || 0;
-      document.getElementById('wBlunder').textContent = stats.white.blunder || 0;
-      document.getElementById('bBlunder').textContent = stats.black.blunder || 0;
+      // Accuracy — determine winner
+      const wAcc = stats.white.accuracy;
+      const bAcc = stats.black.accuracy;
+      const wBlock = document.getElementById('whiteAccBlock');
+      const bBlock = document.getElementById('blackAccBlock');
+      wBlock.className = 'player-acc-block ' + (wAcc >= bAcc ? 'winner' : 'loser');
+      bBlock.className = 'player-acc-block ' + (bAcc >= wAcc ? 'winner' : 'loser');
 
-      // ELO verdict
-      const verdictEl = document.getElementById('eloVerdict');
-      if (eloVerdict) {
-        document.getElementById('eloVerdictText').textContent = eloVerdict;
-        verdictEl.style.display = '';
-      } else {
-        verdictEl.style.display = 'none';
+      document.getElementById('whiteAccPct').textContent = wAcc + '%';
+      document.getElementById('blackAccPct').textContent = bAcc + '%';
+      document.getElementById('whiteAccBar').style.width = wAcc + '%';
+      document.getElementById('blackAccBar').style.width = bAcc + '%';
+
+      // Category grid — build dynamically
+      const grid = document.getElementById('catGrid');
+      grid.innerHTML = '';
+      CAT_DEFS.forEach(cat => {
+        const wVal = stats.white[cat.key] || 0;
+        const bVal = stats.black[cat.key] || 0;
+        if (wVal === 0 && bVal === 0) return; // hide empty categories
+        const row = document.createElement('div');
+        row.className = 'cat-row';
+        row.innerHTML =
+          `<div class="cat-cnt-w">${wVal}</div>` +
+          `<div class="cat-icon-circle ${cat.css}">${cat.icon}</div>` +
+          `<div class="cat-cnt-b">${bVal}</div>`;
+        grid.appendChild(row);
+      });
+
+      // ELO
+      const wElo = stats.white.elo || '—';
+      const bElo = stats.black.elo || '—';
+      document.getElementById('eloWhite').textContent = wElo;
+      document.getElementById('eloBlack').textContent = bElo;
+      const eloW = document.getElementById('eloBlockW');
+      const eloB = document.getElementById('eloBlockB');
+      eloW.className = 'elo-block ' + (wElo >= bElo ? 'elo-high' : 'elo-low');
+      eloB.className = 'elo-block ' + (bElo >= wElo ? 'elo-high' : 'elo-low');
+
+      // Stages
+      if (stats.white.stages) {
+        document.getElementById('stageOpenW').innerHTML = stageIcon(stats.white.stages.opening);
+        document.getElementById('stageOpenB').innerHTML = stageIcon(stats.black.stages.opening);
+        document.getElementById('stageMidW').innerHTML = stageIcon(stats.white.stages.middlegame);
+        document.getElementById('stageMidB').innerHTML = stageIcon(stats.black.stages.middlegame);
+        document.getElementById('stageEndW').innerHTML = stageIcon(stats.white.stages.endgame);
+        document.getElementById('stageEndB').innerHTML = stageIcon(stats.black.stages.endgame);
       }
     }
+
+    // New game button
+    document.getElementById('btnNewGame').addEventListener('click', () => {
+      document.getElementById('pgnInput').value = '';
+      document.getElementById('reportCard').style.display = 'none';
+      document.getElementById('infoCard').style.display = 'none';
+      document.getElementById('chartWrap').style.display = 'none';
+      document.getElementById('movesList').innerHTML = '';
+      movesData = [];
+      currentIdx = -1;
+      chess_game.reset();
+      board.position('start', false);
+    });
+
+    // View report button — scroll to first move
+    document.getElementById('btnViewReport').addEventListener('click', () => {
+      if (movesData.length) goToIndex(0, false);
+    });
   </script>
 
 </body>
