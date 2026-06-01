@@ -217,6 +217,28 @@
     .move-chip:hover { background: #2d2d40; color: #e2e2e8; }
     .move-chip.active { background: #7c3aed; color: #fff; border-color: #a78bfa; }
     .move-chip .chip-icon { margin-right: 2px; }
+
+    /* Legal move dots (Chess.com style) */
+    .legal-move-dot {
+      width: 25%; height: 25%;
+      background-color: rgba(0, 0, 0, 0.25);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .legal-move-capture {
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
+      border-radius: 50%;
+      border: 6px solid rgba(0, 0, 0, 0.25);
+      background: transparent;
+      pointer-events: none;
+      z-index: 10;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
@@ -330,6 +352,8 @@
       inVariation = false;
       variationMoves = [];
       document.getElementById('returnMainBtn').style.display = 'none';
+      // Rebuild chart from clean mainline data before navigating
+      buildChart();
       goToIndex(branchPoint, false);
     }
     
@@ -343,7 +367,7 @@
     }
     
     function getActiveMovesList() {
-        if (!inVariation) return movesData;
+        if (!inVariation) return [...movesData];
         return movesData.slice(0, branchPoint + 1).concat(variationMoves);
     }
 
@@ -351,18 +375,43 @@
     // Init board
     // ==================================================================
     
+    function clearLegalDots() {
+      document.querySelectorAll('.legal-move-dot, .legal-move-capture').forEach(el => el.remove());
+    }
+
+    function showLegalDots(square) {
+      clearLegalDots();
+      const moves = chess_game.moves({ square: square, verbose: true });
+      if (!moves || moves.length === 0) return;
+
+      const boardEl = document.getElementById('board');
+      moves.forEach(m => {
+        const targetSquareEl = boardEl.querySelector('.square-' + m.to);
+        if (!targetSquareEl) return;
+        // Make sure the square has position:relative for absolute children
+        targetSquareEl.style.position = 'relative';
+        const dot = document.createElement('div');
+        // Use ring for captures, dot for empty squares
+        dot.className = m.captured ? 'legal-move-capture' : 'legal-move-dot';
+        targetSquareEl.appendChild(dot);
+      });
+    }
+
     function onDragStart(source, piece, position, orientation) {
       if (chess_game.game_over()) return false;
       if ((chess_game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (chess_game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
       }
+      showLegalDots(source);
       return true;
     }
     
     // onDrop MUST be synchronous — chessboard.js ignores Promise returns,
     // so an async function's 'return "snapback"' is silently swallowed.
     function onDrop(source, target) {
+      clearLegalDots();
+
       const prevFen = chess_game.fen();
       const move = chess_game.move({
         from: source,
@@ -449,6 +498,7 @@
 
     // Sync board position with chess.js after every snap animation
     function onSnapEnd() {
+      clearLegalDots();
       board.position(chess_game.fen(), false);
     }
 
