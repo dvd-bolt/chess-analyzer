@@ -111,6 +111,63 @@ def get_material_value(board: chess.Board, color: chess.Color) -> int:
     return value
 
 
+def check_is_sacrifice(board_before: chess.Board, board_after: chess.Board, move: chess.Move, pv: list[chess.Move], side: chess.Color) -> bool:
+    """Определяет, является ли ход жертвой или ловушкой."""
+    # 1. Проверяем, пожертвована ли фигура, которой мы походили
+    moved_piece = board_before.piece_at(move.from_square)
+    if moved_piece and moved_piece.piece_type != chess.KING:
+        p_val = PIECE_VALUES.get(moved_piece.piece_type, 0)
+        attackers = board_after.attackers(not side, move.to_square)
+        defenders = board_after.attackers(side, move.to_square)
+        
+        if attackers:
+            # 100 для короля, чтобы он не считался более слабой фигурой
+            min_atk = min([PIECE_VALUES.get(board_after.piece_at(a).piece_type, 100) for a in attackers if board_after.piece_at(a)])
+            
+            captured_piece = board_before.piece_at(move.to_square)
+            cap_val = PIECE_VALUES.get(captured_piece.piece_type, 0) if captured_piece else 0
+            
+            # Под боем более слабой фигуры
+            if min_atk < p_val and (cap_val - p_val) < 0:
+                return True
+                    
+            # Атакована и абсолютно не защищена
+            if not defenders and (cap_val - p_val) < 0:
+                return True
+                
+    # 2. Проверяем, оставили ли мы другую ценную фигуру под боем
+    for sq in chess.SQUARES:
+        p = board_after.piece_at(sq)
+        # Рассматриваем только фигуры ценнее пешки
+        if p and p.color == side and p.piece_type not in (chess.KING, chess.PAWN):
+            p_val = PIECE_VALUES.get(p.piece_type, 0)
+            attackers = board_after.attackers(not side, sq)
+            defenders = board_after.attackers(side, sq)
+            
+            is_hanging_now = False
+            if attackers:
+                min_atk = min([PIECE_VALUES.get(board_after.piece_at(a).piece_type, 100) for a in attackers if board_after.piece_at(a)])
+                if min_atk < p_val or not defenders:
+                    is_hanging_now = True
+                    
+            if is_hanging_now:
+                # А была ли она под боем ДО нашего хода?
+                # Если фигура уже висела, и мы ее не спасли — это не новая жертва (исключаем цепочку !!).
+                attackers_before = board_before.attackers(not side, sq)
+                defenders_before = board_before.attackers(side, sq)
+                was_hanging_before = False
+                if attackers_before:
+                    min_atk_before = min([PIECE_VALUES.get(board_before.piece_at(a).piece_type, 100) for a in attackers_before if board_before.piece_at(a)])
+                    if min_atk_before < p_val or not defenders_before:
+                        was_hanging_before = True
+                        
+                if not was_hanging_before:
+                    return True
+                    
+    return False
+
+
+
 def score_to_cp(score: chess.engine.Score, pov: chess.Color) -> int:
     """
     Преобразует объект Score в целые сантипешки с точки зрения *pov*.
@@ -166,10 +223,10 @@ def categorize_move(
     had_advantage_before: bool = False,
 ) -> tuple[str, str, str]:
     """Возвращает (key, label_ru, icon) по CPL и эвристикам."""
+    if cpl <= 20 and is_sacrifice:
+        return "brilliant", "Блестящий", "!!"
     if is_book:
         return "book", "Теоретический", "📖"
-    if cpl <= 0 and is_sacrifice:
-        return "brilliant", "Блестящий", "!!"
     if cpl <= 0 and is_best_move:
         return "best", "Лучший", "⭐"
     if cpl <= 5:
@@ -302,7 +359,10 @@ def ask_gemini(game_log: list[dict], stats: dict) -> dict:
         "Ты — опытный шахматный тренер-персонаж, который обучает новичка. "
         "Я передаю тебе JSON со всей историей партии и оценками Stockfish. "
         "Изучи партию целиком и напиши ОДНО короткое предложение-комментарий "
-        "на русском языке к КАЖДОМУ ходу.\n\n"
+        "на русском языке к КАЖДОМУ ходу.\n"
+        "ВАЖНО: Если у хода указана категория 'Блестящий' (Зелёный значок !!), "
+        "обязательно напиши восторженный, хвалебный комментарий, отметив "
+        "гениальность тактической жертвы или ловушки.\n\n"
         + stats_summary +
         "\nВерни ответ СТРОГО в формате JSON со следующими ключами:\n"
         "- Числовые ключи (0, 1, 2...) — комментарии к ходам.\n"
@@ -481,16 +541,18 @@ def analyze(request: PGNRequest):
             opening_name = detect_opening(san_history) if move_index < 20 else ""
             is_book = bool(opening_name)
 
+            board_before = board.copy()
             board.push(move)
 
             info_after = engine.analyse(
                 board, chess.engine.Limit(time=0.2)
             )
             cp_after = score_to_cp(info_after["score"], side)
-            material_after_side = get_material_value(board, side)
+            
+            pv_after = info_after.get("pv", [])
 
             cpl = max(0, cp_before - cp_after)
-            is_sacrifice = cpl <= 5 and material_after_side < material_before_side
+            is_sacrifice = check_is_sacrifice(board_before, board, move, pv_after, side)
             is_best = (best_move == move) if best_move else False
 
             cat_key, category, icon = categorize_move(
@@ -613,11 +675,11 @@ def analyze_position(request: PositionRequest):
                 )
                 
             # Проверка на бриллиант
-            material_before = get_material_value(prev_board, side_moved)
-            material_after = get_material_value(board, side_moved)
-            if cpl <= 15 and material_after < material_before:
-                category = "Бриллиантовый"
-                icon = "💎"
+            pv_after = info_after.get("pv", [])
+            is_sacrifice = check_is_sacrifice(prev_board, board, board.peek(), pv_after, side_moved)
+            if cpl <= 20 and is_sacrifice:
+                category = "Блестящий"
+                icon = "!!"
 
         eval_white = score_to_cp(info_after["score"], chess.WHITE)
         score_display = format_score_display(info_after["score"], chess.WHITE)

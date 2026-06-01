@@ -170,7 +170,7 @@
     .cat-inaccuracy { color: #fbbf24; }
     .cat-mistake    { color: #f87171; }
     .cat-blunder    { color: #ef4444; }
-    .cat-brilliant  { color: #c084fc; }
+    .cat-brilliant  { color: #15bcac; }
 
     /* Gemini coach block */
     .gemini-block {
@@ -379,7 +379,7 @@
       font-size: .72rem; font-weight: 800; color: #fff;
       margin: 0 auto; letter-spacing: -.5px;
     }
-    .cat-brilliant  { background: #1baca6; }
+    .cat-brilliant  { background: #15bcac !important; box-shadow: 0 0 8px rgba(21, 188, 172, 0.6); color: #fff !important; }
     .cat-great      { background: #5c8bb0; }
     .cat-best       { background: #98bc4b; }
     .cat-excellent  { background: #98bc4b; }
@@ -811,6 +811,7 @@
         'Ошибка':        'cat-mistake',
         'Зевок':         'cat-blunder',
         'Бриллиантовый': 'cat-brilliant',
+        'Блестящий':     'cat-brilliant',
       };
       return map[cat] || '';
     }
