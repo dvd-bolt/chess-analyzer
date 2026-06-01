@@ -1,10 +1,11 @@
 """
-Chess Analyzer Backend — Этап 2
-Анализ CPL (Centipawn Loss), подсчёт материала, категоризация ходов,
-эвристика «бриллиантовых» ходов.
+Chess Analyzer Backend — Этап 3
+Анализ CPL, категоризация ходов, эвристика «бриллиантовых» ходов,
+интерактивный фронтенд с шахматной доской.
 """
 
 import io
+from pathlib import Path
 from typing import Optional
 
 import chess
@@ -12,6 +13,7 @@ import chess.engine
 import chess.pgn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -20,7 +22,7 @@ from pydantic import BaseModel
 app = FastAPI(
     title="Chess Analyzer API",
     description="Веб-приложение для анализа шахматных партий",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 app.add_middleware(
@@ -95,6 +97,15 @@ class PGNRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+@app.get("/", response_class=FileResponse)
+def index():
+    """Отдаёт главную HTML-страницу."""
+    return FileResponse(BASE_DIR / "index.html", media_type="text/html")
+
 
 @app.post("/analyze")
 def analyze(request: PGNRequest):

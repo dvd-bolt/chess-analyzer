@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Analyzer — Анализ шахматных партий</title>
+
+  <!-- chessboard.js CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+  />
+
+  <style>
+    /* ------------------------------------------------------------------ */
+    /* Google Font                                                        */
+    /* ------------------------------------------------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* ------------------------------------------------------------------ */
+    /* Reset & base                                                       */
+    /* ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f0f14;
+      color: #e2e2e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Header                                                             */
+    /* ------------------------------------------------------------------ */
+    .header {
+      width: 100%;
+      padding: 24px 0 12px;
+      text-align: center;
+      background: linear-gradient(180deg, #16161d 0%, #0f0f14 100%);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #6ee7b7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -.5px;
+    }
+    .header p { font-size: .85rem; color: #737388; margin-top: 4px; }
+
+    /* ------------------------------------------------------------------ */
+    /* Main layout                                                        */
+    /* ------------------------------------------------------------------ */
+    .container {
+      display: flex;
+      gap: 28px;
+      padding: 32px 24px 48px;
+      max-width: 960px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Board column                                                       */
+    /* ------------------------------------------------------------------ */
+    .board-col { display: flex; flex-direction: column; gap: 14px; }
+
+    #board { width: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.45); }
+
+    /* Navigation buttons */
+    .nav-bar {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .nav-bar button {
+      flex: 1;
+      max-width: 80px;
+      padding: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: #1e1e2a;
+      color: #c4c4d4;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    .nav-bar button:hover { background: #2d2d40; }
+    .nav-bar button:active { transform: scale(.95); }
+
+    /* ------------------------------------------------------------------ */
+    /* Side panel                                                         */
+    /* ------------------------------------------------------------------ */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 280px;
+      max-width: 400px;
+      flex: 1;
+    }
+
+    /* PGN input */
+    .pgn-group { display: flex; flex-direction: column; gap: 8px; }
+    .pgn-group label {
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: #737388;
+    }
+    #pgnInput {
+      width: 100%;
+      height: 140px;
+      padding: 12px 14px;
+      border: 1px solid #2a2a3a;
+      border-radius: 10px;
+      background: #16161f;
+      color: #e2e2e8;
+      font-family: 'Inter', monospace;
+      font-size: .85rem;
+      resize: vertical;
+      transition: border-color .2s;
+    }
+    #pgnInput:focus { outline: none; border-color: #a78bfa; }
+
+    /* Analyze button */
+    #analyzeBtn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .3px;
+    }
+    #analyzeBtn:hover { opacity: .9; }
+    #analyzeBtn:active { transform: scale(.97); }
+    #analyzeBtn:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* Info card */
+    .info-card {
+      background: #16161f;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .info-card h3 {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #737388;
+    }
+    .move-display {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .move-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+      min-width: 48px;
+      text-align: center;
+    }
+    .move-details { display: flex; flex-direction: column; gap: 2px; }
+    .move-san {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .move-category {
+      font-size: .9rem;
+      font-weight: 500;
+    }
+    .move-cpl {
+      font-size: .78rem;
+      color: #737388;
+    }
+
+    /* Category colors */
+    .cat-excellent  { color: #6ee7b7; }
+    .cat-good       { color: #86efac; }
+    .cat-inaccuracy { color: #fbbf24; }
+    .cat-mistake    { color: #f87171; }
+    .cat-blunder    { color: #ef4444; }
+    .cat-brilliant  { color: #c084fc; }
+
+    /* Move counter */
+    .move-counter {
+      text-align: center;
+      font-size: .8rem;
+      color: #52526a;
+      padding-top: 4px;
+      border-top: 1px solid #1e1e2a;
+    }
+
+    /* Status / loading */
+    .status {
+      font-size: .82rem;
+      color: #737388;
+      min-height: 22px;
+    }
+    .status.error { color: #f87171; }
+    .status.success { color: #6ee7b7; }
+
+    /* Moves list */
+    .moves-list {
+      max-height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 8px 0;
+    }
+    .moves-list::-webkit-scrollbar { width: 4px; }
+    .moves-list::-webkit-scrollbar-track { background: transparent; }
+    .moves-list::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
+
+    .move-chip {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: #1e1e2a;
+      color: #a0a0b4;
+      transition: background .15s, color .15s;
+      border: 1px solid transparent;
+    }
+    .move-chip:hover { background: #2d2d40; color: #e2e2e8; }
+    .move-chip.active {
+      background: #7c3aed;
+      color: #fff;
+      border-color: #a78bfa;
+    }
+    .move-chip .chip-icon { margin-right: 2px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>♔ Chess Analyzer</h1>
+    <p>Загрузите PGN-партию и исследуйте каждый ход</p>
+  </div>
+
+  <!-- Main -->
+  <div class="container">
+
+    <!-- Left: Board -->
+    <div class="board-col">
+      <div id="board"></div>
+      <div class="nav-bar">
+        <button id="btnStart" title="В начало">⏮</button>
+        <button id="btnPrev"  title="Назад">◀</button>
+        <button id="btnNext"  title="Вперёд">▶</button>
+        <button id="btnEnd"   title="В конец">⏭</button>
+      </div>
+    </div>
+
+    <!-- Right: Panel -->
+    <div class="side-panel">
+
+      <!-- PGN input -->
+      <div class="pgn-group">
+        <label for="pgnInput">Вставьте PGN</label>
+        <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+      </div>
+      <button id="analyzeBtn">🔍 Анализировать</button>
+      <div id="status" class="status"></div>
+
+      <!-- Move info -->
+      <div class="info-card" id="infoCard" style="display:none;">
+        <h3>Текущий ход</h3>
+        <div class="move-display">
+          <span class="move-icon" id="moveIcon">🌟</span>
+          <div class="move-details">
+            <span class="move-san" id="moveSan">—</span>
+            <span class="move-category" id="moveCategory">—</span>
+            <span class="move-cpl" id="moveCpl"></span>
+          </div>
+        </div>
+        <div class="move-counter" id="moveCounter">— / —</div>
+      </div>
+
+      <!-- Move list chips -->
+      <div class="moves-list" id="movesList"></div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+  <script>
+    // ==================================================================
+    // State
+    // ==================================================================
+    let movesData = [];   // array from /analyze
+    let currentIdx = -1;  // -1 = start position
+    let chess_game = new Chess();
+    let board = null;
+
+    // ==================================================================
+    // Init board
+    // ==================================================================
+    board = Chessboard('board', {
+      position: 'start',
+      pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/img/chesspieces/wikipedia/{piece}.png',
+      appearSpeed: 150,
+      moveSpeed: 150,
+    });
+
+    // ==================================================================
+    // Helpers
+    // ==================================================================
+    function categoryClass(cat) {
+      const map = {
+        'Отличный':      'cat-excellent',
+        'Хороший':       'cat-good',
+        'Неточность':    'cat-inaccuracy',
+        'Ошибка':        'cat-mistake',
+        'Зевок':         'cat-blunder',
+        'Бриллиантовый': 'cat-brilliant',
+      };
+      return map[cat] || '';
+    }
+
+    function updateInfoPanel() {
+      const card = document.getElementById('infoCard');
+      const icon = document.getElementById('moveIcon');
+      const san  = document.getElementById('moveSan');
+      const cat  = document.getElementById('moveCategory');
+      const cpl  = document.getElementById('moveCpl');
+      const counter = document.getElementById('moveCounter');
+
+      if (currentIdx < 0 || currentIdx >= movesData.length) {
+        icon.textContent = '♟';
+        san.textContent  = 'Начальная позиция';
+        cat.textContent  = '';
+        cat.className    = 'move-category';
+        cpl.textContent  = '';
+        counter.textContent = `0 / ${movesData.length}`;
+        return;
+      }
+
+      const m = movesData[currentIdx];
+      const moveNum = Math.floor(currentIdx / 2) + 1;
+      const dots = m.color === 'white' ? '.' : '...';
+
+      icon.textContent = m.icon;
+      san.textContent  = `${moveNum}${dots} ${m.san}`;
+      cat.textContent  = m.category;
+      cat.className    = `move-category ${categoryClass(m.category)}`;
+      cpl.textContent  = `CPL: ${m.cpl}`;
+      counter.textContent = `${currentIdx + 1} / ${movesData.length}`;
+
+      // highlight active chip
+      document.querySelectorAll('.move-chip').forEach((el, i) => {
+        el.classList.toggle('active', i === currentIdx);
+      });
+
+      // scroll active chip into view
+      const activeChip = document.querySelector('.move-chip.active');
+      if (activeChip) activeChip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function goToIndex(idx) {
+      // rebuild board position up to idx
+      chess_game.reset();
+      for (let i = 0; i <= idx && i < movesData.length; i++) {
+        chess_game.move(movesData[i].san);
+      }
+      currentIdx = idx;
+      board.position(chess_game.fen(), true);
+      updateInfoPanel();
+    }
+
+    // ==================================================================
+    // Build move chips
+    // ==================================================================
+    function buildMoveChips() {
+      const container = document.getElementById('movesList');
+      container.innerHTML = '';
+      movesData.forEach((m, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'move-chip';
+
+        const moveNum = Math.floor(i / 2) + 1;
+        const prefix = m.color === 'white' ? `${moveNum}. ` : '';
+
+        chip.innerHTML = `<span class="chip-icon">${m.icon}</span>${prefix}${m.san}`;
+        chip.addEventListener('click', () => goToIndex(i));
+        container.appendChild(chip);
+      });
+    }
+
+    // ==================================================================
+    // Nav buttons
+    // ==================================================================
+    document.getElementById('btnStart').addEventListener('click', () => goToIndex(-1));
+    document.getElementById('btnPrev').addEventListener('click', () => {
+      if (currentIdx > -1) goToIndex(currentIdx - 1);
+    });
+    document.getElementById('btnNext').addEventListener('click', () => {
+      if (currentIdx < movesData.length - 1) goToIndex(currentIdx + 1);
+    });
+    document.getElementById('btnEnd').addEventListener('click', () => {
+      if (movesData.length) goToIndex(movesData.length - 1);
+    });
+
+    // Keyboard arrows
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft')  document.getElementById('btnPrev').click();
+      if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
+      if (e.key === 'Home')       document.getElementById('btnStart').click();
+      if (e.key === 'End')        document.getElementById('btnEnd').click();
+    });
+
+    // ==================================================================
+    // Analyze
+    // ==================================================================
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+      const pgn = document.getElementById('pgnInput').value.trim();
+      if (!pgn) return;
+
+      const btn = document.getElementById('analyzeBtn');
+      const status = document.getElementById('status');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Анализ…';
+      status.className = 'status';
+      status.textContent = 'Отправляю на анализ, это может занять некоторое время…';
+
+      try {
+        const resp = await fetch('/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pgn }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        movesData = data.moves_data;
+        currentIdx = -1;
+
+        // reset board
+        chess_game.reset();
+        board.position('start', false);
+
+        // show UI
+        document.getElementById('infoCard').style.display = '';
+        buildMoveChips();
+        updateInfoPanel();
+
+        status.className = 'status success';
+        status.textContent = `✓ Проанализировано ${movesData.length} ходов`;
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = `✗ ${e.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Анализировать';
+      }
+    });
+
+    // handle goToIndex(-1) = start
+    function goToIndex(idx) {
+      chess_game.reset();
+      if (idx >= 0) {
+        for (let i = 0; i <= idx && i < movesData.length; i++) {
+          chess_game.move(movesData[i].san);
+        }
+      }
+      currentIdx = idx;
+      board.position(chess_game.fen(), true);
+      updateInfoPanel();
+    }
+  </script>
+
+</body>
+</html>
