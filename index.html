@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chess Analyzer — Анализ шахматных партий</title>
+  <title>Chess Analyzer — Анализ шахматных партий с ИИ-тренером</title>
 
-  <!-- chessboard.js CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
@@ -35,83 +34,80 @@
       border-bottom: 1px solid rgba(255,255,255,.06);
     }
     .header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 1.6rem; font-weight: 700;
       background: linear-gradient(135deg, #a78bfa, #6ee7b7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       letter-spacing: -.5px;
     }
     .header p { font-size: .85rem; color: #737388; margin-top: 4px; }
 
     /* Layout */
     .container {
-      display: flex;
-      gap: 28px;
-      padding: 32px 24px 48px;
-      max-width: 1060px;
-      width: 100%;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: flex; gap: 28px; padding: 32px 24px 48px;
+      max-width: 1060px; width: 100%; flex-wrap: wrap; justify-content: center;
     }
 
     /* Board column */
     .board-col { display: flex; flex-direction: column; gap: 12px; }
 
-    /* Eval bar above board */
+    /* Eval bar */
     .eval-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; height: 42px;
     }
     .eval-score {
-      font-size: 1.6rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      min-width: 80px;
-      text-align: center;
-      transition: color .2s;
+      font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      min-width: 90px; text-align: center; transition: color .2s;
     }
     .eval-score.white-advantage { color: #f0f0f0; }
     .eval-score.black-advantage { color: #a0a0b4; }
     .eval-score.equal { color: #737388; }
-    .eval-label {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      color: #52526a;
-    }
+    .eval-score.mate { color: #f87171; }
+    .eval-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; color: #52526a; }
 
     #board { width: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.45); }
 
-    /* Nav buttons */
+    /* Nav */
     .nav-bar { display: flex; gap: 8px; justify-content: center; }
     .nav-bar button {
-      flex: 1; max-width: 80px; padding: 10px 0;
-      border: none; border-radius: 8px; background: #1e1e2a;
-      color: #c4c4d4; font-size: 1rem; font-weight: 600;
+      flex: 1; max-width: 80px; padding: 10px 0; border: none; border-radius: 8px;
+      background: #1e1e2a; color: #c4c4d4; font-size: 1rem; font-weight: 600;
       cursor: pointer; transition: background .2s, transform .1s;
     }
     .nav-bar button:hover { background: #2d2d40; }
     .nav-bar button:active { transform: scale(.95); }
 
-    /* Chart container */
+    /* Chart */
     .chart-wrap {
-      background: #16161f;
-      border: 1px solid #2a2a3a;
-      border-radius: 10px;
-      padding: 12px 12px 6px;
-      width: 400px;
+      background: #16161f; border: 1px solid #2a2a3a; border-radius: 10px;
+      padding: 12px 12px 6px; width: 400px;
     }
     .chart-wrap canvas { width: 100% !important; height: 130px !important; }
 
     /* Side panel */
     .side-panel {
-      display: flex; flex-direction: column; gap: 16px;
-      min-width: 280px; max-width: 400px; flex: 1;
+      display: flex; flex-direction: column; gap: 14px;
+      min-width: 300px; max-width: 420px; flex: 1;
     }
+
+    /* Chess.com loader */
+    .chesscom-row {
+      display: flex; gap: 8px; align-items: stretch;
+    }
+    #usernameInput {
+      flex: 1; padding: 10px 12px; border: 1px solid #2a2a3a; border-radius: 8px;
+      background: #16161f; color: #e2e2e8; font-size: .85rem;
+      font-family: 'Inter', sans-serif;
+    }
+    #usernameInput:focus { outline: none; border-color: #6ee7b7; }
+    #loadChesscomBtn {
+      padding: 10px 14px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff; font-size: .8rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: opacity .2s;
+    }
+    #loadChesscomBtn:hover { opacity: .88; }
+    #loadChesscomBtn:disabled { opacity: .45; cursor: not-allowed; }
 
     /* PGN input */
     .pgn-group { display: flex; flex-direction: column; gap: 8px; }
@@ -120,10 +116,10 @@
       letter-spacing: .8px; color: #737388;
     }
     #pgnInput {
-      width: 100%; height: 140px; padding: 12px 14px;
+      width: 100%; height: 120px; padding: 12px 14px;
       border: 1px solid #2a2a3a; border-radius: 10px;
       background: #16161f; color: #e2e2e8;
-      font-family: 'Inter', monospace; font-size: .85rem;
+      font-family: 'Inter', monospace; font-size: .82rem;
       resize: vertical; transition: border-color .2s;
     }
     #pgnInput:focus { outline: none; border-color: #a78bfa; }
@@ -133,8 +129,7 @@
       width: 100%; padding: 12px; border: none; border-radius: 10px;
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
       color: #fff; font-size: .95rem; font-weight: 600;
-      cursor: pointer; transition: opacity .2s, transform .1s;
-      letter-spacing: .3px;
+      cursor: pointer; transition: opacity .2s, transform .1s; letter-spacing: .3px;
     }
     #analyzeBtn:hover { opacity: .9; }
     #analyzeBtn:active { transform: scale(.97); }
@@ -146,8 +141,7 @@
       padding: 20px; display: flex; flex-direction: column; gap: 14px;
     }
     .info-card h3 {
-      font-size: .75rem; text-transform: uppercase;
-      letter-spacing: 1px; color: #737388;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: 1px; color: #737388;
     }
     .move-display { display: flex; align-items: center; gap: 14px; }
     .move-icon { font-size: 2.4rem; line-height: 1; min-width: 48px; text-align: center; }
@@ -156,7 +150,6 @@
     .move-category { font-size: .9rem; font-weight: 500; }
     .move-cpl { font-size: .78rem; color: #737388; }
 
-    /* Category colors */
     .cat-excellent  { color: #6ee7b7; }
     .cat-good       { color: #86efac; }
     .cat-inaccuracy { color: #fbbf24; }
@@ -164,7 +157,24 @@
     .cat-blunder    { color: #ef4444; }
     .cat-brilliant  { color: #c084fc; }
 
-    /* Move counter */
+    /* Gemini coach block */
+    .gemini-block {
+      margin-top: 8px; padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(110,231,183,.06));
+      border: 1px solid rgba(167,139,250,.2);
+      border-radius: 10px;
+    }
+    .gemini-block-header {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #a78bfa; margin-bottom: 8px; font-weight: 600;
+    }
+    .gemini-block-header span { font-size: 1rem; }
+    .gemini-comment {
+      font-size: .88rem; line-height: 1.5; color: #d0d0dc;
+    }
+    .gemini-comment.empty { color: #52526a; font-style: italic; }
+
     .move-counter {
       text-align: center; font-size: .8rem; color: #52526a;
       padding-top: 4px; border-top: 1px solid #1e1e2a;
@@ -199,7 +209,7 @@
   <!-- Header -->
   <div class="header">
     <h1>♔ Chess Analyzer</h1>
-    <p>Загрузите PGN-партию и исследуйте каждый ход</p>
+    <p>Анализ партий с ИИ-тренером · Stockfish + Gemini</p>
   </div>
 
   <!-- Main -->
@@ -207,8 +217,6 @@
 
     <!-- Left: Board + Chart -->
     <div class="board-col">
-
-      <!-- Eval score above board -->
       <div class="eval-bar" id="evalBar" style="visibility:hidden;">
         <span class="eval-label">Оценка</span>
         <span class="eval-score equal" id="evalScore">0.0</span>
@@ -223,18 +231,23 @@
         <button id="btnEnd"   title="В конец">⏭</button>
       </div>
 
-      <!-- Eval chart -->
       <div class="chart-wrap" id="chartWrap" style="display:none;">
         <canvas id="evalChart"></canvas>
       </div>
-
     </div>
 
     <!-- Right: Panel -->
     <div class="side-panel">
 
+      <!-- Chess.com loader -->
+      <div class="chesscom-row">
+        <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
+        <button id="loadChesscomBtn">♟ Загрузить</button>
+      </div>
+
+      <!-- PGN input -->
       <div class="pgn-group">
-        <label for="pgnInput">Вставьте PGN</label>
+        <label for="pgnInput">Или вставьте PGN вручную</label>
         <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
       </div>
       <button id="analyzeBtn">🔍 Анализировать</button>
@@ -251,6 +264,15 @@
             <span class="move-cpl" id="moveCpl"></span>
           </div>
         </div>
+
+        <!-- Gemini coach -->
+        <div class="gemini-block" id="geminiBlock">
+          <div class="gemini-block-header">
+            <span>✨</span> Совет тренера Gemini
+          </div>
+          <div class="gemini-comment" id="geminiComment">—</div>
+        </div>
+
         <div class="move-counter" id="moveCounter">— / —</div>
       </div>
 
@@ -276,7 +298,7 @@
     let evalChart = null;
 
     // ==================================================================
-    // Init board — FIXED piece images
+    // Init board
     // ==================================================================
     board = Chessboard('board', {
       position: 'start',
@@ -300,7 +322,11 @@
       return map[cat] || '';
     }
 
-    function formatEval(cp) {
+    function formatEval(m) {
+      if (m && m.score_display && m.score_display.startsWith('#')) {
+        return m.score_display;
+      }
+      const cp = m ? m.eval : 0;
       const val = (cp / 100).toFixed(1);
       return cp > 0 ? `+${val}` : val;
     }
@@ -318,11 +344,19 @@
         el.className = 'eval-score equal';
         return;
       }
-      const ev = movesData[currentIdx].eval;
-      el.textContent = formatEval(ev);
-      if (ev > 30)       el.className = 'eval-score white-advantage';
-      else if (ev < -30) el.className = 'eval-score black-advantage';
-      else               el.className = 'eval-score equal';
+      const m = movesData[currentIdx];
+      const display = formatEval(m);
+      el.textContent = display;
+
+      if (display.startsWith('#')) {
+        el.className = 'eval-score mate';
+      } else if (m.eval > 30) {
+        el.className = 'eval-score white-advantage';
+      } else if (m.eval < -30) {
+        el.className = 'eval-score black-advantage';
+      } else {
+        el.className = 'eval-score equal';
+      }
     }
 
     // ==================================================================
@@ -398,13 +432,11 @@
             },
             y: {
               ticks: {
-                color: '#52526a',
-                font: { size: 10 },
+                color: '#52526a', font: { size: 10 },
                 callback: (v) => (v > 0 ? '+' : '') + v,
               },
               grid: { color: 'rgba(255,255,255,0.04)' },
-              suggestedMin: -5,
-              suggestedMax: 5,
+              suggestedMin: -5, suggestedMax: 5,
             },
           },
           onClick: (evt) => {
@@ -429,7 +461,7 @@
     }
 
     // ==================================================================
-    // Info panel
+    // Info panel + Gemini comment
     // ==================================================================
     function updateInfoPanel() {
       const icon = document.getElementById('moveIcon');
@@ -437,6 +469,7 @@
       const cat  = document.getElementById('moveCategory');
       const cpl  = document.getElementById('moveCpl');
       const counter = document.getElementById('moveCounter');
+      const gemini  = document.getElementById('geminiComment');
 
       if (currentIdx < 0 || currentIdx >= movesData.length) {
         icon.textContent = '♟';
@@ -445,6 +478,8 @@
         cat.className    = 'move-category';
         cpl.textContent  = '';
         counter.textContent = `0 / ${movesData.length}`;
+        gemini.textContent = 'Выберите ход для получения совета';
+        gemini.className = 'gemini-comment empty';
       } else {
         const m = movesData[currentIdx];
         const moveNum = Math.floor(currentIdx / 2) + 1;
@@ -456,16 +491,24 @@
         cat.className    = `move-category ${categoryClass(m.category)}`;
         cpl.textContent  = `CPL: ${m.cpl}`;
         counter.textContent = `${currentIdx + 1} / ${movesData.length}`;
+
+        // Gemini comment
+        if (m.comment) {
+          gemini.textContent = m.comment;
+          gemini.className = 'gemini-comment';
+        } else {
+          gemini.textContent = 'Комментарий отсутствует';
+          gemini.className = 'gemini-comment empty';
+        }
       }
 
-      // highlight active chip
+      // highlight chip
       document.querySelectorAll('.move-chip').forEach((el, i) => {
         el.classList.toggle('active', i === currentIdx);
       });
       const activeChip = document.querySelector('.move-chip.active');
       if (activeChip) activeChip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
-      // eval + chart
       updateEvalDisplay();
       updateChartIndicator();
     }
@@ -486,7 +529,7 @@
     }
 
     // ==================================================================
-    // Build move chips
+    // Move chips
     // ==================================================================
     function buildMoveChips() {
       const container = document.getElementById('movesList');
@@ -516,13 +559,46 @@
       if (movesData.length) goToIndex(movesData.length - 1);
     });
 
-    // Keyboard
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
       if (e.key === 'ArrowLeft')  document.getElementById('btnPrev').click();
       if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
       if (e.key === 'Home')       document.getElementById('btnStart').click();
       if (e.key === 'End')        document.getElementById('btnEnd').click();
+    });
+
+    // ==================================================================
+    // Load from Chess.com
+    // ==================================================================
+    document.getElementById('loadChesscomBtn').addEventListener('click', async () => {
+      const username = document.getElementById('usernameInput').value.trim();
+      if (!username) return;
+
+      const btn = document.getElementById('loadChesscomBtn');
+      const status = document.getElementById('status');
+
+      btn.disabled = true;
+      btn.textContent = '⏳…';
+      status.className = 'status';
+      status.textContent = `Загружаю последнюю партию ${username}…`;
+
+      try {
+        const resp = await fetch(`/get_latest_game/${encodeURIComponent(username)}`);
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+        const data = await resp.json();
+        document.getElementById('pgnInput').value = data.pgn;
+        status.className = 'status success';
+        status.textContent = `✓ PGN загружен` + (data.url ? ` · ${data.url}` : '');
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = `✗ ${e.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '♟ Загрузить';
+      }
     });
 
     // ==================================================================
@@ -538,7 +614,7 @@
       btn.disabled = true;
       btn.textContent = '⏳ Анализ…';
       status.className = 'status';
-      status.textContent = 'Отправляю на анализ, это может занять некоторое время…';
+      status.textContent = 'Stockfish анализирует + Gemini комментирует… Это может занять время.';
 
       try {
         const resp = await fetch('/analyze', {
@@ -566,8 +642,10 @@
         buildChart();
         updateInfoPanel();
 
+        const hasComments = movesData.some(m => m.comment);
         status.className = 'status success';
-        status.textContent = `✓ Проанализировано ${movesData.length} ходов`;
+        status.textContent = `✓ ${movesData.length} ходов` +
+          (hasComments ? ' · Комментарии Gemini загружены' : ' · Без комментариев Gemini');
       } catch (e) {
         status.className = 'status error';
         status.textContent = `✗ ${e.message}`;
