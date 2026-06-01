@@ -180,6 +180,32 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
         return {}
 
 
+def ask_gemini_blunder(fen: str, prev_fen: str, move_san: str) -> str:
+    """Запрашивает короткий комментарий только при зевках в песочнице."""
+    if gemini_client is None:
+        return ""
+
+    prompt = (
+        "Пользователь сделал ход в шахматной песочнице, оценка рухнула. "
+        "Объясни новичку (рейтинг ~400 Elo) в одно емкое, простое предложение на русском языке, "
+        "в чем именно заключается его тактическая ошибка и какую угрозу он пропустил. "
+        "Верни СТРОГО текст комментария.\n\n"
+        f"Предыдущая позиция (FEN): {prev_fen}\n"
+        f"Ход пользователя: {move_san}\n"
+        f"Текущая позиция (FEN): {fen}"
+    )
+
+    try:
+        response = gemini_client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt,
+        )
+        return response.text.strip()
+    except Exception as exc:
+        print(f"[ERROR] Gemini blunder error: {exc}")
+        return ""
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
@@ -187,6 +213,12 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
 
 class PGNRequest(BaseModel):
     pgn: str
+
+
+class PositionRequest(BaseModel):
+    fen: str
+    prev_fen: Optional[str] = None
+    move_san: str
 
 
 # ---------------------------------------------------------------------------
@@ -355,3 +387,70 @@ def analyze(request: PGNRequest):
 
     # --- 4. Ответ ---
     return {"moves_data": moves_data}
+
+
+@app.post("/analyze_position")
+def analyze_position(request: PositionRequest):
+    """Быстрый анализ одиночного хода для песочницы."""
+    engine: Optional[chess.engine.SimpleEngine] = None
+    try:
+        engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
+        board = chess.Board(request.fen)
+        
+        # Сторона, которая только что сделала ход (если сейчас ход черных, значит ходили белые)
+        side_moved = not board.turn
+        
+        info_after = engine.analyse(board, chess.engine.Limit(depth=10))
+        cp_after = score_to_cp(info_after["score"], side_moved)
+        
+        cpl = 0
+        category = "Хороший"
+        icon = "✅"
+        comment = ""
+        
+        # Если передан предыдущий FEN, считаем CPL
+        if request.prev_fen:
+            prev_board = chess.Board(request.prev_fen)
+            info_before = engine.analyse(prev_board, chess.engine.Limit(depth=10))
+            cp_before = score_to_cp(info_before["score"], side_moved)
+            
+            cpl = max(0, cp_before - cp_after)
+            category, icon = categorize_move(cpl)
+            
+            # Зевок (> 200 сантипешек)
+            if cpl > 200:
+                comment = ask_gemini_blunder(request.fen, request.prev_fen, request.move_san)
+                
+            # Проверка на бриллиант
+            material_before = get_material_value(prev_board, side_moved)
+            material_after = get_material_value(board, side_moved)
+            if cpl <= 15 and material_after < material_before:
+                category = "Бриллиантовый"
+                icon = "💎"
+
+        eval_white = score_to_cp(info_after["score"], chess.WHITE)
+        score_display = format_score_display(info_after["score"], chess.WHITE)
+        
+        return {
+            "san": request.move_san,
+            "color": "white" if side_moved == chess.WHITE else "black",
+            "cpl": cpl,
+            "eval": eval_white,
+            "score_display": score_display,
+            "category": category,
+            "icon": icon,
+            "comment": comment
+        }
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Движок Stockfish не найден по пути: {STOCKFISH_PATH}",
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка при анализе позиции: {exc}",
+        )
+    finally:
+        if engine is not None:
+            engine.quit()

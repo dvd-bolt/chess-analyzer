@@ -90,6 +90,14 @@
       min-width: 300px; max-width: 420px; flex: 1;
     }
 
+    /* Controls */
+    .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .mode-toggle { display: flex; background: #16161f; border-radius: 8px; border: 1px solid #2a2a3a; overflow: hidden; }
+    .mode-toggle button { flex: 1; padding: 8px 12px; border: none; background: transparent; color: #737388; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .mode-toggle button.active { background: #2d2d40; color: #fff; }
+    #clearBoardBtn { padding: 8px 12px; border: 1px solid #ef4444; border-radius: 8px; background: rgba(239,68,68,.1); color: #ef4444; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; display: none; }
+    #clearBoardBtn:hover { background: rgba(239,68,68,.2); }
+
     /* Chess.com loader */
     .chesscom-row {
       display: flex; gap: 8px; align-items: stretch;
@@ -239,6 +247,14 @@
     <!-- Right: Panel -->
     <div class="side-panel">
 
+      <div class="controls-row">
+        <div class="mode-toggle">
+          <button id="modePgnBtn" class="active">Просмотр PGN</button>
+          <button id="modeSandboxBtn">Песочница</button>
+        </div>
+        <button id="clearBoardBtn">Очистить доску</button>
+      </div>
+
       <!-- Chess.com loader -->
       <div class="chesscom-row">
         <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
@@ -296,15 +312,127 @@
     let chess_game = new Chess();
     let board = null;
     let evalChart = null;
+    let isSandboxMode = false;
+
+    // ==================================================================
+    // Sandbox Mode Toggle
+    // ==================================================================
+    document.getElementById('modePgnBtn').addEventListener('click', (e) => {
+      isSandboxMode = false;
+      e.target.classList.add('active');
+      document.getElementById('modeSandboxBtn').classList.remove('active');
+      document.getElementById('clearBoardBtn').style.display = 'none';
+    });
+    
+    document.getElementById('modeSandboxBtn').addEventListener('click', (e) => {
+      isSandboxMode = true;
+      e.target.classList.add('active');
+      document.getElementById('modePgnBtn').classList.remove('active');
+      document.getElementById('clearBoardBtn').style.display = '';
+      
+      // Reset for sandbox
+      chess_game.reset();
+      board.position('start', false);
+      movesData = [];
+      currentIdx = -1;
+      
+      document.getElementById('infoCard').style.display = 'none';
+      document.getElementById('chartWrap').style.display = 'none';
+      
+      buildMoveChips();
+      buildChart();
+      updateInfoPanel();
+    });
+    
+    document.getElementById('clearBoardBtn').addEventListener('click', () => {
+      chess_game.reset();
+      board.position('start', false);
+      movesData = [];
+      currentIdx = -1;
+      
+      document.getElementById('infoCard').style.display = 'none';
+      document.getElementById('chartWrap').style.display = 'none';
+      
+      buildMoveChips();
+      buildChart();
+      updateInfoPanel();
+    });
 
     // ==================================================================
     // Init board
     // ==================================================================
+    
+    function onDragStart(source, piece, position, orientation) {
+      if (!isSandboxMode) return false;
+      return true;
+    }
+    
+    async function onDrop(source, target) {
+      if (!isSandboxMode) return 'snapback';
+    
+      const prevFen = chess_game.fen();
+      const move = chess_game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
+      });
+    
+      if (move === null) return 'snapback';
+    
+      const fen = chess_game.fen();
+      const san = move.san;
+    
+      // Add temp move to UI
+      const tempMove = {
+        san: san,
+        color: move.color === 'w' ? 'white' : 'black',
+        cpl: 0,
+        eval: movesData.length > 0 ? movesData[movesData.length-1].eval : 0,
+        score_display: '',
+        category: 'Анализ...',
+        icon: '⏳',
+        comment: ''
+      };
+      
+      if (currentIdx < movesData.length - 1) {
+        movesData = movesData.slice(0, currentIdx + 1);
+      }
+      movesData.push(tempMove);
+      currentIdx = movesData.length - 1;
+      
+      document.getElementById('infoCard').style.display = '';
+      document.getElementById('chartWrap').style.display = '';
+      
+      buildMoveChips();
+      updateInfoPanel();
+    
+      // Ajax call
+      try {
+        const resp = await fetch('/analyze_position', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fen, prev_fen: prevFen, move_san: san }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          movesData[currentIdx] = data; // update with real data
+          buildMoveChips();
+          buildChart();
+          updateInfoPanel();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     board = Chessboard('board', {
+      draggable: true,
       position: 'start',
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
       appearSpeed: 150,
       moveSpeed: 150,
+      onDragStart: onDragStart,
+      onDrop: onDrop
     });
 
     // ==================================================================
