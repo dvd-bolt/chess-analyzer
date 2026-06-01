@@ -360,41 +360,46 @@
       return true;
     }
     
-    async function onDrop(source, target) {
+    // onDrop MUST be synchronous — chessboard.js ignores Promise returns,
+    // so an async function's 'return "snapback"' is silently swallowed.
+    function onDrop(source, target) {
       const prevFen = chess_game.fen();
       const move = chess_game.move({
         from: source,
         to: target,
         promotion: 'q'
       });
-    
+
+      // Illegal move — snap the piece back immediately
       if (move === null) return 'snapback';
-    
+
       const fen = chess_game.fen();
       const san = move.san;
-      
-      // Is it following mainline?
+
+      // If the move follows the mainline, just advance the index
       if (!inVariation && currentIdx + 1 < movesData.length && movesData[currentIdx + 1].san === san) {
-          goToIndex(currentIdx + 1, false);
+          currentIdx = currentIdx + 1;
+          board.position(chess_game.fen(), false);
+          updateInfoPanel();
+          buildChart();
           return;
       }
-      
-      // Deviate or extend variation
+
+      // --- Entering or extending a variation ---
       if (!inVariation) {
           inVariation = true;
           branchPoint = currentIdx;
           variationMoves = [];
           document.getElementById('returnMainBtn').style.display = 'block';
       } else {
-          // Truncate variation if deviating from current variation branch
           const varIdx = currentIdx - branchPoint - 1;
           if (varIdx < variationMoves.length - 1) {
              variationMoves = variationMoves.slice(0, varIdx + 1);
           }
       }
-      
+
       const prevMoveData = getCurrentMoveData();
-    
+
       const tempMove = {
         san: san,
         color: move.color === 'w' ? 'white' : 'black',
@@ -405,16 +410,22 @@
         icon: '⏳',
         comment: ''
       };
-      
+
       variationMoves.push(tempMove);
       currentIdx = branchPoint + variationMoves.length;
-      
+
       document.getElementById('infoCard').style.display = '';
       document.getElementById('chartWrap').style.display = '';
-      
+
       buildMoveChips();
+      buildChart();
       updateInfoPanel();
-    
+
+      // Fire-and-forget async server call
+      analyzeLastVariationMove(fen, prevFen, san);
+    }
+
+    async function analyzeLastVariationMove(fen, prevFen, san) {
       try {
         const resp = await fetch('/analyze_position', {
           method: 'POST',
@@ -423,8 +434,6 @@
         });
         if (resp.ok) {
           const data = await resp.json();
-          // Update the specific move that was just made in the variation array
-          // Since network is async, find it by index or just update the latest.
           const vIdx = currentIdx - branchPoint - 1;
           if (vIdx >= 0 && vIdx < variationMoves.length) {
               variationMoves[vIdx] = data;
@@ -434,8 +443,13 @@
           updateInfoPanel();
         }
       } catch (e) {
-        console.error(e);
+        console.error('[analyze_position error]', e);
       }
+    }
+
+    // Sync board position with chess.js after every snap animation
+    function onSnapEnd() {
+      board.position(chess_game.fen(), false);
     }
 
     board = Chessboard('board', {
@@ -445,7 +459,8 @@
       appearSpeed: 150,
       moveSpeed: 150,
       onDragStart: onDragStart,
-      onDrop: onDrop
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd
     });
 
     // ==================================================================
