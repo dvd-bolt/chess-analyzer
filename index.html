@@ -88,6 +88,7 @@
     .side-panel {
       display: flex; flex-direction: column; gap: 14px;
       min-width: 300px; max-width: 420px; flex: 1;
+      height: 640px; /* Lock height */
     }
 
     /* Variations */
@@ -161,8 +162,7 @@
     .move-display { display: flex; align-items: center; gap: 14px; }
     .move-icon { font-size: 2.4rem; line-height: 1; min-width: 48px; text-align: center; }
     .move-details { display: flex; flex-direction: column; gap: 2px; }
-    .move-san { font-size: 1.5rem; font-weight: 700; color: #fff; }
-    .move-category { font-size: .9rem; font-weight: 500; }
+    .move-san { font-size: 1.5rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
     .move-cpl { font-size: .78rem; color: #737388; }
 
     .cat-excellent  { color: #6ee7b7; }
@@ -202,8 +202,12 @@
 
     /* Moves list */
     .moves-list {
-      max-height: 160px; overflow-y: auto; display: flex;
+      flex: 1; overflow-y: auto; display: flex;
       flex-wrap: wrap; gap: 4px; padding: 8px 0;
+      align-content: flex-start;
+    }
+    #contentMoves {
+      display: flex; flex-direction: column; flex: 1; overflow: hidden;
     }
     .moves-list::-webkit-scrollbar { width: 4px; }
     .moves-list::-webkit-scrollbar-track { background: transparent; }
@@ -280,16 +284,19 @@
 
     /* ============ Game Report (Chess.com style) ============ */
     .report-card {
-      display: none; background: #262626; border-radius: 12px;
-      flex-direction: column; gap: 0; overflow: hidden;
-      border: 1px solid #333;
+      display: none; background: #16161f; border-radius: 12px;
+      flex-direction: column; gap: 0; overflow-y: auto; overflow-x: hidden;
+      border: 1px solid #333; flex: 1;
     }
+    .report-card::-webkit-scrollbar { width: 4px; }
+    .report-card::-webkit-scrollbar-track { background: transparent; }
+    .report-card::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
 
     /* Coach bubble */
     .coach-row {
       display: flex; align-items: flex-start; gap: 10px;
       padding: 16px 16px 12px;
-      background: #2b2b2b;
+      background: #1e1e24;
     }
     .coach-avatar {
       width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
@@ -299,13 +306,19 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.3);
     }
     .coach-bubble {
-      background: #f0f0f0; color: #1a1a1a; border-radius: 12px;
+      background: #1e1e2a; color: #fff; border-radius: 12px;
       padding: 10px 14px; font-size: .85rem; line-height: 1.45;
-      position: relative; flex: 1;
+      position: relative; flex: 1; border: 1px solid #a855f7;
+      box-shadow: 0 4px 12px rgba(168,85,247,.15);
     }
     .coach-bubble::before {
       content: ''; position: absolute; left: -6px; top: 14px;
-      border: 6px solid transparent; border-right-color: #f0f0f0;
+      border: 6px solid transparent; border-right-color: #a855f7;
+      border-left: 0;
+    }
+    .coach-bubble::after {
+      content: ''; position: absolute; left: -4px; top: 15px;
+      border: 5px solid transparent; border-right-color: #1e1e2a;
       border-left: 0;
     }
 
@@ -318,18 +331,22 @@
       display: flex; flex-direction: column; align-items: center; gap: 3px;
     }
     .player-acc-block.winner {
-      background: #f0f0f0; color: #1a1a1a;
+      background: #1e1e2a; color: #e2e2e8; border: 1px solid rgba(255,255,255,0.05);
     }
     .player-acc-block.loser {
-      background: #333; color: #999;
+      background: #16161f; color: #999; border: 1px solid rgba(255,255,255,0.02);
     }
     .player-acc-name {
       font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; opacity: .7;
     }
     .player-acc-pct {
       font-size: 1.8rem; font-weight: 800; line-height: 1;
-      font-variant-numeric: tabular-nums;
+      font-variant-numeric: tabular-nums; transition: color 0.3s, text-shadow 0.3s;
     }
+    .acc-high { color: #10b981; text-shadow: 0 0 8px rgba(16,185,129,0.4); }
+    .acc-mid { color: #f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.4); }
+    .acc-low { color: #ef4444; text-shadow: 0 0 8px rgba(239,68,68,0.4); }
+
     .player-acc-sub {
       font-size: .65rem; opacity: .5; text-transform: uppercase; letter-spacing: .6px;
     }
@@ -340,8 +357,8 @@
     .acc-progress-fill {
       height: 100%; border-radius: 3px; transition: width .8s ease;
     }
-    .winner .acc-progress-fill { background: #1a1a1a; }
-    .loser .acc-progress-fill { background: #81b64c; }
+    .winner .acc-progress-fill { background: #a855f7; }
+    .loser .acc-progress-fill { background: #6ee7b7; }
 
     /* Move category grid — centered icons */
     .cat-grid-v2 {
@@ -380,8 +397,8 @@
     .elo-block {
       flex: 1; border-radius: 8px; padding: 10px; text-align: center;
     }
-    .elo-block.elo-high { background: #f0f0f0; color: #1a1a1a; }
-    .elo-block.elo-low  { background: #333; color: #999; }
+    .elo-block.elo-high { background: #1e1e2a; color: #e2e2e8; border: 1px solid rgba(255,255,255,0.05); }
+    .elo-block.elo-low  { background: #16161f; color: #999; border: 1px solid rgba(255,255,255,0.02); }
     .elo-title {
       font-size: .6rem; text-transform: uppercase; letter-spacing: .8px;
       opacity: .6; margin-bottom: 2px;
@@ -465,19 +482,22 @@
 
       <button id="returnMainBtn">↩ Вернуться к главной партии</button>
 
-      <!-- Chess.com loader -->
-      <div class="chesscom-row">
-        <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
-        <button id="loadChesscomBtn">♟ Загрузить</button>
-      </div>
+      <!-- Input Section -->
+      <div id="inputSection">
+        <!-- Chess.com loader -->
+        <div class="chesscom-row">
+          <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
+          <button id="loadChesscomBtn">♟ Загрузить</button>
+        </div>
 
-      <!-- PGN input -->
-      <div class="pgn-group">
-        <label for="pgnInput">Или вставьте PGN вручную</label>
-        <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+        <!-- PGN input -->
+        <div class="pgn-group">
+          <label for="pgnInput">Или вставьте PGN вручную</label>
+          <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+        </div>
+        <button id="analyzeBtn">🔍 Анализировать</button>
+        <div id="status" class="status"></div>
       </div>
-      <button id="analyzeBtn">🔍 Анализировать</button>
-      <div id="status" class="status"></div>
 
       <!-- Tabs -->
       <div class="tabs-container" id="tabsContainer">
@@ -492,9 +512,8 @@
           <div class="move-display">
             <span class="info-coach-avatar" id="infoCoachAvatar">😐</span>
             <div class="move-details">
-              <span class="move-san" id="moveSan">—</span>
+              <span class="move-san" id="moveSan"><span id="moveBadge" style="display:none;"></span> <span id="moveSanText">—</span></span>
               <div id="openingName" class="opening-badge" style="display:none;"></div>
-              <span class="move-category" id="moveCategory">—</span>
               <span class="move-cpl" id="moveCpl"></span>
             </div>
           </div>
@@ -573,10 +592,15 @@
         </div>
 
         <!-- Actions -->
-        <div class="report-actions">
+        <div class="report-actions" style="display:none;">
           <button class="report-btn btn-new-game" id="btnNewGame">Новая партия</button>
           <button class="report-btn btn-view-report" id="btnViewReport">Смотреть отчет</button>
         </div>
+      </div>
+
+      <!-- Reset / Reload -->
+      <div id="resetSection" style="display:none; padding-top: 10px; margin-top: auto;">
+        <button id="btnNewGamePanel" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #a0a0b4; border: 1px dashed rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: .85rem; font-weight: 600;">📥 Загрузить новую партию</button>
       </div>
     </div>
   </div>
@@ -951,8 +975,8 @@
     function updateInfoPanel() {
       clearBestMoveHighlight();
       if (currentIdx < 0 || currentIdx >= movesData.length) {
-        document.getElementById('moveSan').textContent = '—';
-        document.getElementById('moveCategory').textContent = '—';
+        document.getElementById('moveSanText').textContent = '—';
+        document.getElementById('moveBadge').style.display = 'none';
         document.getElementById('moveCpl').textContent = '';
         document.getElementById('geminiComment').textContent = 'Выберите ход для получения совета';
         document.getElementById('geminiComment').className = 'gemini-comment empty';
@@ -966,8 +990,19 @@
       }
       
       const m = movesData[currentIdx];
-      document.getElementById('moveSan').textContent = m.san;
-      document.getElementById('moveCategory').textContent = m.category;
+      const moveNum = Math.floor(currentIdx / 2) + 1;
+      const prefix = m.color === 'white' ? `${moveNum}. ` : `${moveNum}... `;
+      document.getElementById('moveSanText').textContent = prefix + m.san;
+      
+      const cat = getCatDef(m.cat_key);
+      const badge = document.getElementById('moveBadge');
+      if (cat.icon) {
+        badge.className = `chip-badge ${cat.css}`;
+        badge.textContent = cat.icon;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
       
       if (m.cpl > 0) {
         document.getElementById('moveCpl').textContent = `Потеря: ${m.cpl} cp`;
@@ -1233,12 +1268,15 @@
         chess_game.reset();
         board.position('start', false);
 
+        document.getElementById('inputSection').style.display = 'none';
         document.getElementById('tabsContainer').style.display = 'flex';
-        showTab('report');
-        document.getElementById('chartWrap').style.display = '';
-
-        buildMoveChips();
+        document.getElementById('resetSection').style.display = 'block';
+          
+        showTab('moves');
         buildChart();
+        goToIndex(0);
+        
+        buildMoveChips();
         updateInfoPanel();
 
         // Render Game Report
@@ -1312,8 +1350,15 @@
       wBlock.className = 'player-acc-block ' + (wAcc >= bAcc ? 'winner' : 'loser');
       bBlock.className = 'player-acc-block ' + (bAcc >= wAcc ? 'winner' : 'loser');
 
-      document.getElementById('whiteAccPct').textContent = wAcc + '%';
-      document.getElementById('blackAccPct').textContent = bAcc + '%';
+      const wPctEl = document.getElementById('whiteAccPct');
+      const bPctEl = document.getElementById('blackAccPct');
+      
+      wPctEl.textContent = wAcc + '%';
+      bPctEl.textContent = bAcc + '%';
+      
+      wPctEl.className = 'player-acc-pct ' + (wAcc > 85 ? 'acc-high' : (wAcc >= 50 ? 'acc-mid' : 'acc-low'));
+      bPctEl.className = 'player-acc-pct ' + (bAcc > 85 ? 'acc-high' : (bAcc >= 50 ? 'acc-mid' : 'acc-low'));
+
       document.getElementById('whiteAccBar').style.width = wAcc + '%';
       document.getElementById('blackAccBar').style.width = bAcc + '%';
 
@@ -1354,19 +1399,9 @@
       }
     }
 
-    // New game button
-    document.getElementById('btnNewGame').addEventListener('click', () => {
-      document.getElementById('pgnInput').value = '';
-      document.getElementById('tabsContainer').style.display = 'none';
-      document.getElementById('reportCard').style.display = 'none';
-      document.getElementById('contentMoves').style.display = 'none';
-      document.getElementById('chartWrap').style.display = 'none';
-      document.getElementById('movesList').innerHTML = '';
-      movesData = [];
-      currentIdx = -1;
-      chess_game.reset();
-      board.position('start', false);
-    });
+    // New game / Reset
+    document.getElementById('btnNewGame').addEventListener('click', () => { window.location.reload(); });
+    document.getElementById('btnNewGamePanel').addEventListener('click', () => { window.location.reload(); });
 
     // View report button — switch to moves tab and scroll to first move
     document.getElementById('btnViewReport').addEventListener('click', () => {
