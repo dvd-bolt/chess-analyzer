@@ -7,6 +7,11 @@ Chess Analyzer Backend — Этап 5 (MVP)
 import io
 import json
 import os
+
+# Очистка системных прокси (чтобы httpx не падал на socks4)
+for var in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"]:
+    os.environ.pop(var, None)
+
 import re
 from pathlib import Path
 from typing import Optional
