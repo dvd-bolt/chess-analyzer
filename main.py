@@ -147,15 +147,26 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
     )
 
     try:
-        response = gemini_model.generate_content(prompt)
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config={"response_mime_type": "application/json"},
+        )
         text = response.text.strip()
-        # Убираем возможные ```json ... ``` обёртки
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
+        # Подстраховка: убираем ```json ... ``` если модель всё равно обернула
+        text = re.sub(r"^```(?:json)?\s*\n?", "", text, flags=re.DOTALL)
+        text = re.sub(r"\n?\s*```\s*$", "", text, flags=re.DOTALL)
+        text = text.strip()
         parsed = json.loads(text)
+        print(f"[INFO] Gemini вернул комментарии к {len(parsed)} ходам")
         return {int(k): str(v) for k, v in parsed.items()}
     except Exception as exc:
-        print(f"[WARNING] Gemini error: {exc}")
+        raw = ""
+        try:
+            raw = response.text[:500]
+        except Exception:
+            raw = "(не удалось получить текст ответа)"
+        print(f"[ERROR] Gemini error: {exc}")
+        print(f"[ERROR] Gemini raw response: {raw}")
         return {}
 
 
