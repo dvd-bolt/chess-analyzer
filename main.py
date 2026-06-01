@@ -1,7 +1,7 @@
 """
-Chess Analyzer Backend — Этап 5 (MVP)
-Полный анализ CPL, эвристика «бриллиантовых» ходов,
-интеграция Chess.com API, комментарии Gemini AI.
+Chess Analyzer Backend — Этап 6 (Game Report)
+Полный анализ CPL, точность, счетчики категорий, эвристика «бриллиантовых» ходов,
+интеграция Chess.com API, комментарии Gemini AI + оценка ELO.
 """
 
 import io
@@ -11,6 +11,7 @@ import os
 import urllib.request
 urllib.request.getproxies = lambda: {}
 
+import math
 import re
 from pathlib import Path
 from typing import Optional
@@ -122,24 +123,87 @@ def format_score_display(score: chess.engine.Score, pov: chess.Color) -> str:
 
 def categorize_move(cpl: int) -> tuple[str, str]:
     """Возвращает (категория, иконка) по величине CPL."""
-    if cpl <= 15:
+    if cpl <= 10:
         return "Отличный", "🌟"
-    if cpl <= 50:
+    if cpl <= 30:
         return "Хороший", "✅"
-    if cpl <= 100:
+    if cpl <= 80:
         return "Неточность", "⁉️"
-    if cpl <= 300:
+    if cpl <= 200:
         return "Ошибка", "❓"
     return "Зевок", "🤡"
 
 
-def ask_gemini(game_log: list[dict]) -> dict[int, str]:
+def compute_stats(moves_data: list[dict]) -> dict:
+    """Рассчитывает точность и счётчики категорий для белых и чёрных."""
+    white_cpls = []
+    black_cpls = []
+
+    cats = {
+        "white": {"excellent": 0, "good": 0, "inaccuracy": 0, "mistake": 0, "blunder": 0, "brilliant": 0},
+        "black": {"excellent": 0, "good": 0, "inaccuracy": 0, "mistake": 0, "blunder": 0, "brilliant": 0},
+    }
+
+    cat_map = {
+        "Отличный": "excellent",
+        "Хороший": "good",
+        "Неточность": "inaccuracy",
+        "Ошибка": "mistake",
+        "Зевок": "blunder",
+        "Бриллиантовый": "brilliant",
+    }
+
+    for m in moves_data:
+        color = m["color"]
+        cpl = m["cpl"]
+        if color == "white":
+            white_cpls.append(cpl)
+        else:
+            black_cpls.append(cpl)
+        cat_key = cat_map.get(m["category"], "good")
+        cats[color][cat_key] += 1
+
+    def accuracy(cpls: list) -> float:
+        if not cpls:
+            return 100.0
+        avg = sum(cpls) / len(cpls)
+        return round(min(100.0, max(0.0, 100.0 * math.exp(-0.005 * avg))), 1)
+
+    return {
+        "white": {
+            "accuracy": accuracy(white_cpls),
+            "avg_cpl": round(sum(white_cpls) / len(white_cpls), 1) if white_cpls else 0,
+            "moves": len(white_cpls),
+            **cats["white"],
+        },
+        "black": {
+            "accuracy": accuracy(black_cpls),
+            "avg_cpl": round(sum(black_cpls) / len(black_cpls), 1) if black_cpls else 0,
+            "moves": len(black_cpls),
+            **cats["black"],
+        },
+    }
+
+
+def ask_gemini(game_log: list[dict], stats: dict) -> dict[int, str]:
     """
     Отправляет полный лог партии в Gemini одним запросом.
     Возвращает dict {index: comment}.
     """
     if gemini_client is None:
         return {}
+
+    stats_summary = (
+        f"Статистика партии:\n"
+        f"Белые: точность {stats['white']['accuracy']}%, "
+        f"зевков {stats['white']['blunder']}, ошибок {stats['white']['mistake']}, "
+        f"неточностей {stats['white']['inaccuracy']}, "
+        f"средняя потеря {stats['white']['avg_cpl']} CPL.\n"
+        f"Чёрные: точность {stats['black']['accuracy']}%, "
+        f"зевков {stats['black']['blunder']}, ошибок {stats['black']['mistake']}, "
+        f"неточностей {stats['black']['inaccuracy']}, "
+        f"средняя потеря {stats['black']['avg_cpl']} CPL.\n"
+    )
 
     prompt = (
         "Ты — опытный шахматный тренер, который обучает новичка (рейтинг ~400 Elo). "
@@ -149,9 +213,15 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
         "и напиши ОДНО короткое, емкое предложение-комментарий на русском языке "
         "к КАЖДОМУ ходу. Объясняй человеческим языком: зачем сделан ход, "
         "какую угрозу он несет, почему движку не нравится неточность или "
-        "в чем гениальность жертвы (бриллианта). "
-        "Верни ответ СТРОГО в формате JSON, где ключи — индексы ходов (числа), "
-        "а значения — твои комментарии-советы. Ничего кроме JSON не пиши.\n\n"
+        "в чем гениальность жертвы (бриллианта).\n\n"
+        + stats_summary +
+        "\nНа основе этой статистики также добавь в JSON ключ \"elo_verdict\" "
+        "(строку), в которой напиши свою оценку примерного рейтинга ELO каждого "
+        "из игроков на основании качества их игры, например: "
+        "\"Белые сыграли на ~1200 ELO, Чёрные на ~700 ELO\".\n\n"
+        "Верни ответ СТРОГО в формате JSON, где ключи — индексы ходов (числа) и "
+        "отдельный ключ \"elo_verdict\", а значения — твои комментарии-советы. "
+        "Ничего кроме JSON не пиши.\n\n"
         f"```json\n{json.dumps(game_log, ensure_ascii=False)}\n```"
     )
 
@@ -380,14 +450,26 @@ def analyze(request: PGNRequest):
         if engine is not None:
             engine.quit()
 
-    # --- 3. Комментарии Gemini ---
-    comments = ask_gemini(game_log)
-    for idx, comment in comments.items():
-        if 0 <= idx < len(moves_data):
-            moves_data[idx]["comment"] = comment
+    # --- 3. Статистика ---
+    stats = compute_stats(moves_data)
 
-    # --- 4. Ответ ---
-    return {"moves_data": moves_data}
+    # --- 4. Комментарии Gemini ---
+    gemini_result = ask_gemini(game_log, stats)
+    elo_verdict = ""
+    for key, value in gemini_result.items():
+        if key == "elo_verdict" or str(key) == "elo_verdict":
+            elo_verdict = str(value)
+            continue
+        idx = int(key) if isinstance(key, (int, str)) and str(key).isdigit() else None
+        if idx is not None and 0 <= idx < len(moves_data):
+            moves_data[idx]["comment"] = str(value)
+
+    # --- 5. Ответ ---
+    return {
+        "moves_data": moves_data,
+        "stats": stats,
+        "elo_verdict": elo_verdict,
+    }
 
 
 @app.post("/analyze_position")

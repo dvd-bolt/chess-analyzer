@@ -239,6 +239,71 @@
       z-index: 10;
       box-sizing: border-box;
     }
+
+    /* Game Report */
+    .report-card {
+      display: none; background: #16161f; border: 1px solid #2a2a3a;
+      border-radius: 12px; padding: 18px; flex-direction: column; gap: 16px;
+    }
+    .report-card h3 {
+      font-size: .75rem; text-transform: uppercase; letter-spacing: 1px;
+      color: #737388; margin: 0;
+    }
+    .accuracy-row {
+      display: flex; gap: 12px;
+    }
+    .accuracy-block {
+      flex: 1; border-radius: 10px; padding: 14px; text-align: center;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .accuracy-block.white-block {
+      background: #f0f0f0; color: #1a1a2e;
+    }
+    .accuracy-block.black-block {
+      background: #1e1e2a; color: #e2e2e8; border: 1px solid #2a2a3a;
+    }
+    .accuracy-pct {
+      font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .accuracy-label {
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .8px; opacity: .6;
+    }
+    .accuracy-bar {
+      width: 100%; height: 6px; border-radius: 3px; background: rgba(0,0,0,.15);
+      overflow: hidden; margin-top: 4px;
+    }
+    .accuracy-bar-fill {
+      height: 100%; border-radius: 3px; transition: width .6s ease;
+    }
+    .white-block .accuracy-bar-fill { background: #1a1a2e; }
+    .black-block .accuracy-bar-fill { background: #a78bfa; }
+
+    .cat-grid {
+      display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px 12px;
+      align-items: center; font-size: .82rem;
+    }
+    .cat-grid-header {
+      font-size: .68rem; text-transform: uppercase; letter-spacing: .6px;
+      color: #52526a; font-weight: 600; text-align: center;
+    }
+    .cat-label { display: flex; align-items: center; gap: 6px; color: #a0a0b4; }
+    .cat-label .cat-icon { font-size: 1rem; }
+    .cat-count { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .cat-count.w { color: #e2e2e8; }
+    .cat-count.b { color: #a0a0b4; }
+
+    .elo-verdict {
+      margin-top: 4px; padding: 12px 14px; border-radius: 8px;
+      background: linear-gradient(135deg, rgba(124,58,237,.1), rgba(110,231,183,.08));
+      border: 1px solid rgba(167,139,250,.2);
+      font-size: .85rem; line-height: 1.5; color: #d0d0dc;
+    }
+    .elo-verdict-header {
+      font-size: .68rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #a78bfa; font-weight: 600; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 5px;
+    }
   </style>
 </head>
 <body>
@@ -316,6 +381,59 @@
       </div>
 
       <div class="moves-list" id="movesList"></div>
+
+      <!-- Game Report -->
+      <div class="report-card" id="reportCard">
+        <h3>📊 Отчёт о партии</h3>
+
+        <div class="accuracy-row">
+          <div class="accuracy-block white-block">
+            <span class="accuracy-label">Белые</span>
+            <span class="accuracy-pct" id="whiteAccuracy">0%</span>
+            <div class="accuracy-bar"><div class="accuracy-bar-fill" id="whiteAccBar" style="width:0%"></div></div>
+          </div>
+          <div class="accuracy-block black-block">
+            <span class="accuracy-label">Чёрные</span>
+            <span class="accuracy-pct" id="blackAccuracy">0%</span>
+            <div class="accuracy-bar"><div class="accuracy-bar-fill" id="blackAccBar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="cat-grid">
+          <div></div>
+          <div class="cat-grid-header">♘ Белые</div>
+          <div class="cat-grid-header">♞ Чёрные</div>
+
+          <div class="cat-label"><span class="cat-icon">💎</span> Бриллиант</div>
+          <div class="cat-count w" id="wBrilliant">0</div>
+          <div class="cat-count b" id="bBrilliant">0</div>
+
+          <div class="cat-label"><span class="cat-icon">🌟</span> Отличный</div>
+          <div class="cat-count w" id="wExcellent">0</div>
+          <div class="cat-count b" id="bExcellent">0</div>
+
+          <div class="cat-label"><span class="cat-icon">✅</span> Хороший</div>
+          <div class="cat-count w" id="wGood">0</div>
+          <div class="cat-count b" id="bGood">0</div>
+
+          <div class="cat-label"><span class="cat-icon">⁉️</span> Неточность</div>
+          <div class="cat-count w" id="wInaccuracy">0</div>
+          <div class="cat-count b" id="bInaccuracy">0</div>
+
+          <div class="cat-label"><span class="cat-icon">❓</span> Ошибка</div>
+          <div class="cat-count w" id="wMistake">0</div>
+          <div class="cat-count b" id="bMistake">0</div>
+
+          <div class="cat-label"><span class="cat-icon">🤡</span> Зевок</div>
+          <div class="cat-count w" id="wBlunder">0</div>
+          <div class="cat-count b" id="bBlunder">0</div>
+        </div>
+
+        <div class="elo-verdict" id="eloVerdict" style="display:none;">
+          <div class="elo-verdict-header">✨ Оценка уровня игры</div>
+          <span id="eloVerdictText"></span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -933,6 +1051,9 @@
         buildChart();
         updateInfoPanel();
 
+        // Render Game Report
+        if (data.stats) renderReport(data.stats, data.elo_verdict);
+
         const hasComments = movesData.some(m => m.comment);
         status.className = 'status success';
         status.textContent = `✓ ${movesData.length} ходов` +
@@ -945,6 +1066,43 @@
         btn.textContent = '🔍 Анализировать';
       }
     });
+
+    // ==================================================================
+    // Game Report
+    // ==================================================================
+    function renderReport(stats, eloVerdict) {
+      const card = document.getElementById('reportCard');
+      card.style.display = 'flex';
+
+      // Accuracy
+      document.getElementById('whiteAccuracy').textContent = stats.white.accuracy + '%';
+      document.getElementById('blackAccuracy').textContent = stats.black.accuracy + '%';
+      document.getElementById('whiteAccBar').style.width = stats.white.accuracy + '%';
+      document.getElementById('blackAccBar').style.width = stats.black.accuracy + '%';
+
+      // Category counters
+      document.getElementById('wBrilliant').textContent = stats.white.brilliant || 0;
+      document.getElementById('bBrilliant').textContent = stats.black.brilliant || 0;
+      document.getElementById('wExcellent').textContent = stats.white.excellent || 0;
+      document.getElementById('bExcellent').textContent = stats.black.excellent || 0;
+      document.getElementById('wGood').textContent = stats.white.good || 0;
+      document.getElementById('bGood').textContent = stats.black.good || 0;
+      document.getElementById('wInaccuracy').textContent = stats.white.inaccuracy || 0;
+      document.getElementById('bInaccuracy').textContent = stats.black.inaccuracy || 0;
+      document.getElementById('wMistake').textContent = stats.white.mistake || 0;
+      document.getElementById('bMistake').textContent = stats.black.mistake || 0;
+      document.getElementById('wBlunder').textContent = stats.white.blunder || 0;
+      document.getElementById('bBlunder').textContent = stats.black.blunder || 0;
+
+      // ELO verdict
+      const verdictEl = document.getElementById('eloVerdict');
+      if (eloVerdict) {
+        document.getElementById('eloVerdictText').textContent = eloVerdict;
+        verdictEl.style.display = '';
+      } else {
+        verdictEl.style.display = 'none';
+      }
+    }
   </script>
 
 </body>
