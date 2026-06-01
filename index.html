@@ -352,6 +352,11 @@
     // ==================================================================
     
     function onDragStart(source, piece, position, orientation) {
+      if (chess_game.game_over()) return false;
+      if ((chess_game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (chess_game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
       return true;
     }
     
@@ -506,83 +511,93 @@
         const num = Math.floor(i / 2) + 1;
         return m.color === 'white' ? `${num}.` : `${num}…`;
       });
-      const data = activeMoves.map(m => Math.max(-1500, Math.min(1500, m.eval)) / 100);
-
-      if (evalChart) evalChart.destroy();
-
-      evalChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            data,
-            borderColor: '#a78bfa',
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHitRadius: 8,
-            tension: 0.3,
-            fill: {
-              target: { value: 0 },
-              above: 'rgba(167,139,250,0.12)',
-              below: 'rgba(239,68,68,0.12)',
-            },
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 300 },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1e1e2a',
-              titleColor: '#e2e2e8',
-              bodyColor: '#a0a0b4',
-              borderColor: '#2a2a3a',
-              borderWidth: 1,
-              callbacks: {
-                label: (ctx) => `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y.toFixed(1)}`,
-              },
-            },
-            annotation: {
-              annotations: {
-                zeroLine: {
-                  type: 'line',
-                  yMin: 0, yMax: 0,
-                  borderColor: '#52526a',
-                  borderWidth: 1,
-                  borderDash: [4, 4],
-                },
-                currentMove: {
-                  type: 'line',
-                  xMin: 0, xMax: 0,
-                  borderColor: '#facc15',
-                  borderWidth: 2,
-                  display: false,
-                },
-              },
-            },
-          },
-          scales: {
-            x: {
-              ticks: { color: '#52526a', font: { size: 9 }, maxTicksLimit: 20 },
-              grid: { color: 'rgba(255,255,255,0.03)' },
-            },
-            y: {
-              ticks: {
-                color: '#52526a', font: { size: 10 },
-                callback: (v) => (v > 0 ? '+' : '') + v,
-              },
-              grid: { color: 'rgba(255,255,255,0.04)' },
-              suggestedMin: -5, suggestedMax: 5,
-            },
-          },
-          onClick: (evt) => {
-            const points = evalChart.getElementsAtEventForMode(evt, 'nearest', { intersect: false }, true);
-            if (points.length) goToIndex(points[0].index);
-          },
-        },
+      const data = activeMoves.map(m => {
+          let e = parseFloat(m.eval) || 0;
+          if (m.score_display && (m.score_display.startsWith('#') || m.score_display.startsWith('M'))) {
+              e = (e > 0 || !m.score_display.includes('-')) ? 1000 : -1000;
+          }
+          return Math.max(-1000, Math.min(1000, e)) / 100;
       });
+
+      if (evalChart) {
+          evalChart.data.labels = labels;
+          evalChart.data.datasets[0].data = data;
+          evalChart.update('none');
+      } else {
+          evalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                data,
+                borderColor: '#a78bfa',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHitRadius: 8,
+                tension: 0.3,
+                fill: {
+                  target: { value: 0 },
+                  above: 'rgba(167,139,250,0.12)',
+                  below: 'rgba(239,68,68,0.12)',
+                },
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 300 },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#1e1e2a',
+                  titleColor: '#e2e2e8',
+                  bodyColor: '#a0a0b4',
+                  borderColor: '#2a2a3a',
+                  borderWidth: 1,
+                  callbacks: {
+                    label: (ctx) => `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y.toFixed(1)}`,
+                  },
+                },
+                annotation: {
+                  annotations: {
+                    zeroLine: {
+                      type: 'line',
+                      yMin: 0, yMax: 0,
+                      borderColor: '#52526a',
+                      borderWidth: 1,
+                      borderDash: [4, 4],
+                    },
+                    currentMove: {
+                      type: 'line',
+                      xMin: 0, xMax: 0,
+                      borderColor: '#facc15',
+                      borderWidth: 2,
+                      display: false,
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: { color: '#52526a', font: { size: 9 }, maxTicksLimit: 20 },
+                  grid: { color: 'rgba(255,255,255,0.03)' },
+                },
+                y: {
+                  ticks: {
+                    color: '#52526a', font: { size: 10 },
+                    callback: (v) => (v > 0 ? '+' : '') + v,
+                  },
+                  grid: { color: 'rgba(255,255,255,0.04)' },
+                  suggestedMin: -5, suggestedMax: 5,
+                },
+              },
+              onClick: (evt) => {
+                const points = evalChart.getElementsAtEventForMode(evt, 'nearest', { intersect: false }, true);
+                if (points.length) goToIndex(points[0].index);
+              },
+            },
+          });
+      }
     }
 
     function updateChartIndicator() {
