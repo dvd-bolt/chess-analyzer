@@ -159,11 +159,15 @@ def analyze(request: PGNRequest):
                 category = "Бриллиантовый"
                 icon = "💎"
 
+            # Оценка с точки зрения белых (для графика)
+            eval_white = score_to_cp(info_after["score"], chess.WHITE)
+
             moves_data.append(
                 {
                     "san": san,
                     "color": "white" if side == chess.WHITE else "black",
                     "cpl": cpl,
+                    "eval": eval_white,
                     "category": category,
                     "icon": icon,
                 }
