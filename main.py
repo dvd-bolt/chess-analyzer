@@ -180,19 +180,20 @@ def ask_gemini(game_log: list[dict]) -> dict[int, str]:
         return {}
 
 
-def ask_gemini_blunder(fen: str, prev_fen: str, move_san: str) -> str:
-    """Запрашивает короткий комментарий только при зевках в песочнице."""
+def ask_gemini_blunder(fen: str, prev_fen: str, move_san: str, refutation_move: str) -> str:
+    """Запрашивает короткий комментарий при зевках, передавая ход-опровержение от Stockfish."""
     if gemini_client is None:
         return ""
 
     prompt = (
-        "Пользователь сделал ход в шахматной песочнице, оценка рухнула. "
-        "Объясни новичку (рейтинг ~400 Elo) в одно емкое, простое предложение на русском языке, "
-        "в чем именно заключается его тактическая ошибка и какую угрозу он пропустил. "
-        "Верни СТРОГО текст комментария.\n\n"
-        f"Предыдущая позиция (FEN): {prev_fen}\n"
-        f"Ход пользователя: {move_san}\n"
-        f"Текущая позиция (FEN): {fen}"
+        f"Пользователь сделал ход {move_san}. Этот ход является тактической ошибкой (зевком). "
+        f"Шахматный движок Stockfish говорит, что лучшим ответом для соперника "
+        f"сейчас является ход: {refutation_move}.\n\n"
+        "Объясни новичку (рейтинг ~400 Elo) в одно короткое, ёмкое предложение на русском языке, "
+        "почему его ход плох, основываясь СТРОГО на этом ответе движка "
+        "(например: \"Ты подставил ферзя под удар слона на a8\" или "
+        "\"Этот ход зевает ладью\"). Не придумывай другие ходы, пиши строго по делу. "
+        "Верни СТРОГО текст комментария."
     )
 
     try:
@@ -417,9 +418,18 @@ def analyze_position(request: PositionRequest):
             cpl = max(0, cp_before - cp_after)
             category, icon = categorize_move(cpl)
             
-            # Зевок (> 200 сантипешек)
+            # Зевок (> 200 сантипешек) — достаём ход-опровержение из PV Stockfish
             if cpl > 200:
-                comment = ask_gemini_blunder(request.fen, request.prev_fen, request.move_san)
+                refutation_san = ""
+                pv = info_after.get("pv", [])
+                if pv:
+                    try:
+                        refutation_san = board.san(pv[0])
+                    except Exception:
+                        refutation_san = str(pv[0])
+                comment = ask_gemini_blunder(
+                    request.fen, request.prev_fen, request.move_san, refutation_san
+                )
                 
             # Проверка на бриллиант
             material_before = get_material_value(prev_board, side_moved)
