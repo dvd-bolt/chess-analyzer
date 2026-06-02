@@ -1,9 +1,7 @@
-import os
-from main import get_material_value
+from main import STOCKFISH_PATH, get_material_value
 import chess
 import chess.engine
 
-STOCKFISH_PATH = os.path.join(os.path.dirname(__file__), "stockfish", "stockfish.exe")
 engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
 
 # Before Nxe5

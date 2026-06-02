@@ -1,9 +1,7 @@
-import os
-from main import get_material_value
+from main import STOCKFISH_PATH, get_material_value
 import chess
 import chess.engine
 
-STOCKFISH_PATH = os.path.join(os.path.dirname(__file__), "stockfish", "stockfish.exe")
 engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
 
 board = chess.Board("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2")
