@@ -26,7 +26,7 @@ The app lets a user load Chess.com games or paste PGN, analyzes the game with St
 - Gemini comments and coach summaries.
 - Chess.com recent game loading by username.
 - Opening explorer and opening study UI.
-- Historical games data from `historic_games.json`.
+- Mini-games tab with Stockfish bot modes: Sparring, King of the Hill, and Blindfold, plus native Stockfish `Skill Level 0..20` difficulty.
 
 ## Important Files And Directories
 
@@ -38,7 +38,6 @@ requirements.txt - Python dependencies
 run.sh - macOS/Linux quick start using local .venv and uvicorn
 run_windows.bat - Windows quick start
 start.command - Finder double-click launcher for macOS
-historic_games.json - historical games data for the openings/training UI
 stockfish/ - local Stockfish binary location; ignored except .gitkeep
 test_run.py - small direct analyzer smoke script
 test_legals_mate.pgn - sample PGN
@@ -52,9 +51,9 @@ Known routes in `main.py`:
 
 ```text
 GET  / - serves index.html
-GET  /historic_games.json - serves historical game data
 GET  /get_latest_game/{username} - fetches latest Chess.com game
 GET  /opening_explorer - queries Lichess Opening Explorer
+POST /bot_move - returns a simple Stockfish bot reply for mini-games
 POST /analyze - analyzes PGN
 POST /analyze_position - analyzes current/variation position
 POST /evaluate_idea - evaluates a user idea from a position
@@ -87,4 +86,3 @@ If `STOCKFISH_PATH` is not set, `main.py` checks local `stockfish/`, common macO
 - Coordinate parallel work through `AI_CONTEXT/TASKS.md` and `AI_CONTEXT/THREADS.md`.
 - Do not let two chats edit the same area of `index.html` at the same time without explicit coordination.
 - Keep `AI_CONTEXT/` updated when project facts, tasks, or decisions change.
-

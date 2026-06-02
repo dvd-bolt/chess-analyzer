@@ -28,6 +28,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -67,6 +68,7 @@ app.add_middleware(
 # Constants
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
+app.mount("/assets", StaticFiles(directory=BASE_DIR / "assets"), name="assets")
 
 
 def resolve_stockfish_path() -> str:
@@ -243,6 +245,20 @@ def format_score_display(score: chess.engine.Score, pov: chess.Color) -> str:
     if cp is None:
         return "0"
     return str(cp)
+
+
+def pv_to_uci_line(board: chess.Board, pv: list[chess.Move], limit: int = 2) -> list[str]:
+    """Return a short legal PV line as UCI moves from the given board."""
+    line: list[str] = []
+    pv_board = board.copy()
+
+    for move in pv[:limit]:
+        if move not in pv_board.legal_moves:
+            break
+        line.append(move.uci())
+        pv_board.push(move)
+
+    return line
 
 
 # --- 10-категорийная классификация ходов (Chess.com style) ---
@@ -518,6 +534,12 @@ class CommentatorRequest(BaseModel):
     stats: dict
     player_rating: Optional[int] = None
 
+class BotMoveRequest(BaseModel):
+    fen: str
+    mode: str = "classic"
+    skill: int = 10
+    think_ms: int = 220
+
 
 # ---------------------------------------------------------------------------
 # Endpoints
@@ -528,12 +550,6 @@ class CommentatorRequest(BaseModel):
 def index():
     """Отдаёт главную HTML-страницу."""
     return FileResponse(BASE_DIR / "index.html", media_type="text/html")
-
-
-@app.get("/historic_games.json", response_class=FileResponse)
-def historic_games():
-    """Отдаёт локальную базу исторических партий для режима Guess The Move."""
-    return FileResponse(BASE_DIR / "historic_games.json", media_type="application/json")
 
 
 @app.get("/get_latest_game/{username}")
@@ -647,6 +663,125 @@ def opening_explorer(
     return resp.json()
 
 
+KOTH_CENTER_SQUARES = {
+    chess.D4,
+    chess.E4,
+    chess.D5,
+    chess.E5,
+}
+
+
+def king_on_hill(board: chess.Board, color: chess.Color) -> bool:
+    king_square = board.king(color)
+    return king_square in KOTH_CENTER_SQUARES
+
+
+def find_king_hill_winner(board: chess.Board) -> Optional[str]:
+    if king_on_hill(board, chess.WHITE):
+        return "white"
+    if king_on_hill(board, chess.BLACK):
+        return "black"
+    return None
+
+
+def choose_king_hill_move(board: chess.Board) -> Optional[chess.Move]:
+    """Prefer an immediate legal king move to the center in King of the Hill."""
+    for move in board.legal_moves:
+        piece = board.piece_at(move.from_square)
+        if piece and piece.piece_type == chess.KING and move.to_square in KOTH_CENTER_SQUARES:
+            return move
+    return None
+
+
+@app.post("/bot_move")
+def bot_move(request: BotMoveRequest):
+    """Returns a simple Stockfish bot move for the mini-games tab."""
+    mode = request.mode.strip().lower()
+    if mode not in {"classic", "king_hill", "blindfold"}:
+        raise HTTPException(status_code=400, detail="Неизвестный режим мини-игры")
+
+    try:
+        board = chess.Board(request.fen)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Некорректный FEN: {exc}")
+
+    if mode == "king_hill":
+        winner = find_king_hill_winner(board)
+        if winner:
+            return {
+                "game_over": True,
+                "winner": winner,
+                "reason": "king_hill",
+                "fen": board.fen(),
+            }
+
+    if board.is_game_over():
+        return {
+            "game_over": True,
+            "winner": None,
+            "reason": "standard",
+            "result": board.result(),
+            "fen": board.fen(),
+        }
+
+    engine: Optional[chess.engine.SimpleEngine] = None
+    try:
+        engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
+
+        skill = max(0, min(20, request.skill))
+        try:
+            engine.configure({"Skill Level": skill})
+        except Exception:
+            pass
+
+        move = choose_king_hill_move(board) if mode == "king_hill" else None
+        if move is None:
+            think_time = max(0.05, min(1.2, request.think_ms / 1000))
+            result = engine.play(board, chess.engine.Limit(time=think_time))
+            move = result.move
+
+        if move is None or move not in board.legal_moves:
+            raise HTTPException(status_code=500, detail="Stockfish не вернул легальный ход")
+
+        san = board.san(move)
+        uci = move.uci()
+        board.push(move)
+
+        response = {
+            "uci": uci,
+            "san": san,
+            "fen": board.fen(),
+            "game_over": board.is_game_over(),
+            "result": board.result() if board.is_game_over() else None,
+            "winner": None,
+            "reason": "standard" if board.is_game_over() else None,
+        }
+
+        if mode == "king_hill":
+            winner = find_king_hill_winner(board)
+            if winner:
+                response.update({
+                    "game_over": True,
+                    "winner": winner,
+                    "reason": "king_hill",
+                    "result": "1-0" if winner == "white" else "0-1",
+                })
+
+        return response
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Движок Stockfish не найден по пути: {STOCKFISH_PATH}",
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Ошибка Stockfish-бота: {exc}")
+    finally:
+        if engine is not None:
+            engine.quit()
+
+
 @app.post("/analyze")
 def analyze(request: PGNRequest):
     """
@@ -699,6 +834,7 @@ def analyze(request: PGNRequest):
             cp_after = score_to_cp(info_after["score"], side)
             
             pv_after = info_after.get("pv", [])
+            best_line = pv_to_uci_line(board, pv_after, 2)
 
             cpl = max(0, cp_before - cp_after)
             is_sacrifice = check_is_sacrifice(board_before, board, move, pv_after, side)
@@ -728,6 +864,7 @@ def analyze(request: PGNRequest):
                 "stage": stage,
                 "opening": opening_name,
                 "best_move": best_move.uci() if best_move else None,
+                "best_line": best_line,
             })
 
             game_log.append({
@@ -838,6 +975,7 @@ def analyze_position(request: PositionRequest):
 
         eval_white = score_to_cp(info_after["score"], chess.WHITE)
         score_display = format_score_display(info_after["score"], chess.WHITE)
+        best_line = pv_to_uci_line(board, info_after.get("pv", []), 2)
         
         return {
             "san": request.move_san,
@@ -848,7 +986,8 @@ def analyze_position(request: PositionRequest):
             "category": category,
             "cat_key": cat_key,
             "icon": icon,
-            "comment": comment
+            "comment": comment,
+            "best_line": best_line,
         }
     except FileNotFoundError:
         raise HTTPException(
