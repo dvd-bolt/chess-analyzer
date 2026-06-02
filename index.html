@@ -10,10 +10,26 @@
     href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
   />
 
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem('chessAnalyzerTheme');
+        const prefersLight = window.matchMedia?.('(prefers-color-scheme: light)').matches;
+        const theme = savedTheme || (prefersLight ? 'light' : 'dark');
+        document.documentElement.classList.toggle('light-theme', theme === 'light');
+      } catch (e) {
+        document.documentElement.classList.remove('light-theme');
+      }
+    })();
+  </script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { color-scheme: dark; }
+    html.light-theme { color-scheme: light; }
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
@@ -23,49 +39,389 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: background .28s ease, color .28s ease;
+    }
+
+    html.theme-switching :is(
+      body,
+      .header,
+      .brand-mark,
+      .app-tabs,
+      .app-tab,
+      .theme-board-toggle,
+      .analysis-left-panel,
+      .analysis-right-panel,
+      .openings-sidebar,
+      .opening-guide,
+      .variation-lab,
+      .best-line-panel,
+      .eval-chart-card,
+      .moves-list,
+      .recent-games-panel,
+      .profile-card,
+      .opening-line-card,
+      .lichess-explorer,
+      .stages-section,
+      .duel-prompt,
+      .score-box,
+      .opening-move-strip,
+      .duel-moves,
+      .board-shell,
+      #analysisBoardShell,
+      .duel-board-shell,
+      .guide-line,
+      .opening-search,
+      .opening-select,
+      #profileUsernameInput,
+      #pgnInput,
+      input,
+      textarea,
+      .effect-toggle,
+      .variation-mode-btn,
+      .variation-reset-btn,
+      .best-line-toggle,
+      .opening-nav button,
+      .platform-switch,
+      .platform-option,
+      .best-line-depth,
+      .best-line-depth button,
+      .tab-btn
+    ) {
+      transition:
+        background-color .24s ease,
+        background .24s ease,
+        color .24s ease,
+        border-color .24s ease,
+        box-shadow .24s ease !important;
     }
 
     /* Header */
     .header {
       width: 100%;
-      padding: 16px 0;
-      background: linear-gradient(180deg, #16161d 0%, #0f0f14 100%);
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 18px 0;
+      background:
+        linear-gradient(180deg, rgba(22,22,31,.98) 0%, rgba(15,15,20,.96) 100%);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 12px 34px rgba(0,0,0,.24);
     }
     .header-inner {
-      width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px;
+      width: 100%; max-width: 1300px; margin: 0 auto; padding: 0 24px;
       display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; flex-wrap: wrap;
+      gap: 22px; flex-wrap: wrap;
     }
-    .brand { display: flex; flex-direction: column; gap: 3px; }
+    .brand {
+      min-width: 280px;
+      display: grid; grid-template-columns: 48px minmax(0, 1fr);
+      align-items: center; gap: 12px;
+    }
+    .brand-mark {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      background: #171821;
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 24px rgba(0,0,0,.32);
+    }
+    .brand-mark img {
+      width: 100%; height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    .brand-copy {
+      min-width: 0;
+      display: flex; flex-direction: column; gap: 4px;
+    }
     .header h1 {
-      font-size: 1.6rem; font-weight: 700;
-      background: linear-gradient(135deg, #a78bfa, #6ee7b7);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      letter-spacing: 0;
+      font-size: 1.72rem; font-weight: 900; line-height: 1.05;
+      color: #f8fafc; letter-spacing: 0;
     }
-    .header p { font-size: .85rem; color: #737388; margin-top: 4px; }
+    .header p { font-size: .84rem; color: #8d8da4; margin: 0; font-weight: 700; }
+    .header-actions {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 10px; flex: 1; min-width: min(100%, 520px);
+    }
     .app-tabs {
-      display: flex; gap: 4px; padding: 4px; border-radius: 10px;
-      background: #1e1e2a; border: 1px solid rgba(255,255,255,.06);
+      min-width: min(100%, 430px);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px; padding: 5px; border-radius: 12px;
+      background: rgba(30,30,42,.82);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 24px rgba(0,0,0,.18);
     }
     .app-tab {
-      min-width: 126px; padding: 10px 14px; border: none; border-radius: 7px;
+      min-width: 0; padding: 11px 14px; border: none; border-radius: 8px;
       background: transparent; color: #a0a0b4; cursor: pointer;
-      font-size: .9rem; font-weight: 700; transition: background .2s, color .2s;
+      font-size: .9rem; font-weight: 900; transition: background .2s, color .2s, box-shadow .2s;
     }
     .app-tab:hover { color: #e2e2e8; background: rgba(255,255,255,.04); }
-    .app-tab.active { background: #3a3a50; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .app-tab.active {
+      background: #3a3a50; color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.24);
+    }
+    .theme-board-toggle {
+      width: 48px; height: 48px; flex: 0 0 48px;
+      border: 1px solid rgba(255,255,255,.1); border-radius: 14px;
+      background: rgba(30,30,42,.82); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 10px 22px rgba(0,0,0,.18);
+      transition: transform .18s ease, border-color .2s ease, background .28s ease, box-shadow .28s ease;
+    }
+    .theme-board-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(110,231,183,.5);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 26px rgba(0,0,0,.24);
+    }
+    .theme-board-toggle:active { transform: translateY(0) scale(.96); }
+    .theme-board-toggle:disabled {
+      cursor: wait;
+      pointer-events: none;
+    }
+    .theme-board-grid {
+      width: 28px; height: 28px; display: grid; grid-template-columns: repeat(2, 1fr);
+      border-radius: 7px; overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 0 18px rgba(110,231,183,.12);
+      transform-style: preserve-3d;
+      transition: transform .48s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease;
+    }
+    .theme-square {
+      transform: scale(1);
+      transition: background .28s ease, transform .38s cubic-bezier(.2,.8,.2,1);
+    }
+    .theme-square.light { background: #f8fafc; }
+    .theme-square.dark { background: #252537; }
+    .theme-board-toggle.is-animating .theme-board-grid {
+      animation: boardFlip .5s cubic-bezier(.2,.8,.2,1);
+    }
+    .theme-board-toggle.is-animating .theme-square:nth-child(1) { animation: squarePop .46s .02s ease; }
+    .theme-board-toggle.is-animating .theme-square:nth-child(2) { animation: squarePop .46s .08s ease; }
+    .theme-board-toggle.is-animating .theme-square:nth-child(3) { animation: squarePop .46s .14s ease; }
+    .theme-board-toggle.is-animating .theme-square:nth-child(4) { animation: squarePop .46s .2s ease; }
+    @keyframes boardFlip {
+      0% { transform: rotate(0deg) scale(1); }
+      48% { transform: rotate(90deg) scale(.88); }
+      100% { transform: rotate(180deg) scale(1); }
+    }
+    @keyframes squarePop {
+      0%, 100% { transform: scale(1); }
+      48% { transform: scale(.74); }
+    }
+
+    html.light-theme body {
+      background: #eef2f7;
+      color: #242633;
+    }
+    html.light-theme .header {
+      background: linear-gradient(180deg, rgba(248,250,252,.98) 0%, rgba(235,239,246,.96) 100%);
+      border-bottom-color: rgba(30,41,59,.12);
+      box-shadow: 0 12px 34px rgba(30,41,59,.1);
+    }
+    html.light-theme .brand-mark {
+      color: #fff;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,.32), transparent 52%),
+        linear-gradient(145deg, #475569, #111827 72%);
+      border-color: rgba(15,23,42,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 10px 24px rgba(30,41,59,.18);
+    }
+    html.light-theme .header h1 { color: #111827; }
+    html.light-theme .header p { color: #64748b; }
+    html.light-theme .app-tabs,
+    html.light-theme .theme-board-toggle {
+      background: rgba(255,255,255,.82);
+      border-color: rgba(30,41,59,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 10px 24px rgba(30,41,59,.1);
+    }
+    html.light-theme .app-tab { color: #64748b; }
+    html.light-theme .app-tab:hover { color: #111827; background: rgba(15,23,42,.05); }
+    html.light-theme .app-tab.active {
+      background: #ffffff; color: #111827;
+      box-shadow: inset 0 0 0 1px rgba(30,41,59,.08), 0 4px 14px rgba(30,41,59,.12);
+    }
+    html.light-theme .theme-square.light { background: #ffffff; }
+    html.light-theme .theme-square.dark { background: #94a3b8; }
+    html.light-theme .theme-board-grid {
+      box-shadow: 0 0 0 1px rgba(15,23,42,.12), 0 0 18px rgba(59,130,246,.1);
+    }
+    html.light-theme :is(
+      .analysis-left-panel,
+      .analysis-right-panel,
+      .openings-sidebar,
+      .opening-guide,
+      .variation-lab,
+      .best-line-panel,
+      .eval-chart-card,
+      .moves-list,
+      .recent-games-panel,
+      .profile-card,
+      .opening-line-card,
+      .lichess-explorer,
+      .stages-section,
+      .duel-prompt,
+      .score-box,
+      .opening-move-strip,
+      .duel-moves
+    ) {
+      background: #ffffff;
+      border-color: #d6deea;
+      color: #242633;
+      box-shadow: 0 10px 28px rgba(30,41,59,.08);
+    }
+    html.light-theme :is(
+      .opening-search,
+      .opening-select,
+      #profileUsernameInput,
+      #pgnInput,
+      .mini-input-row input,
+      textarea,
+      input
+    ) {
+      background: #f8fafc;
+      border-color: #d6deea;
+      color: #1f2937;
+    }
+    html.light-theme :is(.opening-search::placeholder, #profileUsernameInput::placeholder, #pgnInput::placeholder) {
+      color: #94a3b8;
+    }
+    html.light-theme :is(
+      .filter-label,
+      .platform-hint,
+      .status,
+      .eval-label,
+      .variation-turn,
+      .variation-status.muted,
+      .recent-games-hint,
+      .move-cpl,
+      .score-label,
+      .guide-subtitle
+    ) {
+      color: #64748b;
+    }
+    html.light-theme :is(
+      .effect-toggle,
+      .variation-mode-btn,
+      .variation-reset-btn,
+      .best-line-toggle,
+      .opening-nav button,
+      .platform-switch,
+      .platform-option,
+      .best-line-depth,
+      .best-line-depth button,
+      .tab-btn,
+      .mini-controls button,
+      .mini-input-row button
+    ) {
+      background: #f8fafc;
+      border-color: #d6deea;
+      color: #64748b;
+    }
+    html.light-theme :is(.effect-toggle:hover, .variation-mode-btn:hover, .best-line-toggle:hover, .opening-nav button:hover) {
+      background: #eef2f7;
+      color: #111827;
+    }
+    html.light-theme :is(.platform-option.active, .best-line-depth button.active, .tab-btn.active) {
+      background: #e5eaf3;
+      color: #111827;
+    }
+    html.light-theme .effect-toggle.active {
+      background: rgba(16,185,129,.12);
+      border-color: #10b981;
+      color: #047857;
+    }
+    html.light-theme .best-line-toggle.active {
+      background: rgba(59,130,246,.12);
+      border-color: #3b82f6;
+      color: #1d4ed8;
+    }
+    html.light-theme .variation-mode-btn.active {
+      background: rgba(16,185,129,.12);
+      border-color: #10b981;
+      color: #047857;
+    }
+    html.light-theme :is(.guide-title, .opening-card-title, .move-san, #moveSan, .eval-score, .score-value) {
+      color: #111827;
+    }
+    html.light-theme :is(
+      .profile-subtitle,
+      .profile-note,
+      .profile-form-label,
+      .opening-line-moves,
+      .explorer-status,
+      .recent-games-empty,
+      .move-chip,
+      .variation-status,
+      .variation-turn,
+      .opening-card-line,
+      .guide-plan-list,
+      .guide-risk-list
+    ) {
+      color: #475569;
+    }
+    html.light-theme :is(.filter-label, .status, .platform-hint, .eval-label, .score-label) {
+      color: #52677d;
+    }
+    html.light-theme :is(.move-chip, .duel-move, .meta-pill) {
+      background: #f1f5f9;
+      border-color: #d6deea;
+      color: #475569;
+    }
+    html.light-theme :is(.move-chip.active, .variation-chip.active, .duel-move.current) {
+      background: #e6ecf5;
+      border-color: #7c8fb3;
+      color: #111827;
+    }
+    html.light-theme #analysisBoardShell,
+    html.light-theme .board-shell,
+    html.light-theme .duel-board-shell {
+      background: transparent !important;
+      box-shadow: 0 10px 24px rgba(30,41,59,.16) !important;
+    }
+    html.light-theme #board,
+    html.light-theme #openingBoard,
+    html.light-theme #duelBoard {
+      background: transparent !important;
+    }
+    html.light-theme .board-b72b1 {
+      border-color: #cbd5e1 !important;
+    }
+    html.light-theme .guide-line {
+      background: #d6deea !important;
+      border-color: #d6deea !important;
+      color: #475569;
+    }
+    html.light-theme #moveSan,
+    html.light-theme #moveSanText {
+      color: #111827 !important;
+    }
+    html.light-theme #moveCpl,
+    html.light-theme #moveCounter {
+      color: #52677d !important;
+    }
+    html.light-theme #geminiBlock {
+      background: #f8fafc !important;
+      border-left-color: #7c3aed !important;
+    }
+    html.light-theme #geminiComment {
+      color: #334155 !important;
+    }
+    html.light-theme #btnNewGamePanel {
+      background: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #475569 !important;
+    }
+    html.light-theme .gemini-comment { color: #334155; }
+    html.light-theme .gemini-comment.empty { color: #94a3b8; }
 
     .app-view { display: none; width: 100%; }
     .app-view.active { display: block; }
 
     /* Layout */
     .analysis-container {
-      width: 100%; max-width: 1300px; margin: 0 auto;
+      --analysis-board-size: clamp(460px, min(36vw, calc(100vh - 280px)), 560px);
+      --analysis-center-gap: clamp(54px, 3.2vw, 64px);
+      width: 100%; max-width: 1500px; margin: 0 auto;
       padding: 28px 24px 48px;
-      display: grid; grid-template-columns: 320px minmax(420px, 470px) minmax(320px, 1fr);
-      gap: 20px; align-items: start;
+      display: grid; grid-template-columns: minmax(280px, 1fr) minmax(var(--analysis-board-size), var(--analysis-board-size)) minmax(280px, 1fr);
+      column-gap: var(--analysis-center-gap); row-gap: 20px; align-items: start;
     }
     .analysis-col {
       display: flex; flex-direction: column; gap: 14px; align-items: center;
@@ -90,7 +446,7 @@
     .eval-bar {
       display: flex; align-items: center; justify-content: center;
       gap: 10px; min-height: 42px;
-      width: 100%; max-width: 400px;
+      width: var(--analysis-board-size); max-width: 100%;
     }
     .eval-score {
       font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;
@@ -103,15 +459,17 @@
     .eval-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; color: #52526a; }
 
     .board-stage {
-      width: 100%; max-width: 446px;
-      display: grid; grid-template-columns: minmax(0, 400px) 38px;
-      gap: 8px; align-items: stretch;
+      position: relative;
+      min-height: var(--analysis-board-size);
+      width: var(--analysis-board-size); max-width: 100%;
+      display: block;
     }
-    .board-stage .board-shell { grid-column: 1; grid-row: 1; }
-    .board-stage .eval-slider { grid-column: 2; grid-row: 1; }
+    .board-stage .eval-slider {
+      position: absolute; left: calc(100% + 8px); top: 0; bottom: 0;
+    }
     .eval-slider {
       --eval-white: 50%;
-      position: relative; min-height: 400px; width: 38px;
+      min-height: var(--analysis-board-size); width: 38px;
       border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
       overflow: hidden; background: #30302d;
       box-shadow: inset 0 1px 8px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.28);
@@ -155,18 +513,17 @@
     .eval-slider-cap.bottom { bottom: 0; color: #2f2f2d; background: linear-gradient(to top, rgba(255,255,255,.22), transparent); }
 
     .board-shell {
-      position: relative; width: 400px; max-width: 100%;
+      position: relative; width: var(--analysis-board-size); max-width: 100%;
       border-radius: 10px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.45);
       background: #16161f;
     }
-    #board { width: 400px; max-width: 100%; }
+    #board { width: var(--analysis-board-size); max-width: 100%; }
     .board-canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 30;
     }
     .blindfold-mode #board .piece-417db,
-    .blindfold-mode #openingBoard .piece-417db,
-    .blindfold-mode #duelBoard .piece-417db {
+    .blindfold-mode #openingBoard .piece-417db {
       opacity: 0 !important;
     }
 
@@ -179,8 +536,12 @@
     }
     .nav-bar button:hover { background: #2d2d40; }
     .nav-bar button:active { transform: scale(.95); }
+    .analysis-col > .opening-nav {
+      width: var(--analysis-board-size) !important;
+      max-width: 100% !important;
+    }
     .effect-bar {
-      width: 400px; max-width: 100%; display: grid;
+      width: var(--analysis-board-size); max-width: 100%; display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
     }
     .effect-toggle {
@@ -194,8 +555,48 @@
     .effect-toggle.active {
       background: rgba(110,231,183,.12); border-color: #6ee7b7; color: #6ee7b7;
     }
+    .best-line-panel {
+      width: var(--analysis-board-size); max-width: 100%;
+      display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px; align-items: center;
+      padding: 8px; border: 1px solid #2a2a3a; border-radius: 10px;
+      background: #12121a;
+    }
+    .best-line-toggle {
+      min-height: 38px; border: 1px solid #2a2a3a; border-radius: 8px;
+      padding: 0 12px; background: #1e1e2a; color: #c4c4d4;
+      font-size: .78rem; font-weight: 900; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: flex-start; gap: 7px;
+      transition: background .2s, border-color .2s, color .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .best-line-toggle:hover { background: #2d2d40; color: #fff; }
+    .best-line-toggle:active { transform: scale(.97); }
+    .best-line-toggle.active {
+      background: rgba(59,130,246,.13); border-color: #60a5fa; color: #bfdbfe;
+    }
+    .best-line-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #52526a; box-shadow: 0 0 0 3px rgba(82,82,106,.16);
+    }
+    .best-line-toggle.active .best-line-dot {
+      background: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.18);
+    }
+    .best-line-depth {
+      min-width: 132px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px; padding: 4px; border: 1px solid #2a2a3a; border-radius: 8px;
+      background: #0f0f14;
+    }
+    .best-line-depth button {
+      min-height: 30px; border: 0; border-radius: 6px;
+      background: transparent; color: #737388; font-size: .72rem; font-weight: 900;
+      cursor: pointer; transition: background .18s, color .18s;
+    }
+    .best-line-depth button:hover { color: #e2e2e8; background: rgba(255,255,255,.04); }
+    .best-line-depth button.active { background: #3a3a50; color: #fff; }
+    .best-line-panel.disabled .best-line-depth { opacity: .55; }
     .variation-lab {
-      width: 400px; max-width: 100%;
+      width: var(--analysis-board-size); max-width: 100%;
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
       gap: 8px; align-items: center;
       padding: 8px; border: 1px solid #2a2a3a; border-radius: 10px;
@@ -246,7 +647,7 @@
 
     /* Evaluation chart */
     .eval-chart-card {
-      width: 100%; max-width: 446px;
+      width: var(--analysis-board-size); max-width: 100%;
       border: 1px solid #2a2a3a; border-radius: 10px;
       background: linear-gradient(180deg, #16161f 0%, #12121a 100%);
       box-shadow: 0 10px 30px rgba(0,0,0,.26);
@@ -280,26 +681,51 @@
     .eval-chart-summary span {
       max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .eval-chart-legend {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 8px; padding: 8px 13px 0;
-      color: #8d8da4; font-size: .64rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .45px;
-    }
-    .eval-chart-legend span {
-      display: inline-flex; align-items: center; gap: 5px;
-    }
-    .eval-chart-legend span::before {
-      content: ''; width: 8px; height: 8px; border-radius: 50%;
-      background: var(--legend-color);
-    }
-    .eval-chart-legend .white { --legend-color: #e5e7eb; color: #cbd5e1; }
-    .eval-chart-legend .equal { --legend-color: #6ee7b7; color: #8d8da4; }
-    .eval-chart-legend .black { --legend-color: #a78bfa; color: #c4b5fd; }
     .eval-chart-canvas {
-      position: relative; height: 172px; padding: 4px 10px 6px;
+      position: relative; height: 172px; padding: 9px 22px 8px 10px;
     }
     .eval-chart-card canvas { width: 100% !important; height: 172px !important; }
+    .eval-chart-side-rail {
+      position: absolute; right: 9px; top: 18px; bottom: 18px;
+      width: 5px; border-radius: 999px;
+      background: linear-gradient(
+        to bottom,
+        rgba(229,231,235,.9) 0%,
+        rgba(229,231,235,.48) 42%,
+        rgba(110,231,183,.9) 50%,
+        rgba(167,139,250,.52) 58%,
+        rgba(167,139,250,.92) 100%
+      );
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 0 12px rgba(167,139,250,.16);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .eval-chart-side-marker {
+      position: absolute; right: 2px;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; font-weight: 900; line-height: 1;
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 4px 10px rgba(0,0,0,.28);
+      pointer-events: none;
+      z-index: 4;
+    }
+    .eval-chart-side-marker.white {
+      top: 8px; background: #e5e7eb; color: #16161f;
+    }
+    .eval-chart-side-marker.black {
+      bottom: 8px; background: #2a2440; color: #c4b5fd;
+    }
+    .eval-chart-zero-marker {
+      position: absolute; right: 5px; top: 50%;
+      width: 14px; height: 14px; border-radius: 50%;
+      transform: translateY(-50%);
+      background: #6ee7b7;
+      border: 3px solid #12121a;
+      box-shadow: 0 0 0 1px rgba(110,231,183,.45), 0 0 12px rgba(110,231,183,.18);
+      pointer-events: none;
+      z-index: 5;
+    }
 
     /* Side panel */
     .side-panel {
@@ -328,6 +754,80 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+    .profile-action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .profile-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 0;
+      line-height: 1;
+    }
+    .profile-action-btn > span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .profile-action-icon {
+      position: relative;
+      flex: 0 0 18px;
+      width: 18px;
+      height: 18px;
+      color: currentColor;
+    }
+    .profile-action-person::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, .12);
+    }
+    .profile-action-person::after {
+      content: "";
+      position: absolute;
+      left: 3px;
+      bottom: 2px;
+      width: 12px;
+      height: 8px;
+      border-radius: 999px 999px 7px 7px;
+      background: currentColor;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, .08);
+    }
+    .profile-action-board {
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, .62);
+      background:
+        conic-gradient(
+          from 90deg,
+          rgba(255, 255, 255, .95) 0 25%,
+          rgba(255, 255, 255, .26) 0 50%,
+          rgba(255, 255, 255, .95) 0 75%,
+          rgba(255, 255, 255, .26) 0
+        );
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+    }
+    .profile-action-loader {
+      flex: 0 0 16px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .28);
+      border-top-color: currentColor;
+      animation: profileButtonSpin .7s linear infinite;
+    }
+    @keyframes profileButtonSpin {
+      to { transform: rotate(360deg); }
     }
     .platform-switch {
       display: grid;
@@ -691,14 +1191,56 @@
 
     /* Analyze button */
     #analyzeBtn {
-      width: 100%; padding: 12px; border: none; border-radius: 10px;
+      width: 100%; min-height: 52px; padding: 0 16px; border: none; border-radius: 10px;
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      color: #fff; font-size: .95rem; font-weight: 600;
+      color: #fff; font-size: 1.05rem; font-weight: 800;
       cursor: pointer; transition: opacity .2s, transform .1s; letter-spacing: .3px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      line-height: 1;
     }
     #analyzeBtn:hover { opacity: .9; }
     #analyzeBtn:active { transform: scale(.97); }
     #analyzeBtn:disabled { opacity: .45; cursor: not-allowed; }
+    .analyze-search-icon {
+      position: relative;
+      flex: 0 0 22px;
+      width: 22px;
+      height: 22px;
+      color: currentColor;
+    }
+    .analyze-search-icon::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 13px;
+      height: 13px;
+      border: 3px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .16);
+    }
+    .analyze-search-icon::after {
+      content: "";
+      position: absolute;
+      right: 2px;
+      bottom: 3px;
+      width: 10px;
+      height: 4px;
+      border-radius: 999px;
+      background: currentColor;
+      transform: rotate(45deg);
+      transform-origin: center;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
+    }
+    .analyze-loading-icon {
+      flex: 0 0 20px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, .28);
+      border-top-color: #fff;
+      animation: profileButtonSpin .7s linear infinite;
+    }
 
     /* Info card */
     .info-card {
@@ -1085,8 +1627,10 @@
 
     /* ============ Openings ============ */
     .openings-container {
+      --openings-panel-height: calc(100vh - 132px);
+      --opening-board-size: clamp(420px, min(44vw, calc(100vh - 290px)), 650px);
       width: 100%; max-width: 1620px; margin: 0 auto;
-      padding: 22px clamp(18px, 2.6vw, 34px) 40px;
+      padding: 14px clamp(18px, 2.6vw, 34px) 28px;
       display: grid; grid-template-columns: clamp(300px, 23vw, 390px) minmax(0, 1fr);
       gap: 18px; align-items: start;
     }
@@ -1095,12 +1639,12 @@
     }
     .openings-sidebar {
       display: flex; flex-direction: column;
-      height: calc(100vh - 120px); min-height: 640px;
+      height: var(--openings-panel-height); min-height: 560px;
       overflow: hidden;
     }
     .opening-filters {
       display: flex; flex-direction: column; gap: 12px;
-      padding: 16px; border-bottom: 1px solid #2a2a3a;
+      padding: 14px; border-bottom: 1px solid #2a2a3a;
     }
     .opening-search {
       width: 100%; height: 42px; padding: 0 12px; border-radius: 8px;
@@ -1170,45 +1714,45 @@
     .meta-easy { color: #86efac; background: rgba(134,239,172,.1); }
     .meta-medium { color: #fbbf24; background: rgba(251,191,36,.1); }
     .meta-hard { color: #f87171; background: rgba(248,113,113,.1); }
-    .opening-guide {
-      height: calc(100vh - 120px); min-height: 640px; overflow-y: auto;
-      padding: clamp(18px, 1.6vw, 24px); display: flex; flex-direction: column; gap: 16px;
+    #viewOpenings .opening-guide {
+      min-height: var(--openings-panel-height); overflow: visible;
+      padding: clamp(14px, 1.35vw, 20px); display: flex; flex-direction: column; gap: 10px;
     }
     .guide-top {
       display: flex; justify-content: space-between; align-items: flex-start;
-      gap: 18px; border-bottom: 1px solid #2a2a3a; padding-bottom: 18px;
+      gap: 14px; border-bottom: 1px solid #2a2a3a; padding-bottom: 10px;
     }
-    .guide-title { font-size: 1.55rem; line-height: 1.2; font-weight: 800; color: #fff; }
-    .guide-subtitle { margin-top: 8px; color: #a0a0b4; font-size: .92rem; line-height: 1.45; }
+    .guide-title { font-size: clamp(1.25rem, 1.7vw, 1.5rem); line-height: 1.15; font-weight: 800; color: #fff; }
+    .guide-subtitle { margin-top: 6px; color: #a0a0b4; font-size: .84rem; line-height: 1.35; }
     .guide-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; min-width: 170px; }
     .guide-line {
-      padding: 14px 16px; border-radius: 8px; background: #0f0f14;
+      padding: 10px 12px; border-radius: 8px; background: #0f0f14;
       border: 1px solid #2a2a3a; color: #f8fafc; font-weight: 700;
-      line-height: 1.5;
+      line-height: 1.35;
     }
     .opening-study-grid {
-      display: grid; grid-template-columns: minmax(460px, 560px) minmax(260px, 1fr);
-      gap: 18px; align-items: start;
+      display: grid; grid-template-columns: var(--opening-board-size) minmax(260px, 1fr);
+      gap: 14px; align-items: start; min-height: 0;
     }
     #openingBoard {
-      width: min(100%, 560px); border-radius: 10px; overflow: hidden;
+      width: var(--opening-board-size); max-width: 100%; border-radius: 10px; overflow: hidden;
       box-shadow: 0 8px 28px rgba(0,0,0,.38);
     }
-    .opening-board-panel { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+    .opening-board-panel { display: flex; flex-direction: column; gap: 8px; width: 100%; }
     .opening-nav {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px;
     }
     .opening-nav button {
-      min-height: 36px; border: none; border-radius: 8px;
+      min-height: 32px; border: none; border-radius: 8px;
       background: #1e1e2a; color: #c4c4d4; cursor: pointer;
       font-size: .95rem; font-weight: 800; transition: background .2s, transform .1s;
     }
     .opening-nav button:hover { background: #2d2d40; }
     .opening-nav button:active { transform: scale(.96); }
     .opening-move-strip {
-      min-height: 42px; display: flex; flex-wrap: wrap; gap: 5px;
-      padding: 9px; border-radius: 8px; background: #0f0f14;
-      border: 1px solid #2a2a3a;
+      min-height: 34px; max-height: 40px; display: flex; flex-wrap: wrap; gap: 5px;
+      padding: 7px; border-radius: 8px; background: #0f0f14;
+      border: 1px solid #2a2a3a; overflow: hidden;
     }
     .opening-move-chip {
       padding: 4px 8px; border-radius: 6px; border: 1px solid transparent;
@@ -1262,16 +1806,19 @@
     .opening-line-list {
       display: flex; flex-direction: column; gap: 8px;
     }
+    .opening-lines-panel {
+      display: flex; flex-direction: column; gap: 10px; min-width: 0;
+    }
     .opening-line-card {
       text-align: left; border: 1px solid #2a2a3a; border-radius: 8px;
-      background: #1e1e2a; color: #e2e2e8; padding: 11px;
+      background: #1e1e2a; color: #e2e2e8; padding: 10px;
       cursor: pointer; transition: border-color .2s, background .2s;
     }
     .opening-line-card:hover { background: #242436; }
     .opening-line-card.active { border-color: #a78bfa; background: rgba(167,139,250,.1); }
     .opening-line-title {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      font-size: .86rem; font-weight: 800; margin-bottom: 6px;
+      font-size: .82rem; font-weight: 800; margin-bottom: 5px;
     }
     .line-kind {
       padding: 3px 7px; border-radius: 999px; font-size: .62rem;
@@ -1282,7 +1829,7 @@
     .line-kind-attack { color: #fbbf24; background: rgba(251,191,36,.12); }
     .line-kind-main { color: #6ee7b7; background: rgba(110,231,183,.12); }
     .opening-line-moves {
-      color: #a0a0b4; font-size: .78rem; line-height: 1.4;
+      color: #a0a0b4; font-size: .75rem; line-height: 1.35;
     }
     .guide-grid {
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
@@ -1310,14 +1857,14 @@
       padding: 18px 12px;
     }
 
-    /* ============ Attraction ============ */
+    /* ============ Mini Games ============ */
     .attraction-container {
-      width: 100%; max-width: 1180px; margin: 0 auto;
+      width: 100%; max-width: 1320px; margin: 0 auto;
       padding: 28px 24px 48px; display: grid;
-      grid-template-columns: minmax(320px, 420px) minmax(380px, 1fr);
+      grid-template-columns: minmax(300px, 390px) minmax(520px, 1fr);
       gap: 20px; align-items: start;
     }
-    .attraction-panel, .duel-stage {
+    .attraction-panel, .mini-stage {
       background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
     }
     .attraction-panel {
@@ -1329,40 +1876,124 @@
     .mode-subtitle {
       color: #a0a0b4; font-size: .88rem; line-height: 1.45;
     }
-    .historic-list {
-      display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto;
+    .mini-game-list {
+      display: flex; flex-direction: column; gap: 8px;
     }
-    .historic-card {
+    .mini-game-card {
       text-align: left; border: 1px solid transparent; border-radius: 8px;
       background: #1e1e2a; color: #e2e2e8; padding: 12px; cursor: pointer;
       transition: border-color .2s, background .2s;
     }
-    .historic-card:hover { background: #242436; border-color: #3a3a50; }
-    .historic-card.active { border-color: #6ee7b7; background: rgba(110,231,183,.08); }
-    .historic-card h3 { font-size: .92rem; margin-bottom: 5px; color: #fff; }
-    .historic-card p { font-size: .76rem; color: #a0a0b4; line-height: 1.35; }
-    .duel-stage {
-      padding: 22px; display: grid; grid-template-columns: minmax(300px, 420px) 1fr;
-      gap: 18px; align-items: start;
+    .mini-game-card:hover { background: #242436; border-color: #3a3a50; }
+    .mini-game-card.active { border-color: #6ee7b7; background: rgba(110,231,183,.08); }
+    .mini-game-card h3 { font-size: .92rem; margin-bottom: 5px; color: #fff; }
+    .mini-game-card p { font-size: .76rem; color: #a0a0b4; line-height: 1.35; }
+    .mini-settings {
+      display: flex; flex-direction: column; gap: 10px; padding-top: 4px;
+    }
+    .mini-setting-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .mini-skill-value {
+      flex: 0 0 auto; border-radius: 999px; border: 1px solid #2a2a3a;
+      background: rgba(110,231,183,.08); color: #e8fff6; padding: 5px 10px;
+      border-color: rgba(110,231,183,.22);
+      font-size: .76rem; font-weight: 900;
+    }
+    .mini-skill-slider {
+      --skill-percent: 50%;
+      width: 100%; appearance: none; -webkit-appearance: none;
+      height: 26px; background: transparent; cursor: pointer;
+    }
+    .mini-skill-slider:focus { outline: none; }
+    .mini-skill-slider::-webkit-slider-runnable-track {
+      height: 8px; border-radius: 999px;
+      background: linear-gradient(90deg, #047857 0%, #6ee7b7 var(--skill-percent), #242436 var(--skill-percent), #242436 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .mini-skill-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%; margin-top: -7px;
+      background: #e8fff6; border: 3px solid #111827;
+      box-shadow: 0 0 0 1px rgba(110,231,183,.22), 0 8px 18px rgba(0,0,0,.35);
+    }
+    .mini-skill-slider:focus-visible::-webkit-slider-thumb {
+      box-shadow: 0 0 0 4px rgba(110,231,183,.16), 0 8px 18px rgba(0,0,0,.35);
+    }
+    .mini-skill-slider::-moz-range-track {
+      height: 8px; border-radius: 999px;
+      background: linear-gradient(90deg, #047857 0%, #6ee7b7 var(--skill-percent), #242436 var(--skill-percent), #242436 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .mini-skill-slider::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #e8fff6; border: 3px solid #111827;
+      box-shadow: 0 0 0 1px rgba(110,231,183,.22), 0 8px 18px rgba(0,0,0,.35);
+    }
+    .mini-skill-slider:focus-visible::-moz-range-thumb {
+      box-shadow: 0 0 0 4px rgba(110,231,183,.16), 0 8px 18px rgba(0,0,0,.35);
+    }
+    .mini-skill-scale {
+      display: flex; justify-content: space-between;
+      color: #737388; font-size: .66rem; font-weight: 800; text-transform: uppercase;
+    }
+    .mini-stage {
+      padding: 22px; display: grid; grid-template-columns: minmax(320px, 460px) minmax(280px, 1fr);
+      gap: 20px; align-items: start;
     }
     .duel-board-shell {
-      position: relative; width: 420px; max-width: 100%;
+      position: relative; width: 460px; max-width: 100%;
       border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.42);
+      background: #0f0f14;
     }
-    #duelBoard { width: 420px; max-width: 100%; }
-    .duel-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-    .duel-controls button, .primary-action {
+    #duelBoard { width: 460px; max-width: 100%; }
+    #duelBoard .highlight1-32417,
+    #duelBoard .highlight2-9c5d2 {
+      box-shadow: none !important;
+    }
+    #duelBoard .mini-selected-square {
+      box-shadow: inset 0 0 0 3px rgba(226,232,240,.42) !important;
+    }
+    .mini-legal-dot {
+      position: absolute; left: 50%; top: 50%;
+      width: 20%; height: 20%; transform: translate(-50%, -50%);
+      border-radius: 50%; background: rgba(31,41,55,.44);
+      pointer-events: none; z-index: 12;
+      box-shadow: 0 1px 3px rgba(255,255,255,.16);
+    }
+    .mini-legal-capture {
+      position: absolute; inset: 8%;
+      border-radius: 50%; border: 6px solid rgba(31,41,55,.36);
+      pointer-events: none; z-index: 12; box-sizing: border-box;
+    }
+    .mini-blindfold-active #duelBoard .piece-417db {
+      opacity: 0 !important;
+    }
+    .mini-input-row {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px; margin-top: 10px;
+    }
+    .mini-input-row input {
+      min-width: 0; width: 100%;
+      min-height: 40px; border-radius: 8px; border: 1px solid #2a2a3a;
+      background: #0f0f14; color: #e2e2e8; padding: 0 12px;
+      font-family: 'Inter', system-ui, sans-serif; font-size: .86rem;
+    }
+    .mini-input-row button { padding: 0 14px; white-space: nowrap; }
+    .mini-input-row input:focus { outline: none; border-color: #6ee7b7; }
+    .mini-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .mini-controls button, .mini-input-row button, .primary-action {
       min-height: 38px; border: none; border-radius: 8px; cursor: pointer;
       background: #1e1e2a; color: #e2e2e8; font-weight: 800;
       transition: background .2s, transform .1s;
     }
-    .duel-controls button:hover, .primary-action:hover { background: #2d2d40; }
-    .duel-controls button:active, .primary-action:active { transform: scale(.97); }
+    .mini-controls button:hover, .mini-input-row button:hover, .primary-action:hover { background: #2d2d40; }
+    .mini-controls button:active, .mini-input-row button:active, .primary-action:active { transform: scale(.97); }
     .primary-action {
       width: 100%; background: linear-gradient(135deg, #059669, #047857);
       color: #fff; margin-top: 10px;
     }
-    .duel-info { display: flex; flex-direction: column; gap: 14px; }
+    .mini-info { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     .score-grid {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
     }
@@ -1378,56 +2009,190 @@
     }
     .duel-prompt.success { border-color: #6ee7b7; color: #6ee7b7; }
     .duel-prompt.error { border-color: #f87171; color: #f87171; }
+    .duel-prompt.thinking { border-color: #60a5fa; color: #bfdbfe; }
     .duel-moves {
       display: flex; flex-wrap: wrap; gap: 5px; padding: 10px;
       border-radius: 8px; background: #0f0f14; border: 1px solid #2a2a3a;
-      min-height: 46px; max-height: 160px; overflow-y: auto;
+      min-height: 46px; max-height: 168px; overflow-y: auto;
     }
     .duel-move {
       padding: 4px 8px; border-radius: 6px; background: #1e1e2a;
       color: #a0a0b4; font-size: .75rem; font-weight: 800;
     }
     .duel-move.current { color: #fff; border: 1px solid #6ee7b7; }
+    .duel-move.bot { color: #bfdbfe; }
 
     @media (max-width: 1180px) {
       .openings-container {
         grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
       }
       .opening-study-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: var(--opening-board-size) minmax(220px, 1fr);
       }
       .opening-board-panel {
-        max-width: 560px;
+        max-width: var(--opening-board-size);
+      }
+    }
+
+    @media (max-height: 920px) and (min-width: 901px) {
+      .openings-container {
+        padding-bottom: 4px;
+      }
+      .guide-subtitle,
+      .opening-move-strip,
+      #viewOpenings .opening-guide > .guide-section,
+      #viewOpenings .opening-guide > .guide-grid {
+        display: none;
+      }
+      #viewOpenings .opening-guide {
+        gap: 8px;
+      }
+      .guide-top {
+        padding-bottom: 8px;
+      }
+      .guide-line {
+        padding: 8px 10px;
+        line-height: 1.25;
+      }
+    }
+
+    @media (max-height: 760px) and (min-width: 901px) {
+      .openings-container {
+        --openings-panel-height: calc(100vh - 104px);
+        --opening-board-size: clamp(300px, min(38vw, calc(100vh - 254px)), 500px);
+        padding-top: 10px;
+        padding-bottom: 4px;
+      }
+      .openings-sidebar,
+      #viewOpenings .opening-guide {
+        min-height: 0;
+      }
+      .opening-filters {
+        gap: 9px;
+        padding: 12px;
+      }
+      .opening-search { height: 38px; }
+      .filter-btn { min-height: 30px; padding: 5px 7px; }
+      .opening-select { height: 34px; }
+      .opening-card { padding: 10px; }
+      .opening-card-line { margin-top: 4px; }
+      .opening-card-meta { margin-top: 7px; }
+      #viewOpenings .opening-guide {
+        padding: 12px;
+        gap: 8px;
+      }
+      .guide-top {
+        padding-bottom: 8px;
+      }
+      .guide-title { font-size: 1.22rem; }
+      .guide-subtitle { display: none; }
+      .guide-tags { gap: 4px; }
+      .guide-line {
+        padding: 8px 10px;
+        font-size: .9rem;
+        line-height: 1.25;
+      }
+      .opening-study-grid { gap: 12px; }
+      .opening-board-panel { gap: 7px; }
+      .opening-nav button { min-height: 30px; }
+      .opening-move-strip { display: none; }
+      .opening-line-list { gap: 7px; }
+      .opening-line-card { padding: 9px; }
+      .opening-lines-panel { gap: 8px; }
+      .opening-lines-panel .lichess-explorer {
+        max-height: 120px;
+      }
+      .opening-lines-panel .explorer-moves {
+        display: none;
+      }
+    }
+
+    @media (max-height: 620px) and (min-width: 901px) {
+      .openings-container {
+        --openings-panel-height: calc(100vh - 108px);
+        --opening-board-size: clamp(250px, min(30vw, calc(100vh - 240px)), 340px);
+        gap: 14px;
+        padding-top: 8px;
+        padding-bottom: 4px;
+      }
+      .guide-tags,
+      .opening-lines-panel .lichess-explorer {
+        display: none;
+      }
+      .guide-line {
+        padding: 7px 9px;
+        font-size: .84rem;
+      }
+      .opening-nav button {
+        min-height: 28px;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .analysis-container {
+        --analysis-board-size: clamp(380px, min(58vw, calc(100vh - 220px)), 500px);
+        grid-template-columns: 1fr;
+      }
+      .analysis-right-panel { max-height: none; }
+    }
+
+    @media (max-height: 620px) and (min-width: 901px) {
+      .analysis-container {
+        --analysis-board-size: clamp(320px, min(42vw, calc(100vh - 170px)), 420px);
+      }
+      .analysis-col { gap: 10px; }
+      .eval-bar { min-height: 34px; }
+      .variation-lab,
+      .best-line-panel {
+        min-height: 0;
+        padding: 6px;
+      }
+      .effect-bar {
+        margin-top: 0 !important;
       }
     }
 
     @media (max-width: 900px) {
       .header-inner { justify-content: center; text-align: center; }
       .brand { align-items: center; }
-      .app-tabs { width: 100%; max-width: 420px; }
+      .header-actions { width: 100%; max-width: 500px; justify-content: center; }
+      .app-tabs { width: 100%; max-width: 420px; min-width: 0; }
       .app-tab { flex: 1; min-width: 0; }
       .openings-container { grid-template-columns: 1fr; padding-top: 20px; }
-      .attraction-container, .duel-stage { grid-template-columns: 1fr; }
+      .attraction-container, .mini-stage { grid-template-columns: 1fr; }
       .openings-sidebar { height: auto; min-height: auto; }
       .openings-list { max-height: 420px; }
-      .opening-guide { height: auto; min-height: auto; max-height: none; }
-      .analysis-container { grid-template-columns: 1fr; }
-      .analysis-right-panel { max-height: none; }
+      #viewOpenings .opening-guide { height: auto; min-height: auto; max-height: none; }
     }
 
     @media (max-width: 560px) {
-      .analysis-container { padding: 20px 14px 36px; }
-      .board-stage { width: min(100vw - 28px, 446px); grid-template-columns: minmax(0, 1fr) 32px; gap: 6px; }
+      .header-inner { padding: 0 14px; }
+      .brand { min-width: 0; grid-template-columns: 42px minmax(0, 1fr); text-align: left; }
+      .brand-mark { width: 42px; height: 42px; border-radius: 12px; font-size: 1.75rem; }
+      .header h1 { font-size: 1.34rem; }
+      .header p { font-size: .72rem; }
+      .header-actions { gap: 8px; }
+      .theme-board-toggle { width: 42px; height: 42px; flex-basis: 42px; border-radius: 12px; }
+      .theme-board-grid { width: 24px; height: 24px; border-radius: 6px; }
+      .analysis-container {
+        --analysis-board-size: min(calc(100vw - 66px), 420px);
+        --analysis-stage-size: calc(var(--analysis-board-size) + 38px);
+        padding: 20px 14px 36px;
+      }
+      .board-stage { grid-template-columns: minmax(0, var(--analysis-board-size)) 32px; gap: 6px; }
       .eval-slider { width: 32px; min-height: 0; }
       #board, .board-shell { width: 100%; margin: 0 auto; }
-      .eval-chart-card, .effect-bar, .variation-lab { width: min(100vw - 28px, 446px); margin: 0 auto; }
+      .eval-chart-card, .effect-bar, .variation-lab, .best-line-panel { margin: 0 auto; }
+      .best-line-panel { grid-template-columns: 1fr; }
+      .best-line-depth { width: 100%; }
       .variation-lab { grid-template-columns: 1fr auto; }
       .variation-mode-btn { justify-content: flex-start; }
       .variation-copy { grid-column: 1 / -1; }
       .openings-container { padding: 18px 14px 36px; }
       .attraction-container { padding: 18px 14px 36px; }
-      .duel-stage { padding: 16px; }
-      #duelBoard, .duel-board-shell { width: min(100vw - 60px, 420px); }
+      .mini-stage { padding: 16px; }
+      #duelBoard, .duel-board-shell { width: min(100vw - 60px, 460px); }
+      .mini-input-row, .mini-controls { grid-template-columns: 1fr; }
       .segmented.four { grid-template-columns: repeat(2, 1fr); }
       .guide-top { flex-direction: column; }
       .guide-tags { justify-content: flex-start; min-width: 0; }
@@ -1443,14 +2208,29 @@
   <header class="header">
     <div class="header-inner">
       <div class="brand">
-        <h1>♔ Chess Analyzer</h1>
-        <p>Анализ партий с ИИ-тренером · Stockfish + Gemini</p>
+        <div class="brand-mark" aria-hidden="true">
+          <img src="/assets/king-logo.png" alt="" />
+        </div>
+        <div class="brand-copy">
+          <h1>Chess Analyzer</h1>
+          <p>Анализ партий с ИИ-тренером · Stockfish + Gemini</p>
+        </div>
       </div>
-      <nav class="app-tabs" aria-label="Основные разделы">
-        <button class="app-tab active" data-view="analyze">Анализ</button>
-        <button class="app-tab" data-view="openings">Дебюты</button>
-        <button class="app-tab" data-view="attraction">Аттракцион</button>
-      </nav>
+      <div class="header-actions">
+        <nav class="app-tabs" aria-label="Основные разделы">
+          <button class="app-tab active" data-view="analyze">Анализ</button>
+          <button class="app-tab" data-view="openings">Дебюты</button>
+          <button class="app-tab" data-view="attraction">Мини-игры</button>
+        </nav>
+        <button class="theme-board-toggle" id="themeBoardToggle" type="button" aria-label="Переключить светлую тему" title="Переключить тему">
+          <span class="theme-board-grid" aria-hidden="true">
+            <span class="theme-square light"></span>
+            <span class="theme-square dark"></span>
+            <span class="theme-square dark"></span>
+            <span class="theme-square light"></span>
+          </span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -1471,9 +2251,15 @@
             </div>
             <input class="opening-search" type="text" id="profileUsernameInput" placeholder="Никнейм Chess.com" autocomplete="off" />
             <div class="platform-hint" id="profilePlatformHint">Загрузим профиль и последние партии с Chess.com.</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-              <button class="filter-btn active" id="loadProfileBtn" title="Загрузить рейтинг" style="background:#3a3a50; color:#fff;">ID Профиль</button>
-              <button class="filter-btn active" id="loadChesscomBtn" title="Выбрать партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">♟ Партии</button>
+            <div class="profile-action-grid">
+              <button class="filter-btn active profile-action-btn" id="loadProfileBtn" title="Загрузить рейтинг" style="background:#3a3a50; color:#fff;">
+                <span class="profile-action-icon profile-action-person" aria-hidden="true"></span>
+                <span>ID Профиль</span>
+              </button>
+              <button class="filter-btn active profile-action-btn" id="loadChesscomBtn" title="Выбрать партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">
+                <span class="profile-action-icon profile-action-board" aria-hidden="true"></span>
+                <span>Партии</span>
+              </button>
             </div>
           </div>
           <div id="profileStats" class="profile-stats" aria-live="polite"></div>
@@ -1485,7 +2271,10 @@
             <label class="filter-label" for="pgnInput">Или вставьте PGN вручную</label>
             <textarea id="pgnInput" class="opening-search" style="height:120px; padding:12px; resize:vertical; font-family:monospace;" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
           </div>
-          <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">⌕ Анализировать</button>
+          <button id="analyzeBtn" style="margin-top: 16px;">
+            <span class="analyze-search-icon" aria-hidden="true"></span>
+            <span>Анализировать</span>
+          </button>
           <div id="status" class="status" style="margin-top: 8px;"></div>
         </div>
         
@@ -1544,6 +2333,17 @@
         <button class="variation-reset-btn" id="clearVariationBtn" type="button">К партии</button>
       </div>
 
+      <div class="best-line-panel disabled" id="bestLinePanel">
+        <button class="best-line-toggle" id="toggleBestLine" type="button" aria-pressed="false">
+          <span class="best-line-dot"></span>
+          <span>Лучший ход</span>
+        </button>
+        <div class="best-line-depth" role="group" aria-label="Сколько ходов линии показывать">
+          <button class="active" type="button" data-best-line-depth="1">1 ход</button>
+          <button type="button" data-best-line-depth="2">2 хода</button>
+        </div>
+      </div>
+
       <div class="effect-bar" style="margin-top: 8px;">
         <button class="effect-toggle active" id="toggleArrows">Стрелки</button>
         <button class="effect-toggle" id="toggleVoice">Голос</button>
@@ -1561,12 +2361,11 @@
             <span>Равная позиция</span>
           </div>
         </div>
-        <div class="eval-chart-legend" aria-hidden="true">
-          <span class="white">Верх: белые лучше</span>
-          <span class="equal">0.0 равенство</span>
-          <span class="black">Низ: черные лучше</span>
-        </div>
         <div class="eval-chart-canvas">
+          <div class="eval-chart-side-rail" aria-hidden="true"></div>
+          <div class="eval-chart-side-marker white" aria-hidden="true">♔</div>
+          <div class="eval-chart-zero-marker" aria-hidden="true"></div>
+          <div class="eval-chart-side-marker black" aria-hidden="true">♚</div>
           <canvas id="evalChart"></canvas>
         </div>
       </div>
@@ -1736,6 +2535,11 @@
               <button id="openingEndBtn" title="В конец">⏭</button>
             </div>
             <div class="opening-move-strip" id="openingMoveStrip"></div>
+          </div>
+
+          <div class="opening-lines-panel">
+            <div class="filter-label">Вариации и ловушки</div>
+            <div class="opening-line-list" id="openingLines"></div>
             <div class="lichess-explorer">
               <div class="explorer-head">
                 <span class="explorer-title">Lichess Explorer</span>
@@ -1744,11 +2548,6 @@
               <div class="explorer-status" id="openingExplorerStatus">—</div>
               <div class="explorer-moves" id="openingExplorerMoves"></div>
             </div>
-          </div>
-
-          <div>
-            <div class="filter-label">Вариации и ловушки</div>
-            <div class="opening-line-list" id="openingLines"></div>
           </div>
         </div>
 
@@ -1780,62 +2579,80 @@
     <div class="attraction-container">
       <aside class="attraction-panel">
         <div>
-          <h2 class="mode-title">Исторические дуэли</h2>
-          <p class="mode-subtitle">Выбери великую партию, включи Guess The Move и попробуй угадать следующий ход чемпиона.</p>
+          <h2 class="mode-title">Мини-игры против Stockfish</h2>
+          <p class="mode-subtitle">Три быстрых режима для тренировки: обычный спарринг, царь горы и игра вслепую.</p>
         </div>
 
-        <div>
-          <label class="filter-label" for="duelDifficultyFilter">Сложность</label>
-          <select class="opening-select" id="duelDifficultyFilter">
-            <option value="all">Все партии</option>
-            <option value="easy">Легко</option>
-            <option value="medium">Средне</option>
-            <option value="hard">Сложно</option>
-          </select>
+        <div class="mini-game-list" id="miniGameList">
+          <button class="mini-game-card active" type="button" data-mini-mode="classic">
+            <h3>Спарринг</h3>
+            <p>Обычная партия против Stockfish. Белыми играешь ты, чёрными отвечает бот.</p>
+          </button>
+          <button class="mini-game-card" type="button" data-mini-mode="king_hill">
+            <h3>Царь горы</h3>
+            <p>Победа приходит, когда король легально заходит на d4, e4, d5 или e5.</p>
+          </button>
+          <button class="mini-game-card" type="button" data-mini-mode="blindfold">
+            <h3>Вслепую</h3>
+            <p>Фигуры скрыты. Играй ходами в поле ввода: e4, Nf3, Bb5 или UCI вроде e2e4.</p>
+          </button>
         </div>
 
-        <div class="historic-list" id="historicGamesList">
-          <div class="empty-openings">Загружаю исторические партии...</div>
+        <div class="mini-settings">
+          <div class="mini-setting-head">
+            <label class="filter-label" for="miniBotSkill">Skill Level Stockfish</label>
+            <span class="mini-skill-value" id="miniSkillValue">10/20</span>
+          </div>
+          <input class="mini-skill-slider" id="miniBotSkill" type="range" min="0" max="20" step="1" value="10" />
+          <div class="mini-skill-scale" aria-hidden="true">
+            <span>0</span>
+            <span>10</span>
+            <span>20</span>
+          </div>
         </div>
       </aside>
 
-      <section class="duel-stage">
+      <section class="mini-stage">
         <div>
           <div class="duel-board-shell">
             <div id="duelBoard"></div>
             <canvas class="board-canvas" id="duelCanvas"></canvas>
           </div>
-          <div class="duel-controls">
-            <button id="duelPrevBtn">◀</button>
-            <button id="duelRevealBtn">Показать</button>
-            <button id="duelNextBtn">▶</button>
+          <div class="mini-input-row">
+            <input id="miniMoveInput" type="text" placeholder="Ход: e4, Nf3 или e2e4" autocomplete="off" />
+            <button id="miniMoveBtn" type="button">Ход</button>
           </div>
-          <button class="primary-action" id="duelStartBtn">Начать Guess The Move</button>
+          <div class="mini-controls">
+            <button id="miniNewBtn" type="button">Новая</button>
+            <button id="miniFlipBtn" type="button">Повернуть</button>
+            <button id="miniShowBtn" type="button">Показать</button>
+          </div>
+          <button class="primary-action" id="miniStartBtn" type="button">Начать мини-игру</button>
         </div>
 
-        <div class="duel-info">
+        <div class="mini-info">
           <div>
-            <h2 class="guide-title" id="duelTitle">—</h2>
-            <p class="guide-subtitle" id="duelMeta">—</p>
+            <h2 class="guide-title" id="miniGameTitle">Спарринг</h2>
+            <p class="guide-subtitle" id="miniGameMeta">Обычная партия против Stockfish. Ты играешь белыми.</p>
           </div>
 
           <div class="score-grid">
             <div class="score-box">
-              <span class="score-value" id="duelScore">0</span>
-              <span class="score-label">Очки</span>
+              <span class="score-value" id="miniMoveNo">0</span>
+              <span class="score-label">Ходов</span>
             </div>
             <div class="score-box">
-              <span class="score-value" id="duelStreak">0</span>
-              <span class="score-label">Серия</span>
+              <span class="score-value" id="miniBotLabel">SF</span>
+              <span class="score-label">Бот</span>
             </div>
             <div class="score-box">
-              <span class="score-value" id="duelMoveNo">0</span>
-              <span class="score-label">Ход</span>
+              <span class="score-value" id="miniTurnLabel">Ты</span>
+              <span class="score-label">Ходит</span>
             </div>
           </div>
 
-          <div class="duel-prompt" id="duelPrompt">Выбери партию слева и нажми старт.</div>
-          <div class="duel-moves" id="duelMoves"></div>
+          <div class="duel-prompt" id="miniPrompt">Выбери режим и нажми старт. Бот отвечает через Stockfish.</div>
+          <div class="duel-moves" id="miniMoves"></div>
         </div>
       </section>
     </div>
@@ -1860,6 +2677,8 @@
     let evalSliderAnimationId = null;
     let evalSliderDisplayedPercent = 50;
     let arrowsEnabled = true;
+    let bestLineEnabled = false;
+    let bestLineDepth = 1;
     let heatmapEnabled = false;
     let blindfoldEnabled = false;
     let voiceEnabled = false;
@@ -1888,14 +2707,18 @@
     let openingExplorerTimer = null;
     let openingExplorerRequestId = 0;
     let duelBoard = null;
-    let duelGame = new Chess();
-    let historicGames = [];
-    let selectedHistoricGameId = null;
-    let duelMoves = [];
-    let duelMoveIndex = -1;
-    let duelScore = 0;
-    let duelStreak = 0;
-    let duelGuessMode = false;
+    let miniGame = new Chess();
+    let miniMode = 'classic';
+    let miniMoveHistory = [];
+    let miniBotThinking = false;
+    let miniGameOver = false;
+    let miniLastMove = null;
+    let miniBoardOrientation = 'white';
+    let miniBlindfoldPeekTimer = null;
+    let selectedMiniSquare = null;
+    let selectedMiniSquareAt = 0;
+    let lastMiniBoardEventAt = 0;
+    let lastMiniBoardEventSquare = '';
     const openingFilters = {
       color: 'all',
       difficulty: 'all',
@@ -1916,11 +2739,11 @@
         setOpeningLine(selectedOpeningLine, false);
         setTimeout(() => openingBoard && openingBoard.resize(), 0);
       } else if (view === 'attraction') {
-        ensureDuelBoard();
-        duelBoard.position(duelGame.fen(), false);
+        ensureMiniGameBoard();
+        renderMiniGame();
         setTimeout(() => {
           duelBoard && duelBoard.resize();
-          drawDuelArrow();
+          drawMiniArrow();
         }, 0);
       } else {
         setTimeout(() => {
@@ -1933,6 +2756,57 @@
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.addEventListener('click', () => setAppView(btn.dataset.view));
     });
+
+    const THEME_STORAGE_KEY = 'chessAnalyzerTheme';
+    let themeAnimationTimer = null;
+    let themeToggleLocked = false;
+
+    function getCurrentTheme() {
+      return document.documentElement.classList.contains('light-theme') ? 'light' : 'dark';
+    }
+
+    function applyTheme(theme, animate = false) {
+      const normalizedTheme = theme === 'light' ? 'light' : 'dark';
+      const isLight = normalizedTheme === 'light';
+      const toggle = document.getElementById('themeBoardToggle');
+
+      if (animate) {
+        document.documentElement.classList.add('theme-switching');
+      }
+      document.documentElement.classList.toggle('light-theme', isLight);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+      } catch (e) {}
+
+      if (toggle) {
+        toggle.classList.toggle('light', isLight);
+        toggle.setAttribute('aria-label', isLight ? 'Переключить темную тему' : 'Переключить светлую тему');
+        toggle.title = isLight ? 'Темная тема' : 'Светлая тема';
+
+        if (animate) {
+          themeToggleLocked = true;
+          toggle.disabled = true;
+          toggle.classList.remove('is-animating');
+          void toggle.offsetWidth;
+          toggle.classList.add('is-animating');
+          if (themeAnimationTimer) window.clearTimeout(themeAnimationTimer);
+          themeAnimationTimer = window.setTimeout(() => {
+            toggle.classList.remove('is-animating');
+            toggle.disabled = false;
+            themeToggleLocked = false;
+            document.documentElement.classList.remove('theme-switching');
+            themeAnimationTimer = null;
+          }, 540);
+        }
+      }
+    }
+
+    document.getElementById('themeBoardToggle').addEventListener('click', () => {
+      if (themeToggleLocked) return;
+      applyTheme(getCurrentTheme() === 'light' ? 'dark' : 'light', true);
+    });
+
+    applyTheme(getCurrentTheme(), false);
 
     // ==================================================================
     // Variations Logic
@@ -2277,6 +3151,8 @@
     const ARROW_PLAYED = 'rgba(22, 163, 74, 0.96)';
     const ARROW_ENGINE_BEST = 'rgba(59, 130, 246, 0.94)';
     const ARROW_ENGINE_BEST_HALO = 'rgba(219, 234, 254, 0.58)';
+    const ARROW_ENGINE_SECOND = 'rgba(167, 139, 250, 0.84)';
+    const ARROW_ENGINE_SECOND_HALO = 'rgba(237, 233, 254, 0.38)';
 
     function squareCenter(square, boardEl, orientation = 'white') {
       const rect = boardEl.getBoundingClientRect();
@@ -2412,9 +3288,58 @@
       return temp;
     }
 
+    function getGameAfterIndex(idx, list = getActiveMovesList()) {
+      const temp = new Chess();
+      for (let i = 0; i <= idx && i < list.length; i++) {
+        if (!temp.move(list[i].san, { sloppy: true })) return null;
+      }
+      return temp;
+    }
+
     function getPieceBeforeMove(idx, square) {
       const game = getGameBeforeIndex(idx);
       return game?.get(square)?.type || '';
+    }
+
+    function getBestLineMoves(m, depth = bestLineDepth) {
+      const line = Array.isArray(m?.best_line) ? m.best_line : [];
+      const game = getGameAfterIndex(currentIdx);
+      const moves = [];
+      if (!game || !line.length) return moves;
+
+      for (const uci of line.slice(0, depth)) {
+        if (typeof uci !== 'string' || uci.length < 4) break;
+        const move = game.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci[4] || 'q',
+        });
+        if (!move) break;
+        moves.push(move);
+      }
+
+      return moves;
+    }
+
+    function drawBestLineArrows(ctx, boardEl, m) {
+      const lineMoves = getBestLineMoves(m, bestLineDepth);
+      lineMoves.forEach((move, idx) => {
+        const isSecond = idx > 0;
+        drawArrow(
+          ctx,
+          squareCenter(move.from, boardEl),
+          squareCenter(move.to, boardEl),
+          isSecond ? ARROW_ENGINE_SECOND : ARROW_ENGINE_BEST,
+          isSecond ? 6 : 7,
+          {
+            piece: move.piece,
+            haloColor: isSecond ? ARROW_ENGINE_SECOND_HALO : ARROW_ENGINE_BEST_HALO,
+            haloWidth: isSecond ? 4 : 5,
+            alpha: isSecond ? 0.78 : 0.92,
+            dash: isSecond ? [10, 8] : [],
+          }
+        );
+      });
     }
 
     function buildBlindSpotMap() {
@@ -2474,23 +3399,8 @@
         { piece: verbose.piece }
       );
 
-      const bad = ['mistake', 'blunder', 'miss'].includes(m.cat_key);
-      if (bad && m.best_move && m.best_move.length >= 4) {
-        const bestFrom = m.best_move.slice(0, 2);
-        const bestTo = m.best_move.slice(2, 4);
-        drawArrow(
-          ctx,
-          squareCenter(bestFrom, boardEl),
-          squareCenter(bestTo, boardEl),
-          ARROW_ENGINE_BEST,
-          8,
-          {
-            piece: getPieceBeforeMove(currentIdx, bestFrom),
-            haloColor: ARROW_ENGINE_BEST_HALO,
-            haloWidth: 6,
-            alpha: 0.94
-          }
-        );
+      if (bestLineEnabled) {
+        drawBestLineArrows(ctx, boardEl, m);
       }
     }
 
@@ -2519,6 +3429,38 @@
       drawAnalysisEffects();
     });
 
+    function refreshBestLineUi() {
+      const panel = document.getElementById('bestLinePanel');
+      const toggle = document.getElementById('toggleBestLine');
+      if (panel) panel.classList.toggle('disabled', !bestLineEnabled);
+      if (toggle) {
+        toggle.classList.toggle('active', bestLineEnabled);
+        toggle.setAttribute('aria-pressed', bestLineEnabled ? 'true' : 'false');
+      }
+      document.querySelectorAll('[data-best-line-depth]').forEach((button) => {
+        const active = Number(button.dataset.bestLineDepth) === bestLineDepth;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    document.getElementById('toggleBestLine').addEventListener('click', () => {
+      bestLineEnabled = !bestLineEnabled;
+      refreshBestLineUi();
+      drawAnalysisEffects();
+    });
+
+    document.querySelectorAll('[data-best-line-depth]').forEach((button) => {
+      button.addEventListener('click', () => {
+        bestLineDepth = Number(button.dataset.bestLineDepth) === 2 ? 2 : 1;
+        if (!bestLineEnabled) bestLineEnabled = true;
+        refreshBestLineUi();
+        drawAnalysisEffects();
+      });
+    });
+
+    refreshBestLineUi();
+
     document.getElementById('toggleVoice').addEventListener('click', () => {
       voiceEnabled = !voiceEnabled;
       document.getElementById('toggleVoice').classList.toggle('active', voiceEnabled);
@@ -2528,7 +3470,7 @@
 
     window.addEventListener('resize', () => {
       drawAnalysisEffects();
-      drawDuelArrow();
+      drawMiniArrow();
     });
 
     // ==================================================================
@@ -3722,6 +4664,19 @@
       });
     }
 
+    const profileActionIcons = {
+      profile: '<span class="profile-action-icon profile-action-person" aria-hidden="true"></span>',
+      games: '<span class="profile-action-icon profile-action-board" aria-hidden="true"></span>',
+    };
+
+    function setProfileActionButton(button, iconKey, label) {
+      button.innerHTML = `${profileActionIcons[iconKey]}<span>${label}</span>`;
+    }
+
+    function setProfileActionLoading(button, label) {
+      button.innerHTML = `<span class="profile-action-loader" aria-hidden="true"></span><span>${label}</span>`;
+    }
+
     document.getElementById('loadProfileBtn').addEventListener('click', async () => {
       const username = getProfileUsername();
       const config = getSelectedProfileConfig();
@@ -3734,7 +4689,7 @@
       }
       
       btn.disabled = true;
-      btn.textContent = '⏳...';
+      setProfileActionLoading(btn, 'Загрузка');
       showProfileMessage(statsDiv, `Загружаю профиль ${config.label}...`);
       
       playerRating = null;
@@ -3758,7 +4713,7 @@
           showProfileMessage(statsDiv, e.message || 'Ошибка загрузки профиля.', 'error');
       } finally {
           btn.disabled = false;
-          btn.textContent = 'ID Профиль';
+          setProfileActionButton(btn, 'profile', 'ID Профиль');
       }
     });
 
@@ -3778,7 +4733,7 @@
       }
 
       btn.disabled = true;
-      btn.textContent = '⏳…';
+      setProfileActionLoading(btn, 'Загрузка');
       status.className = 'status';
       status.textContent = `Загружаю последние партии ${username} на ${config.label}…`;
       showRecentGamesMessage(picker, 'Ищу последние партии с PGN...');
@@ -3800,7 +4755,7 @@
         showRecentGamesMessage(picker, e.message || 'Не удалось загрузить партии.', 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = '♟ Партии';
+        setProfileActionButton(btn, 'games', 'Партии');
       }
     });
 
@@ -3815,7 +4770,7 @@
       const status = document.getElementById('status');
 
       btn.disabled = true;
-      btn.textContent = '⏳ Анализ…';
+      setAnalyzeButtonState(btn, 'loading');
       status.className = 'status';
       status.textContent = 'Stockfish анализирует + Gemini комментирует… Это может занять время.';
 
@@ -3930,7 +4885,7 @@
         status.textContent = `✗ ${e.message}`;
       } finally {
         btn.disabled = false;
-        btn.textContent = '⌕ Анализировать';
+        setAnalyzeButtonState(btn);
       }
     });
 
@@ -4771,268 +5726,475 @@
     renderOpenings();
 
     // ==================================================================
-    // Historic duels / Guess The Move
+    // Mini games vs Stockfish
     // ==================================================================
-    function parsePgnMoves(pgn) {
-      const game = new Chess();
-      const loaded = game.load_pgn(pgn, { sloppy: true });
-      if (!loaded) return [];
-      return game.history();
-    }
-
-    async function loadHistoricGames() {
-      try {
-        const resp = await fetch('/historic_games.json');
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        historicGames = await resp.json();
-        selectedHistoricGameId = historicGames[0]?.id || null;
-        renderHistoricGames();
-        selectHistoricGame(selectedHistoricGameId);
-      } catch (e) {
-        document.getElementById('historicGamesList').innerHTML =
-          `<div class="empty-openings">Не удалось загрузить партии: ${e.message}</div>`;
+    const MINI_GAMES = {
+      classic: {
+        title: 'Спарринг',
+        meta: 'Обычная партия против Stockfish. Ты играешь белыми, бот отвечает чёрными.',
+        prompt: 'Сделай первый ход на доске или введи его в поле. Бот ответит через Stockfish.',
+        goal: 'Матуй, выигрывай материал и тренируй нормальную партию без анализа.'
+      },
+      king_hill: {
+        title: 'Царь горы',
+        meta: 'Вариант по мотивам Lichess: король выигрывает, если легально заходит на d4, e4, d5 или e5.',
+        prompt: 'Двигайся к центру, но не отдавай короля под тактику. Бот тоже может выиграть центром.',
+        goal: 'Цель: первым поставить короля на одно из центральных полей d4/e4/d5/e5.'
+      },
+      blindfold: {
+        title: 'Вслепую',
+        meta: 'Фигуры скрыты. Играй вводом ходов: e4, Nf3, Bb5, O-O или UCI e2e4.',
+        prompt: 'Нажми старт и держи позицию в голове. Кнопка Показать даст короткую подсказку доски.',
+        goal: 'Цель: доиграть обычную партию против Stockfish без видимых фигур.'
       }
+    };
+
+    function getMiniConfig() {
+      return MINI_GAMES[miniMode] || MINI_GAMES.classic;
     }
 
-    function getSelectedHistoricGame() {
-      return historicGames.find(game => game.id === selectedHistoricGameId) || historicGames[0];
+    function getMiniSkillLevel() {
+      const slider = document.getElementById('miniBotSkill');
+      const value = Number(slider?.value || 10);
+      return Math.max(0, Math.min(20, value));
     }
 
-    function renderHistoricGames() {
-      const list = document.getElementById('historicGamesList');
-      const filter = document.getElementById('duelDifficultyFilter').value;
-      const filtered = historicGames.filter(game => filter === 'all' || game.difficulty === filter);
-      list.innerHTML = '';
-
-      if (!filtered.length) {
-        list.innerHTML = '<div class="empty-openings">Нет партий под этот фильтр</div>';
-        return;
-      }
-
-      if (!filtered.some(game => game.id === selectedHistoricGameId)) {
-        selectedHistoricGameId = filtered[0].id;
-      }
-
-      filtered.forEach(game => {
-        const card = document.createElement('button');
-        card.type = 'button';
-        card.className = 'historic-card' + (game.id === selectedHistoricGameId ? ' active' : '');
-        card.innerHTML = `
-          <h3>${game.title}</h3>
-          <p>${game.white} vs ${game.black}, ${game.year}</p>
-          <p>${game.theme}</p>
-        `;
-        card.addEventListener('click', () => selectHistoricGame(game.id));
-        list.appendChild(card);
-      });
+    function renderMiniSkill() {
+      const level = getMiniSkillLevel();
+      const slider = document.getElementById('miniBotSkill');
+      const valueEl = document.getElementById('miniSkillValue');
+      if (slider) slider.style.setProperty('--skill-percent', `${level * 5}%`);
+      if (valueEl) valueEl.textContent = `${level}/20`;
     }
 
-    function ensureDuelBoard() {
+    function ensureMiniGameBoard() {
       if (duelBoard) return;
       duelBoard = Chessboard('duelBoard', {
         draggable: true,
         position: 'start',
+        orientation: miniBoardOrientation,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
         appearSpeed: 120,
         moveSpeed: 140,
-        onDragStart: onDuelDragStart,
-        onDrop: onDuelDrop,
-        onSnapEnd: () => duelBoard.position(duelGame.fen(), false),
+        onDragStart: onMiniDragStart,
+        onDrop: onMiniDrop,
+        onSnapEnd: () => duelBoard.position(miniGame.fen(), false),
       });
+      const miniBoardEl = document.getElementById('duelBoard');
+      miniBoardEl.addEventListener('pointerup', onMiniBoardClick, true);
+      miniBoardEl.addEventListener('mouseup', onMiniBoardClick, true);
+      miniBoardEl.addEventListener('click', onMiniBoardClick, true);
     }
 
-    function selectHistoricGame(id) {
-      selectedHistoricGameId = id;
-      const game = getSelectedHistoricGame();
-      if (!game) return;
-
-      duelMoves = parsePgnMoves(game.pgn);
-      duelMoveIndex = -1;
-      duelScore = 0;
-      duelStreak = 0;
-      duelGuessMode = false;
-      duelGame.reset();
-
-      document.getElementById('duelTitle').textContent = game.title;
-      document.getElementById('duelMeta').textContent =
-        `${game.white} vs ${game.black} · ${game.event}, ${game.year} · ${game.theme}`;
-      document.getElementById('duelPrompt').textContent = 'Нажми старт, чтобы скрыть следующий ход и попробовать угадать его на доске.';
-      document.getElementById('duelPrompt').className = 'duel-prompt';
-      document.getElementById('duelStartBtn').textContent = 'Начать Guess The Move';
-
-      if (document.getElementById('viewAttraction').classList.contains('active')) {
-        ensureDuelBoard();
-        duelBoard.position('start', false);
-      }
-      renderHistoricGames();
-      renderDuelState();
+    function setMiniMode(mode) {
+      if (!MINI_GAMES[mode]) return;
+      miniMode = mode;
+      document.querySelectorAll('[data-mini-mode]').forEach(card => {
+        card.classList.toggle('active', card.dataset.miniMode === mode);
+      });
+      startMiniGame(false);
     }
 
-    function renderDuelState() {
-      document.getElementById('duelScore').textContent = duelScore;
-      document.getElementById('duelStreak').textContent = duelStreak;
-      document.getElementById('duelMoveNo').textContent = Math.max(0, duelMoveIndex + 1);
-      renderDuelMoves();
-      drawDuelArrow();
+    function startMiniGame(showReadyPrompt = true) {
+      ensureMiniGameBoard();
+      miniGame = new Chess();
+      miniMoveHistory = [];
+      miniBotThinking = false;
+      miniGameOver = false;
+      miniLastMove = null;
+      selectedMiniSquare = null;
+      selectedMiniSquareAt = 0;
+      clearMiniLegalDots();
+      clearTimeout(miniBlindfoldPeekTimer);
+      duelBoard.orientation(miniBoardOrientation);
+      duelBoard.position('start', false);
+      renderMiniGame();
+      setMiniPrompt(showReadyPrompt ? getMiniConfig().prompt : getMiniConfig().goal);
+      drawMiniArrow();
     }
 
-    function renderDuelMoves() {
-      const el = document.getElementById('duelMoves');
-      const visibleMoves = duelMoves.slice(0, duelMoveIndex + 1);
-      if (!visibleMoves.length) {
-        el.innerHTML = '<span class="meta-pill">Начальная позиция</span>';
+    function setMiniPrompt(text, tone = '') {
+      const prompt = document.getElementById('miniPrompt');
+      prompt.textContent = text;
+      prompt.className = 'duel-prompt' + (tone ? ` ${tone}` : '');
+    }
+
+    function isMiniBlindfold() {
+      return miniMode === 'blindfold';
+    }
+
+    function applyMiniBlindfold(peek = false) {
+      const shell = document.querySelector('.duel-board-shell');
+      if (!shell) return;
+      shell.classList.toggle('mini-blindfold-active', isMiniBlindfold() && !peek);
+      const showBtn = document.getElementById('miniShowBtn');
+      showBtn.disabled = !isMiniBlindfold();
+      showBtn.textContent = isMiniBlindfold() ? 'Показать' : 'Доска видна';
+    }
+
+    function peekMiniBoard() {
+      if (!isMiniBlindfold()) return;
+      clearTimeout(miniBlindfoldPeekTimer);
+      applyMiniBlindfold(true);
+      miniBlindfoldPeekTimer = setTimeout(() => applyMiniBlindfold(false), 1800);
+    }
+
+    function renderMiniGame() {
+      const config = getMiniConfig();
+      const skillLevel = getMiniSkillLevel();
+      renderMiniSkill();
+      document.getElementById('miniGameTitle').textContent = config.title;
+      document.getElementById('miniGameMeta').textContent = config.meta;
+      document.getElementById('miniBotLabel').textContent = `L${skillLevel}`;
+      document.getElementById('miniMoveNo').textContent = Math.ceil(miniMoveHistory.length / 2);
+      document.getElementById('miniTurnLabel').textContent =
+        miniGameOver ? '—' : (miniGame.turn() === 'w' ? 'Ты' : 'Бот');
+      document.getElementById('miniMoveInput').disabled = miniBotThinking || miniGameOver;
+      document.getElementById('miniMoveBtn').disabled = miniBotThinking || miniGameOver;
+      document.getElementById('miniStartBtn').textContent = miniMoveHistory.length ? 'Начать заново' : 'Начать мини-игру';
+      renderMiniMoves();
+      applyMiniBlindfold(false);
+    }
+
+    function renderMiniMoves() {
+      const el = document.getElementById('miniMoves');
+      if (!miniMoveHistory.length) {
+        el.innerHTML = `<span class="meta-pill">${getMiniConfig().goal}</span>`;
         return;
       }
-      el.innerHTML = visibleMoves.map((move, idx) => {
+      el.innerHTML = miniMoveHistory.map((entry, idx) => {
         const moveNo = Math.floor(idx / 2) + 1;
-        const prefix = idx % 2 === 0 ? `${moveNo}. ` : '';
-        return `<span class="duel-move ${idx === duelMoveIndex ? 'current' : ''}">${prefix}${move}</span>`;
+        const prefix = entry.side === 'user' ? `${moveNo}. ` : '';
+        const current = idx === miniMoveHistory.length - 1 ? ' current' : '';
+        const bot = entry.side === 'bot' ? ' bot' : '';
+        return `<span class="duel-move${current}${bot}">${prefix}${entry.san}</span>`;
       }).join('');
     }
 
-    function playDuelTo(targetIndex) {
-      ensureDuelBoard();
-      duelGame.reset();
-      duelMoveIndex = Math.max(-1, Math.min(targetIndex, duelMoves.length - 1));
-      for (let i = 0; i <= duelMoveIndex; i++) {
-        const result = duelGame.move(duelMoves[i], { sloppy: true });
-        if (!result) {
-          duelMoveIndex = i - 1;
-          break;
+    function getMiniKingSquare(color) {
+      const rows = miniGame.board();
+      for (let rank = 0; rank < rows.length; rank++) {
+        for (let file = 0; file < rows[rank].length; file++) {
+          const piece = rows[rank][file];
+          if (piece && piece.type === 'k' && piece.color === color) {
+            return 'abcdefgh'[file] + (8 - rank);
+          }
         }
       }
-      duelBoard.position(duelGame.fen(), true);
-      renderDuelState();
+      return '';
     }
 
-    function expectedDuelMove() {
-      const temp = new Chess(duelGame.fen());
-      const san = duelMoves[duelMoveIndex + 1];
-      if (!san) return null;
-      return temp.move(san, { sloppy: true });
+    function isMiniKingOnHill(color) {
+      return ['d4', 'e4', 'd5', 'e5'].includes(getMiniKingSquare(color));
     }
 
-    function drawDuelArrow() {
+    function describeMiniResult() {
+      if (miniGame.in_checkmate()) {
+        return miniGame.turn() === 'w' ? 'Мат. Победил Stockfish.' : 'Мат. Ты победил Stockfish.';
+      }
+      if (miniGame.in_draw()) return 'Ничья по правилам шахмат.';
+      return 'Партия завершена.';
+    }
+
+    function finishMiniGame(message, tone = 'success') {
+      miniGameOver = true;
+      setMiniPrompt(message, tone);
+      renderMiniGame();
+      drawMiniArrow();
+    }
+
+    function checkMiniTerminal(afterSide) {
+      if (miniMode === 'king_hill') {
+        if (isMiniKingOnHill('w')) {
+          finishMiniGame('Ты занял центр королём. Победа в Царе горы.', 'success');
+          return true;
+        }
+        if (isMiniKingOnHill('b')) {
+          finishMiniGame('Stockfish завёл короля в центр. Победа бота в Царе горы.', 'error');
+          return true;
+        }
+      }
+
+      if (miniGame.game_over()) {
+        const tone = miniGame.in_checkmate() && afterSide === 'user' ? 'success' : '';
+        finishMiniGame(describeMiniResult(), tone);
+        return true;
+      }
+
+      return false;
+    }
+
+    function canMiniBoardInteract() {
+      return !miniBotThinking && !miniGameOver && !isMiniBlindfold() && miniGame.turn() === 'w';
+    }
+
+    function clearMiniLegalDots() {
+      selectedMiniSquare = null;
+      selectedMiniSquareAt = 0;
+      const boardEl = document.getElementById('duelBoard');
+      if (!boardEl) return;
+      boardEl.querySelectorAll('.mini-legal-dot, .mini-legal-capture').forEach(el => el.remove());
+      boardEl.querySelectorAll('.mini-selected-square').forEach(el => el.classList.remove('mini-selected-square'));
+    }
+
+    function getMiniSquareElement(square) {
+      return document.getElementById('duelBoard')?.querySelector(`.square-${square}`) || null;
+    }
+
+    function getMiniSquareFromElement(element) {
+      const squareEl = element?.closest?.('#duelBoard [class*="square-"]');
+      if (!squareEl) return '';
+      const squareClass = Array.from(squareEl.classList).find(cls => /^square-[a-h][1-8]$/.test(cls));
+      return squareClass ? squareClass.slice(7) : '';
+    }
+
+    function showMiniLegalDots(square) {
+      clearMiniLegalDots();
+      if (!canMiniBoardInteract()) return;
+
+      const piece = miniGame.get(square);
+      if (!piece || piece.color !== 'w') return;
+
+      const moves = miniGame.moves({ square, verbose: true });
+      if (!moves.length) return;
+
+      selectedMiniSquare = square;
+      selectedMiniSquareAt = Date.now();
+      getMiniSquareElement(square)?.classList.add('mini-selected-square');
+
+      moves.forEach(move => {
+        const targetSquareEl = getMiniSquareElement(move.to);
+        if (!targetSquareEl) return;
+        targetSquareEl.style.position = 'relative';
+
+        const dot = document.createElement('div');
+        dot.className = move.captured ? 'mini-legal-capture' : 'mini-legal-dot';
+        targetSquareEl.appendChild(dot);
+      });
+    }
+
+    function tryMiniClickMove(targetSquare) {
+      if (!selectedMiniSquare || !targetSquare || selectedMiniSquare === targetSquare) return false;
+      const move = miniGame.move({
+        from: selectedMiniSquare,
+        to: targetSquare,
+        promotion: 'q',
+      });
+      if (!move) return false;
+
+      const raw = `${selectedMiniSquare}${targetSquare}`;
+      clearMiniLegalDots();
+      handleMiniUserMove(move, raw);
+      return true;
+    }
+
+    function onMiniBoardClick(event) {
+      const square = getMiniSquareFromElement(event.target);
+      const now = Date.now();
+      if (square && square === lastMiniBoardEventSquare && now - lastMiniBoardEventAt < 250) return;
+      lastMiniBoardEventAt = now;
+      lastMiniBoardEventSquare = square;
+
+      if (!canMiniBoardInteract()) {
+        clearMiniLegalDots();
+        return;
+      }
+
+      if (!square) {
+        clearMiniLegalDots();
+        return;
+      }
+
+      if (selectedMiniSquare === square) {
+        if (Date.now() - selectedMiniSquareAt < 350) return;
+        clearMiniLegalDots();
+        return;
+      }
+
+      if (tryMiniClickMove(square)) return;
+
+      const piece = miniGame.get(square);
+      if (piece && piece.color === 'w') {
+        showMiniLegalDots(square);
+      } else {
+        clearMiniLegalDots();
+      }
+    }
+
+    function onMiniDragStart(source, piece) {
+      if (miniBotThinking || miniGameOver || isMiniBlindfold()) return false;
+      if (miniGame.turn() !== 'w') return false;
+      if (piece.search(/^b/) !== -1) return false;
+      showMiniLegalDots(source);
+      return true;
+    }
+
+    function onMiniDrop(source, target) {
+      if (source === target) return 'snapback';
+      clearMiniLegalDots();
+      if (!/^[a-h][1-8]$/.test(target)) return 'snapback';
+      const move = miniGame.move({ from: source, to: target, promotion: 'q' });
+      if (move === null) return 'snapback';
+      handleMiniUserMove(move, `${source}${target}`);
+      return undefined;
+    }
+
+    function parseMiniTextMove(text) {
+      const value = text.trim();
+      if (!value) return null;
+
+      const sanMove = miniGame.move(value, { sloppy: true });
+      if (sanMove) return sanMove;
+
+      const uci = value.toLowerCase().replace(/[^a-h1-8qrbn]/g, '');
+      if (/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci)) {
+        return miniGame.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci[4] || 'q',
+        });
+      }
+
+      return null;
+    }
+
+    function playMiniTextMove() {
+      if (miniBotThinking || miniGameOver || miniGame.turn() !== 'w') return;
+      clearMiniLegalDots();
+      const input = document.getElementById('miniMoveInput');
+      const move = parseMiniTextMove(input.value);
+      if (!move) {
+        setMiniPrompt('Не вижу такого легального хода. Попробуй SAN: Nf3, Bb5, O-O или UCI: e2e4.', 'error');
+        return;
+      }
+      const raw = input.value;
+      input.value = '';
+      handleMiniUserMove(move, raw);
+    }
+
+    function handleMiniUserMove(move, rawInput = '') {
+      miniLastMove = move.from + move.to + (move.promotion || '');
+      miniMoveHistory.push({ side: 'user', san: move.san, raw: rawInput, piece: move.piece });
+      duelBoard.position(miniGame.fen(), true);
+      setMiniPrompt(`Твой ход: ${move.san}. Stockfish думает...`, 'thinking');
+      renderMiniGame();
+      drawMiniArrow();
+
+      if (checkMiniTerminal('user')) return;
+      requestMiniBotMove();
+    }
+
+    async function requestMiniBotMove() {
+      clearMiniLegalDots();
+      miniBotThinking = true;
+      renderMiniGame();
+      try {
+        const resp = await fetch('/bot_move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fen: miniGame.fen(),
+            mode: miniMode,
+            skill: getMiniSkillLevel(),
+            think_ms: 220,
+          }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+
+        if (data.uci) {
+          const move = miniGame.move({
+            from: data.uci.slice(0, 2),
+            to: data.uci.slice(2, 4),
+            promotion: data.uci[4] || 'q',
+          });
+          if (!move && data.fen) {
+            miniGame.load(data.fen);
+          }
+          miniLastMove = data.uci;
+          miniMoveHistory.push({ side: 'bot', san: data.san || move?.san || data.uci, piece: move?.piece || '' });
+          duelBoard.position(miniGame.fen(), true);
+        } else if (data.fen) {
+          miniGame.load(data.fen);
+        }
+
+        miniBotThinking = false;
+        if (data.game_over) {
+          if (data.reason === 'king_hill' && data.winner === 'black') {
+            finishMiniGame('Stockfish завёл короля в центр. Победа бота.', 'error');
+          } else if (data.reason === 'king_hill' && data.winner === 'white') {
+            finishMiniGame('Ты занял центр королём. Победа.', 'success');
+          } else {
+            finishMiniGame(describeMiniResult(), miniGame.turn() === 'b' ? 'success' : '');
+          }
+          return;
+        }
+
+        const lastMove = miniMoveHistory[miniMoveHistory.length - 1];
+        setMiniPrompt(`Stockfish ответил: ${lastMove?.san || 'ход сделан'}. Твой ход.`);
+        renderMiniGame();
+        drawMiniArrow();
+        checkMiniTerminal('bot');
+      } catch (e) {
+        miniBotThinking = false;
+        setMiniPrompt(`Бот не смог ответить: ${e.message}`, 'error');
+        renderMiniGame();
+      }
+    }
+
+    function drawMiniArrow() {
       const canvas = document.getElementById('duelCanvas');
       const boardEl = document.getElementById('duelBoard');
       if (!canvas || !boardEl || !boardEl.offsetWidth) return;
       const { ctx, width, height } = resizeCanvasToBoard(canvas, boardEl);
       ctx.clearRect(0, 0, width, height);
+      if (miniMode === 'classic') return;
+      if (!miniLastMove || miniLastMove.length < 4 || isMiniBlindfold()) return;
+      const lastMove = miniMoveHistory[miniMoveHistory.length - 1];
+      const isBotMove = lastMove?.side === 'bot';
 
-      if (duelGuessMode) return;
-      const move = getDuelMoveAt(duelMoveIndex);
-      if (!move) return;
       drawArrow(
         ctx,
-        squareCenter(move.from, boardEl),
-        squareCenter(move.to, boardEl),
-        ARROW_PLAYED,
+        squareCenter(miniLastMove.slice(0, 2), boardEl, miniBoardOrientation),
+        squareCenter(miniLastMove.slice(2, 4), boardEl, miniBoardOrientation),
+        isBotMove ? ARROW_ENGINE_BEST : ARROW_PLAYED,
         8,
-        { piece: move.piece }
+        {
+          piece: lastMove?.piece || '',
+          haloColor: isBotMove ? ARROW_ENGINE_BEST_HALO : undefined,
+          haloWidth: 5,
+        }
       );
     }
 
-    function getDuelMoveAt(idx) {
-      if (idx < 0 || idx >= duelMoves.length) return null;
-      const temp = new Chess();
-      let verbose = null;
-      for (let i = 0; i <= idx; i++) {
-        verbose = temp.move(duelMoves[i], { sloppy: true });
-        if (!verbose) return null;
-      }
-      return verbose;
-    }
-
-    function startGuessMode() {
-      if (!duelMoves.length) return;
-      duelGuessMode = true;
-      if (duelMoveIndex >= duelMoves.length - 1) {
-        playDuelTo(-1);
-      }
-      document.getElementById('duelStartBtn').textContent = 'Режим угадывания включен';
-      document.getElementById('duelPrompt').className = 'duel-prompt';
-      document.getElementById('duelPrompt').textContent =
-        `Угадай следующий ход: ${duelGame.turn() === 'w' ? 'белые' : 'черные'} ходят.`;
-      drawDuelArrow();
-    }
-
-    function onDuelDragStart(source, piece) {
-      if (!duelGuessMode || duelGame.game_over()) return false;
-      if ((duelGame.turn() === 'w' && piece.search(/^b/) !== -1) ||
-          (duelGame.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-      }
-      return true;
-    }
-
-    function onDuelDrop(source, target) {
-      if (!duelGuessMode) return 'snapback';
-      const expected = expectedDuelMove();
-      if (!expected) return 'snapback';
-
-      const attempted = duelGame.move({ from: source, to: target, promotion: 'q' });
-      if (attempted === null) return 'snapback';
-
-      const prompt = document.getElementById('duelPrompt');
-      if (attempted.san === expected.san) {
-        duelMoveIndex++;
-        duelScore += 10 + Math.min(20, duelStreak * 2);
-        duelStreak++;
-        prompt.className = 'duel-prompt success';
-        prompt.textContent = `Верно: ${attempted.san}. Серия ${duelStreak}.`;
-      } else {
-        duelGame.undo();
-        duelStreak = 0;
-        prompt.className = 'duel-prompt error';
-        prompt.textContent = `Не этот ход. Правильный ход: ${expected.san}.`;
-        duelGame.move(expected.san, { sloppy: true });
-        duelMoveIndex++;
-      }
-
-      duelBoard.position(duelGame.fen(), true);
-      renderDuelState();
-
-      if (duelMoveIndex >= duelMoves.length - 1) {
-        duelGuessMode = false;
-        prompt.className = 'duel-prompt success';
-        prompt.textContent = `Партия завершена. Итог: ${duelScore} очков.`;
-        document.getElementById('duelStartBtn').textContent = 'Начать заново';
-      } else {
-        setTimeout(() => {
-          if (!duelGuessMode) return;
-          prompt.className = 'duel-prompt';
-          prompt.textContent = `Следующий ход: ${duelGame.turn() === 'w' ? 'белые' : 'черные'} ходят.`;
-        }, 900);
-      }
-      return undefined;
-    }
-
-    document.getElementById('duelDifficultyFilter').addEventListener('change', () => {
-      renderHistoricGames();
-      selectHistoricGame(selectedHistoricGameId);
+    document.querySelectorAll('[data-mini-mode]').forEach(card => {
+      card.addEventListener('click', () => setMiniMode(card.dataset.miniMode));
     });
-    document.getElementById('duelStartBtn').addEventListener('click', startGuessMode);
-    document.getElementById('duelPrevBtn').addEventListener('click', () => {
-      duelGuessMode = false;
-      playDuelTo(duelMoveIndex - 1);
+    document.getElementById('miniBotSkill').addEventListener('input', renderMiniGame);
+    document.getElementById('miniBotSkill').addEventListener('change', renderMiniGame);
+    document.getElementById('miniStartBtn').addEventListener('click', () => startMiniGame(true));
+    document.getElementById('miniNewBtn').addEventListener('click', () => startMiniGame(true));
+    document.getElementById('miniMoveBtn').addEventListener('click', playMiniTextMove);
+    document.getElementById('miniMoveInput').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') playMiniTextMove();
     });
-    document.getElementById('duelNextBtn').addEventListener('click', () => {
-      duelGuessMode = false;
-      playDuelTo(duelMoveIndex + 1);
+    document.getElementById('miniFlipBtn').addEventListener('click', () => {
+      miniBoardOrientation = miniBoardOrientation === 'white' ? 'black' : 'white';
+      ensureMiniGameBoard();
+      duelBoard.orientation(miniBoardOrientation);
+      drawMiniArrow();
     });
-    document.getElementById('duelRevealBtn').addEventListener('click', () => {
-      const expected = expectedDuelMove();
-      if (!expected) return;
-      duelGuessMode = false;
-      duelGame.move(expected.san, { sloppy: true });
-      duelMoveIndex++;
-      duelBoard.position(duelGame.fen(), true);
-      document.getElementById('duelPrompt').className = 'duel-prompt';
-      document.getElementById('duelPrompt').textContent = `Показан ход: ${expected.san}`;
-      renderDuelState();
-    });
+    document.getElementById('miniShowBtn').addEventListener('click', peekMiniBoard);
+    renderMiniGame();
 
-    loadHistoricGames();
+    function setAnalyzeButtonState(button, state = 'idle') {
+      if (state === 'loading') {
+        button.innerHTML = '<span class="analyze-loading-icon" aria-hidden="true"></span><span>Анализ...</span>';
+        return;
+      }
+
+      button.innerHTML = '<span class="analyze-search-icon" aria-hidden="true"></span><span>Анализировать</span>';
+    }
 
     function showTab(tabName) {
       document.getElementById('contentMoves').style.display = 'flex';
