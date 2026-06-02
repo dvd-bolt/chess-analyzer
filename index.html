@@ -68,7 +68,7 @@
       gap: 20px; align-items: start;
     }
     .analysis-col {
-      display: flex; flex-direction: column; gap: 14px;
+      display: flex; flex-direction: column; gap: 14px; align-items: center;
     }
     .analysis-left-panel {
       background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
@@ -768,12 +768,17 @@
           <div id="profileStats" style="display:none; font-size:0.8rem; color:#6ee7b7; margin-top:4px; display:flex; align-items:center; gap:8px;"></div>
         </div>
 
-        <div class="pgn-group" style="margin-top: 16px;">
-          <label class="filter-label" for="pgnInput">Или вставьте PGN вручную</label>
-          <textarea id="pgnInput" class="opening-search" style="height:120px; padding:12px; resize:vertical; font-family:monospace;" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+        <div id="pgnInputSection">
+          <div class="pgn-group" style="margin-top: 16px;">
+            <label class="filter-label" for="pgnInput">Или вставьте PGN вручную</label>
+            <textarea id="pgnInput" class="opening-search" style="height:120px; padding:12px; resize:vertical; font-family:monospace;" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+          </div>
+          <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">🔍 Анализировать</button>
+          <div id="status" class="status" style="margin-top: 8px;"></div>
         </div>
-        <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">🔍 Анализировать</button>
-        <div id="status" class="status" style="margin-top: 8px;"></div>
+        
+        <!-- Moves List (Hidden initially) -->
+        <div class="moves-list" id="movesList" style="display:none; max-height:450px; overflow-y:auto; background:#0f0f14; padding:12px; border-radius:10px; border:1px solid #2a2a3a; margin-top: 16px; flex-direction: row; flex-wrap: wrap; align-content: flex-start;"></div>
       </div>
 
       <!-- Blind Spots (Moved to Left Column) -->
@@ -795,14 +800,14 @@
 
       <div id="board" style="width:100%; border-radius:10px; box-shadow: 0 8px 32px rgba(0,0,0,.45); overflow:hidden;"></div>
 
-      <div class="opening-nav" style="margin-top: 4px;">
+      <div class="opening-nav" style="margin-top: 4px; width:100%; max-width:400px;">
         <button id="btnStart" title="В начало">⏮</button>
         <button id="btnPrev"  title="Назад">◀</button>
         <button id="btnNext"  title="Вперёд">▶</button>
         <button id="btnEnd"   title="В конец">⏭</button>
       </div>
 
-      <div class="lichess-explorer" id="chartWrap" style="display:none; margin-top: 8px;">
+      <div class="lichess-explorer" id="chartWrap" style="display:none; margin-top: 8px; width:100%; max-width:400px;">
         <div class="explorer-head">
           <span class="explorer-title">Оценка Stockfish</span>
         </div>
@@ -902,8 +907,6 @@
           
           <div id="moveCounter" style="font-size:0.7rem; color:#52526a; text-align:right;">— / —</div>
         </div>
-
-        <div class="moves-list" id="movesList" style="max-height:150px; overflow-y:auto; background:#0f0f14; padding:8px; border-radius:8px; border:1px solid #2a2a3a;"></div>
       </div>
 
       <div id="resetSection" style="display:none; margin-top: auto;">
@@ -1835,7 +1838,8 @@
         chess_game.reset();
         board.position('start', false);
 
-        document.getElementById('inputSection').style.display = 'none';
+        document.getElementById('pgnInputSection').style.display = 'none';
+        document.getElementById('movesList').style.display = 'flex';
         document.getElementById('tabsContainer').style.display = 'none';
         document.getElementById('chartWrap').style.display = 'block';
         document.getElementById('resetSection').style.display = 'block';
