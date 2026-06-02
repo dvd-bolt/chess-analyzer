@@ -484,10 +484,16 @@
 
       <!-- Input Section -->
       <div id="inputSection">
-        <!-- Chess.com loader -->
-        <div class="chesscom-row">
-          <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
-          <button id="loadChesscomBtn">♟ Загрузить</button>
+        <!-- Player Profile API loader -->
+        <div class="pgn-group">
+          <label>Ваш профиль (для адаптации ИИ-тренера)</label>
+          <div class="chesscom-row">
+            <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
+            <input type="text" id="lichessInput" placeholder="Никнейм Lichess" />
+            <button id="loadProfileBtn" title="Загрузить рейтинг и аватар">👤 Профиль</button>
+            <button id="loadChesscomBtn" title="Загрузить последнюю партию с Chess.com">♟ PGN</button>
+          </div>
+          <div id="profileStats" style="display:none; font-size:0.8rem; color:#6ee7b7; margin-top:4px; display:flex; align-items:center; gap:8px;"></div>
         </div>
 
         <!-- PGN input -->
@@ -525,6 +531,7 @@
             </div>
             <div class="gemini-comment" id="geminiComment">—</div>
           </div>
+          <button id="evalIdeaBtn" style="display:none; margin-top: 4px; width: 100%; padding: 10px; border: 1px dashed #6ee7b7; border-radius: 8px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 600; cursor: pointer; transition: background 0.2s;">💡 Оценить мою идею</button>
 
           <div class="move-counter" id="moveCounter">— / —</div>
         </div>
@@ -534,10 +541,10 @@
 
       <!-- Game Report (Chess.com style) -->
       <div class="report-card" id="reportCard" style="display:none;">
-        <!-- Coach -->
-        <div class="coach-row">
-          <div class="coach-avatar">🧔</div>
-          <div class="coach-bubble" id="coachBubble">Анализирую партию…</div>
+        <!-- Coach Summary (Commentator) -->
+        <div class="coach-row" style="margin-bottom: 14px;">
+          <div class="coach-avatar" id="reportCoachAvatar">🧔</div>
+          <div class="coach-bubble" id="coachBubble" style="font-size: 0.9rem; line-height: 1.4;">Анализирую партию…</div>
         </div>
 
         <!-- Accuracy -->
@@ -568,6 +575,15 @@
           <div class="elo-block elo-low" id="eloBlockB">
             <div class="elo-title">Рейтинг партии</div>
             <div class="elo-number" id="eloBlack">—</div>
+          </div>
+        </div>
+
+        <!-- Blind Spots (Time Management) -->
+        <div class="stages-section" id="blindSpotsSection" style="display:none; border-color: #f87171;">
+          <div class="stages-title" style="color: #f87171;">Твои слепые зоны в этой партии</div>
+          <div style="font-size: 0.85rem; color: #e2e2e8; margin-top: 8px;">
+            Ходов в спешке (менее 3 сек + ошибка): <strong id="impulsiveCount" style="color: #f87171;">0</strong><br>
+            Ошибок в цейтноте (менее 1 мин на часах): <strong id="timeTroubleCount" style="color: #f87171;">0</strong>
           </div>
         </div>
 
@@ -625,6 +641,13 @@
     let branchPoint = -1;
     let variationMoves = [];
     let inVariation = false;
+
+    // Игрок и время
+    let playerRating = null;
+    let playerAvatar = null;
+    let pgnClocks = []; // Время на ход в секундах
+    let impulsiveMoves = 0;
+    let timeTroubleMistakes = 0;
 
     // ==================================================================
     // Variations Logic
@@ -763,10 +786,13 @@
 
     async function analyzeLastVariationMove(fen, prevFen, san) {
       try {
+        const payload = { fen, prev_fen: prevFen, move_san: san };
+        if (playerRating) payload.player_rating = playerRating;
+        
         const resp = await fetch('/analyze_position', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fen, prev_fen: prevFen, move_san: san }),
+          body: JSON.stringify(payload),
         });
         if (resp.ok) {
           const data = await resp.json();
@@ -987,10 +1013,12 @@
         
         updateEvalDisplay();
         updateChartIndicator();
+        document.getElementById('evalIdeaBtn').style.display = 'none';
         return;
       }
       
-      const m = movesData[currentIdx];
+      const m = getCurrentMoveData();
+      if (!m) return;
       const moveNum = Math.floor(currentIdx / 2) + 1;
       const prefix = m.color === 'white' ? `${moveNum}. ` : `${moveNum}... `;
       document.getElementById('moveSanText').textContent = prefix + m.san;
@@ -1045,15 +1073,54 @@
         commEl.className = 'gemini-comment empty';
       }
 
-      const total = movesData.length;
+      const total = getActiveMovesList().length;
       document.getElementById('moveCounter').textContent = `Ход ${currentIdx + 1} из ${total}`;
 
       // Update active chip
       document.querySelectorAll('.move-chip').forEach(c => c.classList.remove('active'));
-      const activeChip = document.querySelector(`.move-chip[data-index="${currentIdx}"]`);
+      const activeChip = document.querySelector(`.move-chip[data-index="${currentIdx}"]${inVariation ? '.variation-chip' : ':not(.variation-chip)'}`);
       if (activeChip) {
         activeChip.classList.add('active');
         activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      const evalBtn = document.getElementById('evalIdeaBtn');
+      if (inVariation) {
+        evalBtn.style.display = 'block';
+        evalBtn.onclick = async () => {
+          evalBtn.disabled = true;
+          evalBtn.textContent = '⏳ ИИ думает...';
+          
+          let prevFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+          let tempGame = new Chess();
+          const active = getActiveMovesList();
+          for(let i=0; i<currentIdx; i++) {
+              tempGame.move(active[i].san);
+          }
+          prevFen = tempGame.fen();
+          
+          const payload = { fen: chess_game.fen(), prev_fen: prevFen, move_san: m.san };
+          if (playerRating) payload.player_rating = playerRating;
+          
+          try {
+            const resp = await fetch('/evaluate_idea', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+              const res = await resp.json();
+              m.comment = res.comment;
+              updateInfoPanel();
+            }
+          } catch(e) { console.error(e); }
+          finally {
+            evalBtn.disabled = false;
+            evalBtn.textContent = '💡 Оценить мою идею';
+          }
+        };
+      } else {
+        evalBtn.style.display = 'none';
       }
 
       updateEvalDisplay();
@@ -1198,8 +1265,72 @@
     });
 
     // ==================================================================
-    // Load from Chess.com
+    // Load Profile Data
     // ==================================================================
+    document.getElementById('loadProfileBtn').addEventListener('click', async () => {
+      const cUser = document.getElementById('usernameInput').value.trim();
+      const lUser = document.getElementById('lichessInput').value.trim();
+      const statsDiv = document.getElementById('profileStats');
+      const btn = document.getElementById('loadProfileBtn');
+      
+      if (!cUser && !lUser) {
+          statsDiv.textContent = 'Укажите хотя бы один никнейм.';
+          statsDiv.style.display = 'block';
+          return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = '⏳...';
+      statsDiv.textContent = 'Загрузка...';
+      statsDiv.style.display = 'block';
+      
+      playerRating = null;
+      playerAvatar = null;
+      let maxRating = 0;
+      
+      try {
+          if (cUser) {
+              const resp = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(cUser)}/stats`);
+              if (resp.ok) {
+                  const data = await resp.json();
+                  const r1 = data.chess_blitz?.last?.rating || 0;
+                  const r2 = data.chess_rapid?.last?.rating || 0;
+                  maxRating = Math.max(maxRating, r1, r2);
+              }
+              const profResp = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(cUser)}`);
+              if (profResp.ok) {
+                  const pData = await profResp.json();
+                  if (pData.avatar) playerAvatar = pData.avatar;
+              }
+          }
+          if (lUser) {
+              const resp = await fetch(`https://lichess.org/api/user/${encodeURIComponent(lUser)}`);
+              if (resp.ok) {
+                  const data = await resp.json();
+                  const r1 = data.perfs?.blitz?.rating || 0;
+                  const r2 = data.perfs?.rapid?.rating || 0;
+                  maxRating = Math.max(maxRating, r1, r2);
+              }
+          }
+          
+          if (maxRating > 0) {
+              playerRating = maxRating;
+              let html = `<span>✅ Рейтинг: ~${maxRating} ELO</span>`;
+              if (playerAvatar) {
+                  html += `<img src="${playerAvatar}" style="width:24px;height:24px;border-radius:50%;" />`;
+              }
+              statsDiv.innerHTML = html;
+          } else {
+              statsDiv.textContent = 'Профиль не найден или нет рейтинга.';
+          }
+      } catch (e) {
+          statsDiv.textContent = 'Ошибка загрузки профиля.';
+      } finally {
+          btn.disabled = false;
+          btn.textContent = '👤 Профиль';
+      }
+    });
+
     document.getElementById('loadChesscomBtn').addEventListener('click', async () => {
       const username = document.getElementById('usernameInput').value.trim();
       if (!username) return;
@@ -1227,7 +1358,7 @@
         status.textContent = `✗ ${e.message}`;
       } finally {
         btn.disabled = false;
-        btn.textContent = '♟ Загрузить';
+        btn.textContent = '♟ PGN';
       }
     });
 
@@ -1247,10 +1378,13 @@
       status.textContent = 'Stockfish анализирует + Gemini комментирует… Это может занять время.';
 
       try {
+        const payload = { pgn };
+        if (playerRating) payload.player_rating = playerRating;
+
         const resp = await fetch('/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pgn }),
+          body: JSON.stringify(payload),
         });
 
         if (!resp.ok) {
@@ -1272,6 +1406,44 @@
         document.getElementById('inputSection').style.display = 'none';
         document.getElementById('tabsContainer').style.display = 'flex';
         document.getElementById('resetSection').style.display = 'block';
+
+        // --- Парсинг таймингов ---
+        impulsiveMoves = 0;
+        timeTroubleMistakes = 0;
+        const clkRegex = /\[%clk\s+(\d+):(\d+):(\d+)\]/g;
+        let match;
+        const times = [];
+        while ((match = clkRegex.exec(pgn)) !== null) {
+            const secs = parseInt(match[1])*3600 + parseInt(match[2])*60 + parseInt(match[3]);
+            times.push(secs);
+        }
+        
+        // Анализируем время
+        if (times.length === movesData.length) {
+            let lastW = times.length > 0 ? times[0] : 0;
+            let lastB = times.length > 1 ? times[1] : 0; // На первый ход время часто стартовое
+            for(let i=0; i<movesData.length; i++) {
+                const m = movesData[i];
+                let timeSpent = 0;
+                let timeLeft = times[i];
+                if (i === 0 || i === 1) {
+                    timeSpent = 0; // Не считаем 1-й ход
+                } else {
+                    const prevLeft = i % 2 === 0 ? lastW : lastB;
+                    timeSpent = prevLeft - timeLeft;
+                    if (i % 2 === 0) lastW = timeLeft; else lastB = timeLeft;
+                }
+                
+                if ((m.cat_key === 'mistake' || m.cat_key === 'blunder')) {
+                    if (timeSpent >= 0 && timeSpent < 3 && i > 1) {
+                        impulsiveMoves++;
+                    }
+                    if (timeLeft < 60) {
+                        timeTroubleMistakes++;
+                    }
+                }
+            }
+        }
           
         showTab('moves');
         buildChart();
@@ -1285,8 +1457,25 @@
 
         const hasComments = movesData.some(m => m.comment);
         status.className = 'status success';
-        status.textContent = `✓ ${movesData.length} ходов` +
-          (hasComments ? ' · Комментарии Gemini загружены' : ' · Без комментариев Gemini');
+        status.textContent = `✓ ${movesData.length} ходов. Запрашиваю комментатора...`;
+
+        // Request commentator summary
+        try {
+            const commResp = await fetch('/commentator_summary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stats: data.stats, player_rating: playerRating })
+            });
+            if (commResp.ok) {
+                const commData = await commResp.json();
+                document.getElementById('coachBubble').textContent = commData.summary;
+                if (playerAvatar) {
+                    document.getElementById('reportCoachAvatar').innerHTML = `<img src="${playerAvatar}" style="width:100%;height:100%;border-radius:50%;" />`;
+                }
+            }
+        } catch(e) { console.error("Commentator fail", e); }
+        
+        status.textContent = `✓ Анализ завершён`;
       } catch (e) {
         status.className = 'status error';
         status.textContent = `✗ ${e.message}`;
@@ -1341,7 +1530,16 @@
 
       // Coach
       document.getElementById('coachBubble').textContent =
-        coachSummary || 'Партия проанализирована. Изучите отчёт ниже!';
+        coachSummary || 'Ожидайте, тренер формирует резюме партии...';
+      
+      // Time Management
+      if (impulsiveMoves > 0 || timeTroubleMistakes > 0) {
+          document.getElementById('blindSpotsSection').style.display = 'block';
+          document.getElementById('impulsiveCount').textContent = impulsiveMoves;
+          document.getElementById('timeTroubleCount').textContent = timeTroubleMistakes;
+      } else {
+          document.getElementById('blindSpotsSection').style.display = 'none';
+      }
 
       // Accuracy — determine winner
       const wAcc = stats.white.accuracy;

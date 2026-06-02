@@ -377,7 +377,7 @@ def compute_stats(moves_data: list[dict]) -> dict:
     return result
 
 
-def ask_gemini(game_log: list[dict], stats: dict) -> dict:
+def ask_gemini(game_log: list[dict], stats: dict, player_rating: Optional[int] = None) -> dict:
     """
     Отправляет полный лог партии в Gemini.
     Возвращает dict с ключами: числовые индексы → комментарии,
@@ -398,14 +398,19 @@ def ask_gemini(game_log: list[dict], stats: dict) -> dict:
         f"неточностей {stats['black']['inaccuracy']}.\n"
     )
 
+    rating_context = ""
+    if player_rating:
+        rating_context = f"\nРейтинг игрока (пользователя) примерно {player_rating} ELO. Адаптируй сложность своих объяснений под этот уровень (например, для 800 ELO объясняй базовые угрозы, для 1500+ фокусируйся на планах и позиционных слабостях).\n"
+
     prompt = (
-        "Ты — опытный шахматный тренер-персонаж, который обучает новичка. "
+        "Ты — опытный шахматный тренер-персонаж, который обучает пользователя. "
         "Я передаю тебе JSON со всей историей партии и оценками Stockfish. "
         "Изучи партию целиком и напиши ОДНО короткое предложение-комментарий "
         "на русском языке к КАЖДОМУ ходу.\n"
         "ВАЖНО: Если у хода указана категория 'Блестящий' (Зелёный значок !!), "
         "обязательно напиши восторженный, хвалебный комментарий, отметив "
-        "гениальность тактической жертвы или ловушки.\n\n"
+        "гениальность тактической жертвы или ловушки.\n"
+        + rating_context + "\n"
         + stats_summary +
         "\nВерни ответ СТРОГО в формате JSON со следующими ключами:\n"
         "- Числовые ключи (0, 1, 2...) — комментарии к ходам.\n"
@@ -475,12 +480,23 @@ def ask_gemini_blunder(fen: str, prev_fen: str, move_san: str, refutation_move: 
 
 class PGNRequest(BaseModel):
     pgn: str
-
+    player_rating: Optional[int] = None
 
 class PositionRequest(BaseModel):
     fen: str
     prev_fen: Optional[str] = None
     move_san: str
+    player_rating: Optional[int] = None
+
+class EvaluateIdeaRequest(BaseModel):
+    fen: str
+    prev_fen: str
+    move_san: str
+    player_rating: Optional[int] = None
+
+class CommentatorRequest(BaseModel):
+    stats: dict
+    player_rating: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------
@@ -653,7 +669,7 @@ def analyze(request: PGNRequest):
     stats = compute_stats(moves_data)
 
     # --- 4. Комментарии Gemini ---
-    gemini_result = ask_gemini(game_log, stats)
+    gemini_result = ask_gemini(game_log, stats, request.player_rating)
     elo_verdict = ""
     coach_summary = ""
     for key, value in gemini_result.items():
@@ -757,3 +773,80 @@ def analyze_position(request: PositionRequest):
     finally:
         if engine is not None:
             engine.quit()
+
+@app.post("/evaluate_idea")
+def evaluate_idea(request: EvaluateIdeaRequest):
+    """Оценивает идею пользователя: почему ход хороший или плохой."""
+    engine: Optional[chess.engine.SimpleEngine] = None
+    try:
+        engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
+        prev_board = chess.Board(request.prev_fen)
+        board = chess.Board(request.fen)
+        side_moved = not board.turn
+
+        info_before = engine.analyse(prev_board, chess.engine.Limit(depth=12))
+        cp_before = score_to_cp(info_before["score"], side_moved)
+        best_pv = info_before.get("pv", [])
+        best_move_san = prev_board.san(best_pv[0]) if best_pv else "Неизвестно"
+
+        info_after = engine.analyse(board, chess.engine.Limit(depth=12))
+        cp_after = score_to_cp(info_after["score"], side_moved)
+
+        cpl = max(0, cp_before - cp_after)
+
+        if gemini_client is None:
+            return {"comment": "API ключ Gemini не настроен."}
+
+        rating_context = ""
+        if request.player_rating:
+            rating_context = f"Рейтинг пользователя: {request.player_rating} ELO. "
+
+        prompt = (
+            f"Пользователь предлагает альтернативный ход {request.move_san} в позиции (FEN: {request.prev_fen}). "
+            f"Движок оценивает, что этот ход теряет {cpl/100.0} пешек (CPL = {cpl}) по сравнению с лучшим ходом ({best_move_san}). "
+            f"{rating_context}"
+            f"Объясни человеческим языком шахматиста-любителя, в чем тактический или позиционный смысл этого хода, "
+            f"или почему он является ошибкой. Опирайся на оценки движка, не галлюцинируй. Пиши кратко (1-2 абзаца)."
+        )
+
+        response = gemini_client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt
+        )
+        return {"comment": response.text.strip()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    finally:
+        if engine is not None:
+            engine.quit()
+
+@app.post("/commentator_summary")
+def commentator_summary(request: CommentatorRequest):
+    """Генерирует сочное, живое текстовое резюме всей партии."""
+    if gemini_client is None:
+        return {"summary": "Gemini API ключ не настроен, комментатор недоступен."}
+
+    rating_context = ""
+    if request.player_rating:
+        rating_context = f"Учти, что рейтинг игрока примерно {request.player_rating} ELO. "
+
+    stats = request.stats
+    prompt = (
+        f"Напиши краткий, харизматичный обзор этой шахматной партии в 1 абзац в стиле популярного шахматного стримера с Twitch. "
+        f"Выдели ключевой переломный момент, похвали за крутые ходы и подколи за глупые зевки. "
+        f"{rating_context}"
+        f"Статистика партии: Белые (Точность {stats.get('white', {}).get('accuracy')}%, Блестящих: {stats.get('white', {}).get('brilliant', 0)}, "
+        f"Ошибок: {stats.get('white', {}).get('mistake', 0)}, Зевков: {stats.get('white', {}).get('blunder', 0)}). "
+        f"Чёрные (Точность {stats.get('black', {}).get('accuracy')}%, Блестящих: {stats.get('black', {}).get('brilliant', 0)}, "
+        f"Ошибок: {stats.get('black', {}).get('mistake', 0)}, Зевков: {stats.get('black', {}).get('blunder', 0)}). "
+        "Не здоровайся и не прощайся, сразу пиши суть в одном абзаце."
+    )
+
+    try:
+        response = gemini_client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt
+        )
+        return {"summary": response.text.strip()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
