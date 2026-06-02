@@ -1474,8 +1474,8 @@
       return { ctx, width: rect.width, height: rect.height };
     }
 
-    const ARROW_GREEN = 'rgba(34,197,94,0.9)';
-    const ARROW_GREEN_SOFT = 'rgba(34,197,94,0.72)';
+    const ARROW_GREEN = 'rgba(22,163,74,0.96)';
+    const ARROW_GREEN_SOFT = 'rgba(34,197,94,0.82)';
 
     function squareCenter(square, boardEl, orientation = 'white') {
       const rect = boardEl.getBoundingClientRect();
@@ -1502,39 +1502,40 @@
       };
     }
 
-    function drawArrow(ctx, from, to, color, width = 6) {
+    function drawArrow(ctx, from, to, color, width = 8) {
       const angle = Math.atan2(to.y - from.y, to.x - from.x);
-      const head = Math.max(11, from.size * 0.24);
-      const startPad = from.size * 0.24;
-      const endPad = to.size * 0.34;
+      const head = Math.max(14, from.size * 0.26);
+      const startPad = from.size * 0.28;
+      const tipPad = to.size * 0.18;
+      const shaftOverlap = head * 0.72;
       const sx = from.x + Math.cos(angle) * startPad;
       const sy = from.y + Math.sin(angle) * startPad;
-      const ex = to.x - Math.cos(angle) * endPad;
-      const ey = to.y - Math.sin(angle) * endPad;
+      const tipX = to.x - Math.cos(angle) * tipPad;
+      const tipY = to.y - Math.sin(angle) * tipPad;
+      const ex = tipX - Math.cos(angle) * shaftOverlap;
+      const ey = tipY - Math.sin(angle) * shaftOverlap;
 
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.globalAlpha = 0.82;
-      ctx.lineWidth = width;
+      ctx.globalAlpha = 0.96;
+      ctx.lineWidth = Math.max(width, Math.min(width + 2, from.size * 0.16));
       ctx.beginPath();
       ctx.moveTo(sx, sy);
       ctx.lineTo(ex, ey);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(to.x, to.y);
+      ctx.moveTo(tipX, tipY);
       ctx.lineTo(
-        to.x - Math.cos(angle - Math.PI / 6) * head,
-        to.y - Math.sin(angle - Math.PI / 6) * head
+        tipX - Math.cos(angle - Math.PI / 6) * head,
+        tipY - Math.sin(angle - Math.PI / 6) * head
       );
       ctx.lineTo(
-        to.x - Math.cos(angle + Math.PI / 6) * head,
-        to.y - Math.sin(angle + Math.PI / 6) * head
+        tipX - Math.cos(angle + Math.PI / 6) * head,
+        tipY - Math.sin(angle + Math.PI / 6) * head
       );
       ctx.closePath();
       ctx.fill();
@@ -1605,7 +1606,7 @@
         squareCenter(verbose.from, boardEl),
         squareCenter(verbose.to, boardEl),
         ARROW_GREEN,
-        6
+        8
       );
 
       const bad = ['mistake', 'blunder', 'miss'].includes(m.cat_key);
@@ -1615,7 +1616,7 @@
           squareCenter(m.best_move.slice(0, 2), boardEl),
           squareCenter(m.best_move.slice(2, 4), boardEl),
           ARROW_GREEN_SOFT,
-          5
+          7
         );
       }
     }
@@ -3325,7 +3326,7 @@
         squareCenter(move.from, boardEl),
         squareCenter(move.to, boardEl),
         ARROW_GREEN,
-        6
+        8
       );
     }
 
