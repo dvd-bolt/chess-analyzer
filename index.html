@@ -61,11 +61,27 @@
     .app-view.active { display: block; }
 
     /* Layout */
-    .container {
-      display: flex; gap: 28px; padding: 32px 24px 48px;
-      max-width: 1060px; width: 100%; flex-wrap: wrap; justify-content: center;
-      margin: 0 auto;
+    .analysis-container {
+      width: 100%; max-width: 1300px; margin: 0 auto;
+      padding: 28px 24px 48px;
+      display: grid; grid-template-columns: 320px minmax(360px, 420px) minmax(320px, 1fr);
+      gap: 20px; align-items: start;
     }
+    .analysis-col {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .analysis-left-panel {
+      background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
+      padding: 16px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .analysis-right-panel {
+      background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
+      padding: 20px; display: flex; flex-direction: column; gap: 18px;
+      max-height: 800px; overflow-y: auto;
+    }
+    .analysis-right-panel::-webkit-scrollbar { width: 4px; }
+    .analysis-right-panel::-webkit-scrollbar-track { background: transparent; }
+    .analysis-right-panel::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
 
     /* Board column */
     .board-col { display: flex; flex-direction: column; gap: 12px; }
@@ -698,12 +714,13 @@
       .openings-sidebar { min-height: auto; }
       .openings-list { max-height: 420px; }
       .opening-guide { min-height: auto; max-height: none; }
+      .analysis-container { grid-template-columns: 1fr; }
+      .analysis-right-panel { max-height: none; }
     }
 
     @media (max-width: 560px) {
-      .container { padding: 20px 14px 36px; }
-      #board, .chart-wrap { width: min(100vw - 28px, 400px); }
-      .side-panel { min-width: 0; width: 100%; height: auto; }
+      .analysis-container { padding: 20px 14px 36px; }
+      #board, .chart-wrap { width: min(100vw - 28px, 400px); margin: 0 auto; }
       .openings-container { padding: 18px 14px 36px; }
       .segmented.four { grid-template-columns: repeat(2, 1fr); }
       .guide-top { flex-direction: column; }
@@ -732,101 +749,88 @@
 
   <!-- Main -->
   <main class="app-view active" id="viewAnalyze">
-  <div class="container">
+  <div class="analysis-container">
 
-    <!-- Left: Board + Chart -->
-    <div class="board-col">
+    <!-- Left Column: Input & Profile -->
+    <div class="analysis-left-panel">
+      <!-- Input Section -->
+      <div id="inputSection">
+        <div class="pgn-group">
+          <label class="filter-label">Ваш профиль (для адаптации ИИ)</label>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <input class="opening-search" type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
+            <input class="opening-search" type="text" id="lichessInput" placeholder="Никнейм Lichess" />
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+              <button class="filter-btn active" id="loadProfileBtn" title="Загрузить рейтинг" style="background:#3a3a50; color:#fff;">👤 Профиль</button>
+              <button class="filter-btn active" id="loadChesscomBtn" title="Загрузить партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">♟ PGN</button>
+            </div>
+          </div>
+          <div id="profileStats" style="display:none; font-size:0.8rem; color:#6ee7b7; margin-top:4px; display:flex; align-items:center; gap:8px;"></div>
+        </div>
+
+        <div class="pgn-group" style="margin-top: 16px;">
+          <label class="filter-label" for="pgnInput">Или вставьте PGN вручную</label>
+          <textarea id="pgnInput" class="opening-search" style="height:120px; padding:12px; resize:vertical; font-family:monospace;" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+        </div>
+        <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">🔍 Анализировать</button>
+        <div id="status" class="status" style="margin-top: 8px;"></div>
+      </div>
+
+      <!-- Blind Spots (Moved to Left Column) -->
+      <div class="stages-section" id="blindSpotsSection" style="display:none; border-color: #f87171; border-top: 1px solid #2a2a3a; padding-top: 16px; margin-top: auto;">
+        <div class="stages-title" style="color: #f87171;">Твои слепые зоны</div>
+        <div style="font-size: 0.85rem; color: #e2e2e8; margin-top: 8px; line-height: 1.5;">
+          Ходов в спешке (<3с + ошибка): <strong id="impulsiveCount" style="color: #f87171;">0</strong><br>
+          Ошибок в цейтноте (<1м на часах): <strong id="timeTroubleCount" style="color: #f87171;">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Column: Board, Nav, Chart -->
+    <div class="analysis-col">
       <div class="eval-bar" id="evalBar" style="visibility:hidden;">
         <span class="eval-label">Оценка</span>
         <span class="eval-score equal" id="evalScore">0.0</span>
       </div>
 
-      <div id="board"></div>
+      <div id="board" style="width:100%; border-radius:10px; box-shadow: 0 8px 32px rgba(0,0,0,.45); overflow:hidden;"></div>
 
-      <div class="nav-bar">
+      <div class="opening-nav" style="margin-top: 4px;">
         <button id="btnStart" title="В начало">⏮</button>
         <button id="btnPrev"  title="Назад">◀</button>
         <button id="btnNext"  title="Вперёд">▶</button>
         <button id="btnEnd"   title="В конец">⏭</button>
       </div>
 
-      <div class="chart-wrap" id="chartWrap" style="display:none;">
-        <canvas id="evalChart"></canvas>
+      <div class="lichess-explorer" id="chartWrap" style="display:none; margin-top: 8px;">
+        <div class="explorer-head">
+          <span class="explorer-title">Оценка Stockfish</span>
+        </div>
+        <div style="padding: 10px;">
+          <canvas id="evalChart" style="width:100% !important; height:120px !important;"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- Right: Panel -->
-    <div class="side-panel">
-
-      <button id="returnMainBtn">↩ Вернуться к главной партии</button>
-
-      <!-- Input Section -->
-      <div id="inputSection">
-        <!-- Player Profile API loader -->
-        <div class="pgn-group">
-          <label>Ваш профиль (для адаптации ИИ-тренера)</label>
-          <div class="chesscom-row">
-            <input type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
-            <input type="text" id="lichessInput" placeholder="Никнейм Lichess" />
-            <button id="loadProfileBtn" title="Загрузить рейтинг и аватар">👤 Профиль</button>
-            <button id="loadChesscomBtn" title="Загрузить последнюю партию с Chess.com">♟ PGN</button>
-          </div>
-          <div id="profileStats" style="display:none; font-size:0.8rem; color:#6ee7b7; margin-top:4px; display:flex; align-items:center; gap:8px;"></div>
-        </div>
-
-        <!-- PGN input -->
-        <div class="pgn-group">
-          <label for="pgnInput">Или вставьте PGN вручную</label>
-          <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
-        </div>
-        <button id="analyzeBtn">🔍 Анализировать</button>
-        <div id="status" class="status"></div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="tabs-container" id="tabsContainer">
+    <!-- Right Column: AI Analytics -->
+    <div class="analysis-right-panel opening-guide" id="tabsContainerWrapper">
+      <!-- We no longer need tabsContainer for switching, but we keep the ID if JS references it, just hidden -->
+      <div class="tabs-container" id="tabsContainer" style="display:none;">
         <button class="tab-btn active" id="tabMoves">Ходы партии</button>
         <button class="tab-btn" id="tabReport">Отчет о партии</button>
       </div>
 
-      <div id="contentMoves" style="display:none;">
-        <!-- Move info -->
-        <div class="info-card" id="infoCard">
-          <h3>Текущий ход</h3>
-          <div class="move-display">
-            <span class="info-coach-avatar" id="infoCoachAvatar">😐</span>
-            <div class="move-details">
-              <span class="move-san" id="moveSan"><span id="moveBadge" style="display:none;"></span> <span id="moveSanText">—</span></span>
-              <div id="openingName" class="opening-badge" style="display:none;"></div>
-              <span class="move-cpl" id="moveCpl"></span>
-            </div>
-          </div>
+      <button id="returnMainBtn" style="display:none; padding: 10px 14px; border: 1px solid #3b82f6; border-radius: 8px; background: rgba(59,130,246,.15); color: #60a5fa; font-size: .85rem; font-weight: 600; cursor: pointer; transition: all .2s; width: 100%; text-align: center; margin-bottom: 8px;">↩ Вернуться к главной партии</button>
 
-          <!-- Gemini coach -->
-          <div class="gemini-block" id="geminiBlock">
-            <div class="gemini-block-header">
-              <span>✨</span> Совет тренера Gemini
-            </div>
-            <div class="gemini-comment" id="geminiComment">—</div>
-          </div>
-          <button id="evalIdeaBtn" style="display:none; margin-top: 4px; width: 100%; padding: 10px; border: 1px dashed #6ee7b7; border-radius: 8px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 600; cursor: pointer; transition: background 0.2s;">💡 Оценить мою идею</button>
-
-          <div class="move-counter" id="moveCounter">— / —</div>
-        </div>
-
-        <div class="moves-list" id="movesList"></div>
-      </div>
-
-      <!-- Game Report (Chess.com style) -->
-      <div class="report-card" id="reportCard" style="display:none;">
-        <!-- Coach Summary (Commentator) -->
-        <div class="coach-row" style="margin-bottom: 14px;">
+      <!-- Game Report (Top of Right Column) -->
+      <div id="reportCard" style="display:none; flex-direction:column; gap:12px;">
+        <!-- Coach Summary -->
+        <div class="coach-row" style="background:transparent; padding:0; align-items:center;">
           <div class="coach-avatar" id="reportCoachAvatar">🧔</div>
-          <div class="coach-bubble" id="coachBubble" style="font-size: 0.9rem; line-height: 1.4;">Анализирую партию…</div>
+          <div class="coach-bubble" id="coachBubble" style="font-size: 0.9rem; line-height: 1.45;">Анализирую партию…</div>
         </div>
 
-        <!-- Accuracy -->
-        <div class="players-accuracy">
+        <div class="players-accuracy" style="padding: 0; margin-top: 8px;">
           <div class="player-acc-block winner" id="whiteAccBlock">
             <span class="player-acc-name">Белые</span>
             <span class="player-acc-pct" id="whiteAccPct">0%</span>
@@ -841,11 +845,9 @@
           </div>
         </div>
 
-        <!-- Category grid -->
-        <div class="cat-grid-v2" id="catGrid"></div>
+        <div class="cat-grid-v2" id="catGrid" style="padding: 4px 0;"></div>
 
-        <!-- ELO rating -->
-        <div class="elo-row">
+        <div class="elo-row" style="padding: 0;">
           <div class="elo-block elo-high" id="eloBlockW">
             <div class="elo-title">Рейтинг партии</div>
             <div class="elo-number" id="eloWhite">—</div>
@@ -856,46 +858,58 @@
           </div>
         </div>
 
-        <!-- Blind Spots (Time Management) -->
-        <div class="stages-section" id="blindSpotsSection" style="display:none; border-color: #f87171;">
-          <div class="stages-title" style="color: #f87171;">Твои слепые зоны в этой партии</div>
-          <div style="font-size: 0.85rem; color: #e2e2e8; margin-top: 8px;">
-            Ходов в спешке (менее 3 сек + ошибка): <strong id="impulsiveCount" style="color: #f87171;">0</strong><br>
-            Ошибок в цейтноте (менее 1 мин на часах): <strong id="timeTroubleCount" style="color: #f87171;">0</strong>
-          </div>
-        </div>
-
-        <!-- Stages -->
-        <div class="stages-section">
+        <div class="stages-section" style="padding: 12px 0 0;">
           <div class="stages-title">Разбивка по стадиям</div>
           <div class="stage-row">
-            <div class="stage-icon" id="stageOpenW"></div>
-            <div class="stage-label">Дебют</div>
-            <div class="stage-icon" id="stageOpenB"></div>
+            <div class="stage-icon" id="stageOpenW"></div><div class="stage-label">Дебют</div><div class="stage-icon" id="stageOpenB"></div>
           </div>
           <div class="stage-row">
-            <div class="stage-icon" id="stageMidW"></div>
-            <div class="stage-label">Миттельшпиль</div>
-            <div class="stage-icon" id="stageMidB"></div>
+            <div class="stage-icon" id="stageMidW"></div><div class="stage-label">Миттельшпиль</div><div class="stage-icon" id="stageMidB"></div>
           </div>
           <div class="stage-row">
-            <div class="stage-icon" id="stageEndW"></div>
-            <div class="stage-label">Эндшпиль</div>
-            <div class="stage-icon" id="stageEndB"></div>
+            <div class="stage-icon" id="stageEndW"></div><div class="stage-label">Эндшпиль</div><div class="stage-icon" id="stageEndB"></div>
           </div>
         </div>
-
-        <!-- Actions -->
+        
         <div class="report-actions" style="display:none;">
           <button class="report-btn btn-new-game" id="btnNewGame">Новая партия</button>
           <button class="report-btn btn-view-report" id="btnViewReport">Смотреть отчет</button>
         </div>
       </div>
 
-      <!-- Reset / Reload -->
-      <div id="resetSection" style="display:none; padding-top: 10px; margin-top: auto;">
+      <div class="guide-line" style="height: 1px; background: #2a2a3a; margin: 8px 0; padding:0; border:none;"></div>
+
+      <!-- AI Coach Current Move (Bottom of Right Column) -->
+      <div id="contentMoves" style="display:none; flex-direction:column; gap:12px;">
+        
+        <!-- Info Card styled as opening-line-card -->
+        <div class="opening-line-card active" id="infoCard" style="display:flex; flex-direction:column; gap:10px; cursor:default;">
+          <div class="opening-line-title">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="info-coach-avatar" id="infoCoachAvatar" style="font-size:1.2rem;">😐</span>
+              <span id="moveSan" style="font-size:1.1rem; color:#fff;"><span id="moveBadge" style="display:none;"></span> <span id="moveSanText">—</span></span>
+            </div>
+            <div id="openingName" class="line-kind line-kind-main" style="display:none;"></div>
+          </div>
+          <div style="font-size:0.75rem; color:#a0a0b4;" id="moveCpl"></div>
+          
+          <div class="opening-line-moves" id="geminiBlock" style="margin-top:4px; padding:10px; background:rgba(0,0,0,0.2); border-radius:6px; border-left:2px solid #a78bfa;">
+            <div style="font-size:0.7rem; text-transform:uppercase; color:#a78bfa; margin-bottom:6px; font-weight:700;">✨ Совет ИИ-Тренера</div>
+            <div id="geminiComment" style="color:#d0d0dc; line-height:1.4;">—</div>
+          </div>
+
+          <button id="evalIdeaBtn" style="display:none; margin-top: 6px; width: 100%; padding: 8px; border: 1px dashed #6ee7b7; border-radius: 6px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.8rem;">💡 Оценить мою идею</button>
+          
+          <div id="moveCounter" style="font-size:0.7rem; color:#52526a; text-align:right;">— / —</div>
+        </div>
+
+        <div class="moves-list" id="movesList" style="max-height:150px; overflow-y:auto; background:#0f0f14; padding:8px; border-radius:8px; border:1px solid #2a2a3a;"></div>
+      </div>
+
+      <div id="resetSection" style="display:none; margin-top: auto;">
         <button id="btnNewGamePanel" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #a0a0b4; border: 1px dashed rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: .85rem; font-weight: 600;">📥 Загрузить новую партию</button>
       </div>
+
     </div>
   </div>
   </main>
@@ -1822,7 +1836,8 @@
         board.position('start', false);
 
         document.getElementById('inputSection').style.display = 'none';
-        document.getElementById('tabsContainer').style.display = 'flex';
+        document.getElementById('tabsContainer').style.display = 'none';
+        document.getElementById('chartWrap').style.display = 'block';
         document.getElementById('resetSection').style.display = 'block';
 
         // --- Парсинг таймингов ---
@@ -2740,19 +2755,11 @@
     renderOpenings();
 
     function showTab(tabName) {
-      if (tabName === 'moves') {
-        document.getElementById('tabMoves').classList.add('active');
-        document.getElementById('tabReport').classList.remove('active');
-        document.getElementById('contentMoves').style.display = 'block';
-        document.getElementById('reportCard').style.display = 'none';
-      } else {
-        document.getElementById('tabReport').classList.add('active');
-        document.getElementById('tabMoves').classList.remove('active');
-        document.getElementById('reportCard').style.display = 'flex';
-        document.getElementById('contentMoves').style.display = 'none';
-      }
+      document.getElementById('contentMoves').style.display = 'flex';
+      document.getElementById('reportCard').style.display = 'flex';
     }
 
+    // Buttons are hidden, but keep listeners just in case
     document.getElementById('tabMoves').addEventListener('click', () => showTab('moves'));
     document.getElementById('tabReport').addEventListener('click', () => showTab('report'));
 
