@@ -64,7 +64,7 @@
     .analysis-container {
       width: 100%; max-width: 1300px; margin: 0 auto;
       padding: 28px 24px 48px;
-      display: grid; grid-template-columns: 320px minmax(360px, 420px) minmax(320px, 1fr);
+      display: grid; grid-template-columns: 320px minmax(420px, 470px) minmax(320px, 1fr);
       gap: 20px; align-items: start;
     }
     .analysis-col {
@@ -89,7 +89,8 @@
     /* Eval bar */
     .eval-bar {
       display: flex; align-items: center; justify-content: center;
-      gap: 10px; height: 42px;
+      gap: 10px; min-height: 42px;
+      width: 100%; max-width: 400px;
     }
     .eval-score {
       font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;
@@ -100,6 +101,58 @@
     .eval-score.equal { color: #737388; }
     .eval-score.mate { color: #f87171; }
     .eval-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; color: #52526a; }
+
+    .board-stage {
+      width: 100%; max-width: 446px;
+      display: grid; grid-template-columns: minmax(0, 400px) 38px;
+      gap: 8px; align-items: stretch;
+    }
+    .board-stage .board-shell { grid-column: 1; grid-row: 1; }
+    .board-stage .eval-slider { grid-column: 2; grid-row: 1; }
+    .eval-slider {
+      --eval-white: 50%;
+      position: relative; min-height: 400px; width: 38px;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
+      overflow: hidden; background: #30302d;
+      box-shadow: inset 0 1px 8px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.28);
+    }
+    .eval-slider-fill {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to top,
+        #e8e8e4 0%,
+        #e8e8e4 var(--eval-white),
+        #343432 var(--eval-white),
+        #343432 100%
+      );
+    }
+    .eval-slider-boundary {
+      position: absolute; left: 0; right: 0; bottom: var(--eval-white);
+      height: 4px; transform: translateY(50%);
+      background: rgba(210, 129, 105, .9);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18);
+      z-index: 3;
+    }
+    .eval-center-marker {
+      position: absolute; left: 4px; right: 4px; top: 50%;
+      height: 2px; transform: translateY(-50%);
+      background: rgba(255,255,255,.34); z-index: 4;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.18);
+    }
+    .eval-center-marker::after {
+      content: '0';
+      position: absolute; left: -1px; top: 50%;
+      transform: translate(-100%, -50%);
+      color: #8d8da4; font-size: .62rem; font-weight: 800;
+    }
+    .eval-slider-cap {
+      position: absolute; left: 0; right: 0;
+      height: 22px; display: flex; align-items: center; justify-content: center;
+      font-size: .66rem; font-weight: 900; z-index: 5;
+      pointer-events: none;
+    }
+    .eval-slider-cap.top { top: 0; color: #e8e8e4; background: linear-gradient(to bottom, rgba(0,0,0,.28), transparent); }
+    .eval-slider-cap.bottom { bottom: 0; color: #2f2f2d; background: linear-gradient(to top, rgba(255,255,255,.22), transparent); }
 
     .board-shell {
       position: relative; width: 400px; max-width: 100%;
@@ -128,27 +181,125 @@
     .nav-bar button:active { transform: scale(.95); }
     .effect-bar {
       width: 400px; max-width: 100%; display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px;
+      grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
     }
     .effect-toggle {
-      min-height: 36px; border: 1px solid #2a2a3a; border-radius: 8px;
-      background: #16161f; color: #a0a0b4; font-size: .76rem; font-weight: 800;
+      min-height: 42px; border: 1px solid #2a2a3a; border-radius: 8px;
+      padding: 0 16px;
+      background: #16161f; color: #a0a0b4; font-size: .86rem; font-weight: 800;
       cursor: pointer; transition: background .2s, border-color .2s, color .2s;
+      white-space: nowrap;
     }
     .effect-toggle:hover { color: #e2e2e8; border-color: #3a3a50; }
     .effect-toggle.active {
       background: rgba(110,231,183,.12); border-color: #6ee7b7; color: #6ee7b7;
     }
-    .effect-toggle.danger.active {
-      background: rgba(248,113,113,.12); border-color: #f87171; color: #f87171;
+    .variation-lab {
+      width: 400px; max-width: 100%;
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px; align-items: center;
+      padding: 8px; border: 1px solid #2a2a3a; border-radius: 10px;
+      background: #12121a;
     }
+    .variation-mode-btn,
+    .variation-reset-btn {
+      min-height: 38px; border: 1px solid #2a2a3a; border-radius: 8px;
+      padding: 0 12px; background: #1e1e2a; color: #c4c4d4;
+      font-size: .78rem; font-weight: 900; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      transition: background .2s, border-color .2s, color .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .variation-mode-btn:hover,
+    .variation-reset-btn:hover { background: #2d2d40; color: #fff; }
+    .variation-mode-btn:active,
+    .variation-reset-btn:active { transform: scale(.97); }
+    .variation-mode-btn.active {
+      background: rgba(110,231,183,.12); border-color: #6ee7b7; color: #6ee7b7;
+    }
+    .variation-mode-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #52526a; box-shadow: 0 0 0 3px rgba(82,82,106,.16);
+    }
+    .variation-mode-btn.active .variation-mode-dot {
+      background: #6ee7b7; box-shadow: 0 0 0 3px rgba(110,231,183,.18);
+    }
+    .variation-reset-btn {
+      display: none; border-color: rgba(96,165,250,.35);
+      background: rgba(59,130,246,.12); color: #93c5fd;
+    }
+    .variation-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .variation-turn {
+      color: #737388; font-size: .62rem; font-weight: 950;
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .variation-status {
+      color: #a0a0b4; font-size: .76rem; font-weight: 700; line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .variation-status.ready { color: #6ee7b7; }
+    .variation-status.loading { color: #facc15; }
+    .variation-status.success { color: #6ee7b7; }
+    .variation-status.warning { color: #fbbf24; }
+    .variation-status.error { color: #f87171; }
+    .variation-status.muted { color: #737388; }
 
-    /* Chart */
-    .chart-wrap {
-      background: #16161f; border: 1px solid #2a2a3a; border-radius: 10px;
-      padding: 12px 12px 6px; width: 400px;
+    /* Evaluation chart */
+    .eval-chart-card {
+      width: 100%; max-width: 446px;
+      border: 1px solid #2a2a3a; border-radius: 10px;
+      background: linear-gradient(180deg, #16161f 0%, #12121a 100%);
+      box-shadow: 0 10px 30px rgba(0,0,0,.26);
+      overflow: hidden;
     }
-    .chart-wrap canvas { width: 100% !important; height: 130px !important; }
+    .eval-chart-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 12px 13px 9px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .eval-chart-title {
+      display: flex; flex-direction: column; gap: 3px; min-width: 0;
+    }
+    .eval-chart-title span {
+      color: #737388; font-size: .64rem; font-weight: 900;
+      letter-spacing: .7px; text-transform: uppercase;
+    }
+    .eval-chart-title strong {
+      color: #f8fafc; font-size: .92rem; line-height: 1.2;
+    }
+    .eval-chart-summary {
+      max-width: 190px; min-height: 36px;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+      color: #a0a0b4; font-size: .68rem; line-height: 1.25;
+      text-align: right;
+    }
+    .eval-chart-summary strong {
+      color: #f8fafc; font-size: .86rem; line-height: 1.15;
+      white-space: nowrap;
+    }
+    .eval-chart-summary span {
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .eval-chart-legend {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 8px 13px 0;
+      color: #8d8da4; font-size: .64rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .45px;
+    }
+    .eval-chart-legend span {
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .eval-chart-legend span::before {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--legend-color);
+    }
+    .eval-chart-legend .white { --legend-color: #e5e7eb; color: #cbd5e1; }
+    .eval-chart-legend .equal { --legend-color: #6ee7b7; color: #8d8da4; }
+    .eval-chart-legend .black { --legend-color: #a78bfa; color: #c4b5fd; }
+    .eval-chart-canvas {
+      position: relative; height: 172px; padding: 4px 10px 6px;
+    }
+    .eval-chart-card canvas { width: 100% !important; height: 172px !important; }
 
     /* Side panel */
     .side-panel {
@@ -172,16 +323,59 @@
       background: rgba(167,139,250,.2); border: 1px solid #a78bfa; color: #fff;
     }
 
-    /* Chess.com loader */
-    .chesscom-row {
-      display: flex; gap: 8px; align-items: stretch;
+    /* Profile loader */
+    .profile-login-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    #usernameInput {
-      flex: 1; padding: 10px 12px; border: 1px solid #2a2a3a; border-radius: 8px;
-      background: #16161f; color: #e2e2e8; font-size: .85rem;
+    .platform-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      background: #101018;
+    }
+    .platform-option {
+      min-height: 34px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #8d8da4;
+      font-family: 'Inter', sans-serif;
+      font-size: .78rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: background .18s, color .18s;
+    }
+    .platform-option:hover {
+      color: #e2e2e8;
+      background: rgba(255, 255, 255, .04);
+    }
+    .platform-option.active {
+      color: #fff;
+      background: #3a3a50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
+    }
+    #profileUsernameInput {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      background: #16161f;
+      color: #e2e2e8;
+      font-size: .9rem;
       font-family: 'Inter', sans-serif;
     }
-    #usernameInput:focus { outline: none; border-color: #6ee7b7; }
+    #profileUsernameInput:focus { outline: none; border-color: #6ee7b7; }
+    .platform-hint {
+      min-height: 16px;
+      color: #737388;
+      font-size: .7rem;
+      line-height: 1.35;
+    }
     #loadChesscomBtn {
       padding: 10px 14px; border: none; border-radius: 8px;
       background: linear-gradient(135deg, #059669, #047857);
@@ -520,12 +714,16 @@
     .move-san { font-size: 1.5rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
     .move-cpl { font-size: .78rem; color: #737388; }
 
-    .cat-excellent  { color: #6ee7b7; }
-    .cat-good       { color: #86efac; }
-    .cat-inaccuracy { color: #fbbf24; }
-    .cat-mistake    { color: #f87171; }
-    .cat-blunder    { color: #ef4444; }
-    .cat-brilliant  { color: #15bcac; }
+    .cat-brilliant  { --cat-rgb: 45, 212, 191; --cat-accent: #2dd4bf; --cat-ink: #eafffb; color: var(--cat-accent); }
+    .cat-great      { --cat-rgb: 125, 211, 252; --cat-accent: #7dd3fc; --cat-ink: #effaff; color: var(--cat-accent); }
+    .cat-best       { --cat-rgb: 237, 194, 95; --cat-accent: #edc25f; --cat-ink: #fff8df; color: var(--cat-accent); }
+    .cat-excellent  { --cat-rgb: 151, 197, 117; --cat-accent: #97c575; --cat-ink: #f1ffe8; color: var(--cat-accent); }
+    .cat-good       { --cat-rgb: 139, 164, 132; --cat-accent: #8ba484; --cat-ink: #f1f7ee; color: var(--cat-accent); }
+    .cat-book       { --cat-rgb: 198, 163, 106; --cat-accent: #c6a36a; --cat-ink: #fff4df; color: var(--cat-accent); }
+    .cat-inaccuracy { --cat-rgb: 215, 164, 77; --cat-accent: #d7a44d; --cat-ink: #fff5dd; color: var(--cat-accent); }
+    .cat-mistake    { --cat-rgb: 217, 130, 69; --cat-accent: #d98245; --cat-ink: #fff0e8; color: var(--cat-accent); }
+    .cat-miss       { --cat-rgb: 213, 107, 98; --cat-accent: #d56b62; --cat-ink: #fff0ef; color: var(--cat-accent); }
+    .cat-blunder    { --cat-rgb: 224, 82, 82; --cat-accent: #e05252; --cat-ink: #fff0f0; color: var(--cat-accent); }
 
     /* Gemini coach block */
     .gemini-block {
@@ -578,9 +776,15 @@
     .move-chip.active { background: #3a3a50; color: #fff; border-color: #7c3aed; }
     
     .chip-badge {
-      width: 16px; height: 16px; border-radius: 50%;
+      width: 17px; height: 17px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
-      font-size: .45rem; font-weight: 800; color: #fff;
+      font-size: .48rem; font-weight: 900; color: var(--cat-ink, #fff);
+      line-height: 1; letter-spacing: 0;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,.08), transparent 54%),
+        linear-gradient(180deg, rgba(var(--cat-rgb, 160, 160, 180), .15), rgba(var(--cat-rgb, 160, 160, 180), .075));
+      border: 1px solid rgba(var(--cat-rgb, 160, 160, 180), .3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
     /* Cat CSS for chips uses same logic as report */
 
@@ -607,8 +811,21 @@
 
     /* Coach avatar inside infoCard */
     .info-coach-avatar {
-      font-size: 1.8rem; line-height: 1; margin-right: 8px;
+      width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-right: 2px;
+      color: var(--coach-ink, #e8e8ef);
+      font-size: .68rem; line-height: 1; font-weight: 950; letter-spacing: .04em;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,.075), transparent 54%),
+        linear-gradient(180deg, rgba(var(--coach-rgb, 160, 160, 180), .15), rgba(var(--coach-rgb, 160, 160, 180), .075));
+      border: 1px solid rgba(var(--coach-rgb, 160, 160, 180), .28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
     }
+    .coach-tone-neutral { --coach-rgb: 164, 176, 255; --coach-ink: #eef1ff; }
+    .coach-tone-good { --coach-rgb: 45, 212, 191; --coach-ink: #eafffb; }
+    .coach-tone-book { --coach-rgb: 198, 163, 106; --coach-ink: #fff4df; }
+    .coach-tone-bad { --coach-rgb: 224, 82, 82; --coach-ink: #fff0f0; }
 
     /* Legal move dots (Chess.com style) */
     .legal-move-dot {
@@ -655,11 +872,16 @@
     }
     .coach-avatar {
       width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #5b8c5a 0%, #3a6b39 100%);
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,.09), transparent 52%),
+        linear-gradient(145deg, #273044, #171b27 72%);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      color: #d6f1e4;
+      font-size: .82rem; font-weight: 950; letter-spacing: .12em;
+      border: 1px solid rgba(214, 241, 228, .16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 8px 20px rgba(0,0,0,.24);
     }
+    .coach-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
     .coach-bubble {
       background: #1e1e2a; color: #fff; border-radius: 12px;
       padding: 10px 14px; font-size: .85rem; line-height: 1.45;
@@ -679,41 +901,89 @@
 
     /* Player row + accuracy */
     .players-accuracy {
-      display: flex; gap: 8px; padding: 12px 16px;
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px; padding: 12px 16px;
     }
     .player-acc-block {
-      flex: 1; border-radius: 8px; padding: 10px 12px;
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      --acc-rgb: 226, 232, 240;
+      --acc-accent: #e5e7eb;
+      --acc-accent-soft: #94a3b8;
+      --acc-surface-top: #20212c;
+      --acc-surface-bottom: #151620;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+      flex: 1; border-radius: 12px; padding: 15px 16px 16px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(var(--acc-rgb), .065), transparent 54%),
+        linear-gradient(180deg, var(--acc-surface-top), var(--acc-surface-bottom));
+      border: 1px solid rgba(var(--acc-rgb), .12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 12px 28px rgba(0,0,0,.2);
+      isolation: isolate;
+    }
+    .player-acc-block::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(120deg, rgba(255,255,255,.035), transparent 42%);
+      opacity: .32;
+      pointer-events: none;
+      z-index: -1;
+    }
+    #whiteAccBlock {
+      --acc-rgb: 214, 241, 228;
+      --acc-accent: #e8f3ed;
+      --acc-accent-soft: #7ed7b1;
+      --acc-surface-top: #1d2028;
+      --acc-surface-bottom: #14171f;
+    }
+    #blackAccBlock {
+      --acc-rgb: 164, 176, 255;
+      --acc-accent: #c9d1ff;
+      --acc-accent-soft: #8f9fff;
+      --acc-surface-top: #1d1e2b;
+      --acc-surface-bottom: #151622;
     }
     .player-acc-block.winner {
-      background: #1e1e2a; color: #e2e2e8; border: 1px solid rgba(255,255,255,0.05);
+      border-color: rgba(var(--acc-rgb), .2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 14px 32px rgba(0,0,0,.24);
     }
     .player-acc-block.loser {
-      background: #16161f; color: #999; border: 1px solid rgba(255,255,255,0.02);
+      border-color: rgba(var(--acc-rgb), .13);
+      filter: saturate(.88);
     }
     .player-acc-name {
-      font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; opacity: .7;
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #a6a6b5; font-weight: 800;
     }
     .player-acc-pct {
-      font-size: 1.8rem; font-weight: 800; line-height: 1;
+      font-size: 1.95rem; font-weight: 900; line-height: .98;
+      color: var(--acc-accent);
       font-variant-numeric: tabular-nums; transition: color 0.3s, text-shadow 0.3s;
+      text-shadow: 0 0 12px rgba(var(--acc-rgb), .13);
     }
-    .acc-high { color: #10b981; text-shadow: 0 0 8px rgba(16,185,129,0.4); }
-    .acc-mid { color: #f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.4); }
-    .acc-low { color: #ef4444; text-shadow: 0 0 8px rgba(239,68,68,0.4); }
+    .player-acc-block.winner .player-acc-pct { text-shadow: 0 0 14px rgba(var(--acc-rgb), .16); }
+    .players-accuracy .acc-high,
+    .players-accuracy .acc-mid,
+    .players-accuracy .acc-low {
+      color: var(--acc-accent);
+      text-shadow: 0 0 12px rgba(var(--acc-rgb), .13);
+    }
 
     .player-acc-sub {
-      font-size: .65rem; opacity: .5; text-transform: uppercase; letter-spacing: .6px;
+      font-size: .65rem; color: #777789; text-transform: uppercase; letter-spacing: .65px;
+      font-weight: 800;
     }
     .acc-progress {
-      width: 100%; height: 5px; border-radius: 3px;
-      background: rgba(0,0,0,.2); margin-top: 4px; overflow: hidden;
+      width: 100%; height: 7px; border-radius: 999px;
+      background: rgba(4, 5, 12, .46); margin-top: 10px; overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.45);
     }
     .acc-progress-fill {
-      height: 100%; border-radius: 3px; transition: width .8s ease;
+      height: 100%; border-radius: inherit; transition: width .8s ease;
+      background: linear-gradient(90deg, var(--acc-accent-soft), var(--acc-accent));
+      box-shadow: 0 0 8px rgba(var(--acc-rgb), .14);
     }
-    .winner .acc-progress-fill { background: #a855f7; }
-    .loser .acc-progress-fill { background: #6ee7b7; }
 
     /* Move category grid — centered icons */
     .cat-grid-v2 {
@@ -721,29 +991,33 @@
       padding: 4px 16px 8px;
     }
     .cat-row {
-      display: grid; grid-template-columns: 1fr 36px 1fr;
-      align-items: center; padding: 5px 0;
-      border-bottom: 1px solid #333;
+      display: grid; grid-template-columns: 1fr 42px 1fr;
+      align-items: center; padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
     .cat-row:last-child { border-bottom: none; }
-    .cat-cnt-w { text-align: right; padding-right: 10px; font-weight: 700; font-size: .95rem; color: #e2e2e8; font-variant-numeric: tabular-nums; }
-    .cat-cnt-b { text-align: left; padding-left: 10px; font-weight: 700; font-size: .95rem; color: #999; font-variant-numeric: tabular-nums; }
+    .cat-cnt-w { text-align: right; padding-right: 12px; font-weight: 800; font-size: 1rem; color: #e8e8ef; font-variant-numeric: tabular-nums; }
+    .cat-cnt-b { text-align: left; padding-left: 12px; font-weight: 800; font-size: 1rem; color: #a6a6b5; font-variant-numeric: tabular-nums; }
     .cat-icon-circle {
-      width: 28px; height: 28px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 11px;
       display: flex; align-items: center; justify-content: center;
-      font-size: .72rem; font-weight: 800; color: #fff;
-      margin: 0 auto; letter-spacing: 0;
+      position: relative; overflow: hidden;
+      font-size: .78rem; font-weight: 950; color: var(--cat-ink, #fff);
+      margin: 0 auto; letter-spacing: 0; line-height: 1;
+      background:
+        radial-gradient(circle at 50% 14%, rgba(255,255,255,.075), transparent 52%),
+        linear-gradient(180deg, rgba(var(--cat-rgb, 160, 160, 180), .17), rgba(var(--cat-rgb, 160, 160, 180), .08));
+      border: 1px solid rgba(var(--cat-rgb, 160, 160, 180), .26);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 6px 14px rgba(0,0,0,.18);
     }
-    .cat-brilliant  { background: #15bcac !important; box-shadow: 0 0 8px rgba(21, 188, 172, 0.6); color: #fff !important; }
-    .cat-great      { background: #5c8bb0; }
-    .cat-best       { background: #98bc4b; }
-    .cat-excellent  { background: #98bc4b; }
-    .cat-good       { background: #97af8b; }
-    .cat-book       { background: #a88652; }
-    .cat-inaccuracy { background: #e6a735; }
-    .cat-mistake    { background: #e08a30; }
-    .cat-miss       { background: #c45c4a; }
-    .cat-blunder    { background: #ca3431; }
+    .cat-icon-circle::before {
+      content: '';
+      position: absolute; inset: 1px 1px auto;
+      height: 42%;
+      border-radius: 10px 10px 7px 7px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+      pointer-events: none;
+    }
 
     /* ELO rating block */
     .elo-row {
@@ -776,11 +1050,21 @@
       display: grid; grid-template-columns: 30px 1fr 30px;
       align-items: center; padding: 4px 0; gap: 8px;
     }
-    .stage-icon { text-align: center; font-size: .9rem; }
+    .stage-icon { display: flex; justify-content: center; font-size: .74rem; }
+    .stage-icon span {
+      width: 22px; height: 22px; border-radius: 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 900; line-height: 1; color: var(--stage-ink, #fff);
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,.075), transparent 54%),
+        linear-gradient(180deg, rgba(var(--stage-rgb), .15), rgba(var(--stage-rgb), .075));
+      border: 1px solid rgba(var(--stage-rgb), .28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+    }
     .stage-label { text-align: center; font-size: .82rem; color: #aaa; }
-    .stage-check { color: #81b64c; }
-    .stage-thumb { color: #e6a735; }
-    .stage-inacc { color: #e08a30; }
+    .stage-check { --stage-rgb: 151, 197, 117; --stage-ink: #f1ffe8; }
+    .stage-thumb { --stage-rgb: 198, 163, 106; --stage-ink: #fff4df; }
+    .stage-inacc { --stage-rgb: 217, 130, 69; --stage-ink: #fff0e8; }
 
     /* Action buttons */
     .report-actions {
@@ -801,16 +1085,18 @@
 
     /* ============ Openings ============ */
     .openings-container {
-      width: 100%; max-width: 1180px; margin: 0 auto;
-      padding: 28px 24px 48px;
-      display: grid; grid-template-columns: minmax(320px, 430px) minmax(360px, 1fr);
-      gap: 20px; align-items: start;
+      width: 100%; max-width: 1620px; margin: 0 auto;
+      padding: 22px clamp(18px, 2.6vw, 34px) 40px;
+      display: grid; grid-template-columns: clamp(300px, 23vw, 390px) minmax(0, 1fr);
+      gap: 18px; align-items: start;
     }
     .openings-sidebar, .opening-guide {
       background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
     }
     .openings-sidebar {
-      display: flex; flex-direction: column; min-height: 680px; overflow: hidden;
+      display: flex; flex-direction: column;
+      height: calc(100vh - 120px); min-height: 640px;
+      overflow: hidden;
     }
     .opening-filters {
       display: flex; flex-direction: column; gap: 12px;
@@ -850,7 +1136,7 @@
     }
     .openings-list {
       display: flex; flex-direction: column; gap: 8px;
-      padding: 12px; overflow-y: auto; max-height: 560px;
+      padding: 12px; overflow-y: auto; flex: 1; min-height: 0;
     }
     .openings-list::-webkit-scrollbar, .opening-guide::-webkit-scrollbar { width: 4px; }
     .openings-list::-webkit-scrollbar-track, .opening-guide::-webkit-scrollbar-track { background: transparent; }
@@ -885,8 +1171,8 @@
     .meta-medium { color: #fbbf24; background: rgba(251,191,36,.1); }
     .meta-hard { color: #f87171; background: rgba(248,113,113,.1); }
     .opening-guide {
-      min-height: 680px; max-height: 760px; overflow-y: auto;
-      padding: 22px; display: flex; flex-direction: column; gap: 18px;
+      height: calc(100vh - 120px); min-height: 640px; overflow-y: auto;
+      padding: clamp(18px, 1.6vw, 24px); display: flex; flex-direction: column; gap: 16px;
     }
     .guide-top {
       display: flex; justify-content: space-between; align-items: flex-start;
@@ -901,14 +1187,14 @@
       line-height: 1.5;
     }
     .opening-study-grid {
-      display: grid; grid-template-columns: minmax(280px, 360px) minmax(280px, 1fr);
-      gap: 16px; align-items: start;
+      display: grid; grid-template-columns: minmax(460px, 560px) minmax(260px, 1fr);
+      gap: 18px; align-items: start;
     }
     #openingBoard {
-      width: 360px; max-width: 100%; border-radius: 10px; overflow: hidden;
+      width: min(100%, 560px); border-radius: 10px; overflow: hidden;
       box-shadow: 0 8px 28px rgba(0,0,0,.38);
     }
-    .opening-board-panel { display: flex; flex-direction: column; gap: 10px; }
+    .opening-board-panel { display: flex; flex-direction: column; gap: 10px; width: 100%; }
     .opening-nav {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px;
     }
@@ -1103,6 +1389,18 @@
     }
     .duel-move.current { color: #fff; border: 1px solid #6ee7b7; }
 
+    @media (max-width: 1180px) {
+      .openings-container {
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      }
+      .opening-study-grid {
+        grid-template-columns: 1fr;
+      }
+      .opening-board-panel {
+        max-width: 560px;
+      }
+    }
+
     @media (max-width: 900px) {
       .header-inner { justify-content: center; text-align: center; }
       .brand { align-items: center; }
@@ -1110,16 +1408,22 @@
       .app-tab { flex: 1; min-width: 0; }
       .openings-container { grid-template-columns: 1fr; padding-top: 20px; }
       .attraction-container, .duel-stage { grid-template-columns: 1fr; }
-      .openings-sidebar { min-height: auto; }
+      .openings-sidebar { height: auto; min-height: auto; }
       .openings-list { max-height: 420px; }
-      .opening-guide { min-height: auto; max-height: none; }
+      .opening-guide { height: auto; min-height: auto; max-height: none; }
       .analysis-container { grid-template-columns: 1fr; }
       .analysis-right-panel { max-height: none; }
     }
 
     @media (max-width: 560px) {
       .analysis-container { padding: 20px 14px 36px; }
-      #board, .board-shell, .chart-wrap, .effect-bar { width: min(100vw - 28px, 400px); margin: 0 auto; }
+      .board-stage { width: min(100vw - 28px, 446px); grid-template-columns: minmax(0, 1fr) 32px; gap: 6px; }
+      .eval-slider { width: 32px; min-height: 0; }
+      #board, .board-shell { width: 100%; margin: 0 auto; }
+      .eval-chart-card, .effect-bar, .variation-lab { width: min(100vw - 28px, 446px); margin: 0 auto; }
+      .variation-lab { grid-template-columns: 1fr auto; }
+      .variation-mode-btn { justify-content: flex-start; }
+      .variation-copy { grid-column: 1 / -1; }
       .openings-container { padding: 18px 14px 36px; }
       .attraction-container { padding: 18px 14px 36px; }
       .duel-stage { padding: 16px; }
@@ -1160,12 +1464,16 @@
       <div id="inputSection">
         <div class="pgn-group">
           <label class="filter-label">Ваш профиль (для адаптации ИИ)</label>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <input class="opening-search" type="text" id="usernameInput" placeholder="Никнейм Chess.com" />
-            <input class="opening-search" type="text" id="lichessInput" placeholder="Никнейм Lichess" />
+          <div class="profile-login-box">
+            <div class="platform-switch" role="tablist" aria-label="Платформа профиля">
+              <button class="platform-option active" type="button" data-profile-platform="chesscom" aria-selected="true">Chess.com</button>
+              <button class="platform-option" type="button" data-profile-platform="lichess" aria-selected="false">Lichess</button>
+            </div>
+            <input class="opening-search" type="text" id="profileUsernameInput" placeholder="Никнейм Chess.com" autocomplete="off" />
+            <div class="platform-hint" id="profilePlatformHint">Загрузим профиль и последние партии с Chess.com.</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-              <button class="filter-btn active" id="loadProfileBtn" title="Загрузить рейтинг" style="background:#3a3a50; color:#fff;">👤 Профиль</button>
-              <button class="filter-btn active" id="loadChesscomBtn" title="Загрузить партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">♟ PGN</button>
+              <button class="filter-btn active" id="loadProfileBtn" title="Загрузить рейтинг" style="background:#3a3a50; color:#fff;">ID Профиль</button>
+              <button class="filter-btn active" id="loadChesscomBtn" title="Выбрать партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">♟ Партии</button>
             </div>
           </div>
           <div id="profileStats" class="profile-stats" aria-live="polite"></div>
@@ -1177,7 +1485,7 @@
             <label class="filter-label" for="pgnInput">Или вставьте PGN вручную</label>
             <textarea id="pgnInput" class="opening-search" style="height:120px; padding:12px; resize:vertical; font-family:monospace;" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
           </div>
-          <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">🔍 Анализировать</button>
+          <button id="analyzeBtn" style="margin-top: 16px; width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; font-weight:700; border:none; cursor:pointer;">⌕ Анализировать</button>
           <div id="status" class="status" style="margin-top: 8px;"></div>
         </div>
         
@@ -1202,9 +1510,19 @@
         <span class="eval-score equal" id="evalScore">0.0</span>
       </div>
 
-      <div class="board-shell" id="analysisBoardShell" style="width:100%; border-radius:10px; box-shadow: 0 8px 32px rgba(0,0,0,.45); overflow:hidden; position:relative;">
-        <div id="board" style="width:100%;"></div>
-        <canvas class="board-canvas" id="effectsCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+      <div class="board-stage">
+        <div class="eval-slider" id="evalSlider" style="visibility:hidden;" aria-label="Шкала оценки Stockfish">
+          <div class="eval-slider-fill"></div>
+          <div class="eval-slider-boundary"></div>
+          <div class="eval-center-marker" title="Равная позиция"></div>
+          <div class="eval-slider-cap top">−</div>
+          <div class="eval-slider-cap bottom">+</div>
+        </div>
+
+        <div class="board-shell" id="analysisBoardShell" style="width:100%; border-radius:10px; box-shadow: 0 8px 32px rgba(0,0,0,.45); overflow:hidden; position:relative;">
+          <div id="board" style="width:100%;"></div>
+          <canvas class="board-canvas" id="effectsCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+        </div>
       </div>
 
       <div class="opening-nav" style="margin-top: 4px; width:100%; max-width:400px;">
@@ -1214,19 +1532,42 @@
         <button id="btnEnd"   title="В конец">⏭</button>
       </div>
 
-      <div class="effect-bar" style="display:flex; gap:8px; justify-content:center; width:100%; max-width:400px; margin-top: 8px;">
+      <div class="variation-lab" id="variationLab">
+        <button class="variation-mode-btn" id="toggleVariationMode" type="button">
+          <span class="variation-mode-dot"></span>
+          <span id="variationModeLabel">Вариант</span>
+        </button>
+        <div class="variation-copy">
+          <span class="variation-turn" id="variationTurnLabel">Ход: —</span>
+          <span class="variation-status muted" id="variationStatus">Сначала загрузите разбор</span>
+        </div>
+        <button class="variation-reset-btn" id="clearVariationBtn" type="button">К партии</button>
+      </div>
+
+      <div class="effect-bar" style="margin-top: 8px;">
         <button class="effect-toggle active" id="toggleArrows">Стрелки</button>
-        <button class="effect-toggle danger" id="toggleHeatmap">Слепые зоны</button>
-        <button class="effect-toggle" id="toggleBlindfold">Вслепую</button>
         <button class="effect-toggle" id="toggleVoice">Голос</button>
       </div>
 
-      <div class="lichess-explorer" id="chartWrap" style="display:none; margin-top: 8px; width:100%; max-width:400px;">
-        <div class="explorer-head">
-          <span class="explorer-title">Оценка Stockfish</span>
+      <div class="eval-chart-card" id="chartWrap" style="display:none; margin-top: 8px;">
+        <div class="eval-chart-head">
+          <div class="eval-chart-title">
+            <span>Оценка Stockfish</span>
+            <strong>Баланс партии</strong>
+          </div>
+          <div class="eval-chart-summary" id="evalChartSummary">
+            <span>Начальная позиция</span>
+            <strong>0.0</strong>
+            <span>Равная позиция</span>
+          </div>
         </div>
-        <div style="padding: 10px;">
-          <canvas id="evalChart" style="width:100% !important; height:120px !important;"></canvas>
+        <div class="eval-chart-legend" aria-hidden="true">
+          <span class="white">Верх: белые лучше</span>
+          <span class="equal">0.0 равенство</span>
+          <span class="black">Низ: черные лучше</span>
+        </div>
+        <div class="eval-chart-canvas">
+          <canvas id="evalChart"></canvas>
         </div>
       </div>
     </div>
@@ -1245,7 +1586,7 @@
       <div id="reportCard" style="display:none; flex-direction:column; gap:12px;">
         <!-- Coach Summary -->
         <div class="coach-row" style="background:transparent; padding:0; align-items:center;">
-          <div class="coach-avatar" id="reportCoachAvatar">🧔</div>
+          <div class="coach-avatar" id="reportCoachAvatar">AI</div>
           <div class="coach-bubble" id="coachBubble" style="font-size: 0.9rem; line-height: 1.45;">Анализирую партию…</div>
         </div>
 
@@ -1305,7 +1646,7 @@
         <div class="opening-line-card active" id="infoCard" style="display:flex; flex-direction:column; gap:10px; cursor:default;">
           <div class="opening-line-title">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="info-coach-avatar" id="infoCoachAvatar" style="font-size:1.2rem;">😐</span>
+              <span class="info-coach-avatar coach-tone-neutral" id="infoCoachAvatar">AI</span>
               <span id="moveSan" style="font-size:1.1rem; color:#fff;"><span id="moveBadge" style="display:none;"></span> <span id="moveSanText">—</span></span>
             </div>
             <div id="openingName" class="line-kind line-kind-main" style="display:none;"></div>
@@ -1313,12 +1654,12 @@
           <div style="font-size:0.75rem; color:#a0a0b4;" id="moveCpl"></div>
           
           <div class="opening-line-moves" id="geminiBlock" style="margin-top:4px; padding:10px; background:rgba(0,0,0,0.2); border-radius:6px; border-left:2px solid #a78bfa;">
-            <div style="font-size:0.7rem; text-transform:uppercase; color:#a78bfa; margin-bottom:6px; font-weight:700;">✨ Совет ИИ-Тренера</div>
+            <div style="font-size:0.7rem; text-transform:uppercase; color:#a78bfa; margin-bottom:6px; font-weight:700;">AI Совет ИИ-Тренера</div>
             <div id="geminiComment" style="color:#d0d0dc; line-height:1.4;">—</div>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 6px;">
-            <button id="evalIdeaBtn" style="display:none; flex:1; padding: 8px; border: 1px dashed #6ee7b7; border-radius: 6px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.8rem; margin-right: 8px;">💡 Оценить мою идею</button>
+            <button id="evalIdeaBtn" style="display:none; flex:1; padding: 8px; border: 1px dashed #6ee7b7; border-radius: 6px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.8rem; margin-right: 8px;">△ Оценить мою идею</button>
             <button id="backToReportBtn" onclick="document.getElementById('reportCard').style.display='flex'; document.getElementById('infoCard').style.display='none';" style="padding: 8px 12px; border: 1px solid #3b82f6; border-radius: 6px; background: rgba(59,130,246,.15); color: #60a5fa; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; white-space:nowrap;">↩ К общему обзору</button>
           </div>
           
@@ -1327,7 +1668,7 @@
       </div>
 
       <div id="resetSection" style="display:none; margin-top: auto;">
-        <button id="btnNewGamePanel" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #a0a0b4; border: 1px dashed rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: .85rem; font-weight: 600;">📥 Загрузить новую партию</button>
+        <button id="btnNewGamePanel" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #a0a0b4; border: 1px dashed rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: .85rem; font-weight: 600;">↥ Загрузить новую партию</button>
       </div>
 
     </div>
@@ -1519,6 +1860,8 @@
     let chess_game = new Chess();
     let board = null;
     let evalChart = null;
+    let evalSliderAnimationId = null;
+    let evalSliderDisplayedPercent = 50;
     let arrowsEnabled = true;
     let heatmapEnabled = false;
     let blindfoldEnabled = false;
@@ -1529,6 +1872,8 @@
     let branchPoint = -1;
     let variationMoves = [];
     let inVariation = false;
+    let variationModeEnabled = false;
+    let variationAnalysisPending = false;
 
     // Игрок и время
     let playerRating = null;
@@ -1536,6 +1881,7 @@
     let pgnClocks = []; // Время на ход в секундах
     let impulsiveMoves = 0;
     let timeTroubleMistakes = 0;
+    let selectedProfilePlatform = 'chesscom';
 
     let openingBoard = null;
     let openingGame = new Chess();
@@ -1597,15 +1943,120 @@
     document.getElementById('returnMainBtn').addEventListener('click', () => {
       exitVariation();
     });
+    document.getElementById('clearVariationBtn').addEventListener('click', () => {
+      exitVariation();
+    });
+    document.getElementById('toggleVariationMode').addEventListener('click', () => {
+      if (inVariation || variationModeEnabled) {
+        setVariationMode(false);
+        return;
+      }
+      setVariationMode(true);
+    });
+
+    function getSideToMoveLabel() {
+      return chess_game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных';
+    }
+
+    function getVariationMoveTone(move) {
+      if (!move || move.pending) return 'loading';
+      if (['blunder', 'mistake', 'miss'].includes(move.cat_key)) return 'error';
+      if (move.cat_key === 'inaccuracy') return 'warning';
+      return 'success';
+    }
+
+    function getVariationSummary() {
+      if (!movesData.length) {
+        return { text: 'Сначала загрузите разбор', tone: 'muted' };
+      }
+
+      if (variationAnalysisPending) {
+        const pendingMove = variationMoves[variationMoves.length - 1];
+        return { text: `Оцениваю ${pendingMove?.san || 'ход'}...`, tone: 'loading' };
+      }
+
+      if (inVariation && variationMoves.length) {
+        const lastMove = variationMoves[variationMoves.length - 1];
+        if (lastMove.pending) {
+          return { text: `Оцениваю ${lastMove.san}...`, tone: 'loading' };
+        }
+        const category = lastMove.category || getCatDef(lastMove.cat_key).label || '';
+        const suffix = category ? ` · ${category}` : '';
+        return {
+          text: `${lastMove.san}: ${formatEval(lastMove)}${suffix}`,
+          tone: getVariationMoveTone(lastMove),
+        };
+      }
+
+      if (variationModeEnabled) {
+        return { text: 'Готов к альтернативному ходу', tone: 'ready' };
+      }
+
+      return { text: 'Новая ветка выключена', tone: 'muted' };
+    }
+
+    function setVariationStatus(text, tone = 'muted') {
+      const status = document.getElementById('variationStatus');
+      if (!status) return;
+      status.textContent = text;
+      status.className = `variation-status ${tone}`;
+    }
+
+    function refreshVariationUi() {
+      const toggle = document.getElementById('toggleVariationMode');
+      const label = document.getElementById('variationModeLabel');
+      const turn = document.getElementById('variationTurnLabel');
+      const clearBtn = document.getElementById('clearVariationBtn');
+
+      if (toggle) toggle.classList.toggle('active', variationModeEnabled || inVariation);
+      if (label) label.textContent = (variationModeEnabled || inVariation) ? 'Вариант: вкл' : 'Вариант';
+      if (turn) turn.textContent = movesData.length ? getSideToMoveLabel() : 'Ход: —';
+      if (clearBtn) clearBtn.style.display = inVariation ? 'inline-flex' : 'none';
+
+      const summary = getVariationSummary();
+      setVariationStatus(summary.text, summary.tone);
+    }
+
+    function setVariationMode(enabled) {
+      if (enabled && !movesData.length) {
+        variationModeEnabled = false;
+        refreshVariationUi();
+        setVariationStatus('Сначала загрузите разбор', 'error');
+        return;
+      }
+
+      if (!enabled && inVariation) {
+        exitVariation();
+        return;
+      }
+
+      variationModeEnabled = Boolean(enabled);
+      if (!variationModeEnabled) clearLegalDots();
+      refreshVariationUi();
+    }
 
     function exitVariation() {
-      if (!inVariation) return;
+      if (!inVariation) {
+        variationModeEnabled = false;
+        variationAnalysisPending = false;
+        clearLegalDots();
+        refreshVariationUi();
+        return;
+      }
+
+      const returnIdx = branchPoint;
       inVariation = false;
+      variationModeEnabled = false;
+      variationAnalysisPending = false;
       variationMoves = [];
+      branchPoint = -1;
       document.getElementById('returnMainBtn').style.display = 'none';
+      document.getElementById('clearVariationBtn').style.display = 'none';
       // Rebuild chart from clean mainline data before navigating
+      buildMoveChips();
       buildChart();
-      goToIndex(branchPoint, false);
+      goToIndex(returnIdx, false);
+      refreshVariationUi();
     }
     
     function getCurrentMoveData() {
@@ -1649,9 +2100,22 @@
     }
 
     function onDragStart(source, piece, position, orientation) {
+      if (!movesData.length) {
+        setVariationStatus('Сначала загрузите разбор', 'error');
+        return false;
+      }
+      if (!variationModeEnabled && !inVariation) {
+        setVariationStatus('Новая ветка выключена', 'muted');
+        return false;
+      }
+      if (variationAnalysisPending) {
+        refreshVariationUi();
+        return false;
+      }
       if (chess_game.game_over()) return false;
       if ((chess_game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (chess_game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        setVariationStatus(`${getSideToMoveLabel()}: выбрана чужая фигура`, 'error');
         return false;
       }
       showLegalDots(source);
@@ -1663,6 +2127,10 @@
     function onDrop(source, target, piece, newPos, oldPos, orientation) {
       clearBestMoveHighlight();
       clearLegalDots();
+
+      if ((!variationModeEnabled && !inVariation) || variationAnalysisPending) {
+        return 'snapback';
+      }
       
       const prevFen = chess_game.fen();
       let move = chess_game.move({
@@ -1678,13 +2146,17 @@
       const san = move.san;
 
       // If the move follows the mainline, just advance the index
-      if (!inVariation && currentIdx + 1 < movesData.length && movesData[currentIdx + 1].san === san) {
+      if (!variationModeEnabled && !inVariation && currentIdx + 1 < movesData.length && movesData[currentIdx + 1].san === san) {
           currentIdx = currentIdx + 1;
           board.position(chess_game.fen(), false);
           updateInfoPanel();
           buildChart();
           return;
       }
+
+      const prevMoveData = inVariation
+        ? getCurrentMoveData()
+        : (currentIdx >= 0 ? movesData[currentIdx] : null);
 
       // --- Entering or extending a variation ---
       if (!inVariation) {
@@ -1699,8 +2171,6 @@
           }
       }
 
-      const prevMoveData = getCurrentMoveData();
-
       const tempMove = {
         san: san,
         color: move.color === 'w' ? 'white' : 'black',
@@ -1708,11 +2178,14 @@
         eval: prevMoveData ? prevMoveData.eval : 0,
         score_display: '',
         category: 'Анализ...',
+        cat_key: 'thinking',
         icon: '⏳',
-        comment: ''
+        comment: '',
+        pending: true
       };
 
       variationMoves.push(tempMove);
+      variationAnalysisPending = true;
       currentIdx = branchPoint + variationMoves.length;
 
       document.getElementById('infoCard').style.display = '';
@@ -1723,10 +2196,10 @@
       updateInfoPanel();
 
       // Fire-and-forget async server call
-      analyzeLastVariationMove(fen, prevFen, san);
+      analyzeLastVariationMove(fen, prevFen, san, variationMoves.length - 1);
     }
 
-    async function analyzeLastVariationMove(fen, prevFen, san) {
+    async function analyzeLastVariationMove(fen, prevFen, san, targetVarIdx) {
       try {
         const payload = { fen, prev_fen: prevFen, move_san: san };
         if (playerRating) payload.player_rating = playerRating;
@@ -1736,18 +2209,38 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        if (resp.ok) {
-          const data = await resp.json();
-          const vIdx = currentIdx - branchPoint - 1;
-          if (vIdx >= 0 && vIdx < variationMoves.length) {
-              variationMoves[vIdx] = data;
-          }
-          buildMoveChips();
-          buildChart();
-          updateInfoPanel();
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
         }
+
+        const data = await resp.json();
+        if (targetVarIdx >= 0 && targetVarIdx < variationMoves.length) {
+          variationMoves[targetVarIdx] = data;
+        }
+
+        buildMoveChips();
+        buildChart();
+        updateInfoPanel();
       } catch (e) {
         console.error('[analyze_position error]', e);
+        if (targetVarIdx >= 0 && targetVarIdx < variationMoves.length) {
+          variationMoves[targetVarIdx] = {
+            ...variationMoves[targetVarIdx],
+            pending: false,
+            analysis_error: true,
+            category: 'Ошибка оценки',
+            cat_key: 'mistake',
+            comment: 'Не получилось получить оценку этого хода.'
+          };
+        }
+        buildMoveChips();
+        buildChart();
+        updateInfoPanel();
+      } finally {
+        variationAnalysisPending = false;
+        refreshVariationUi();
       }
     }
 
@@ -1784,8 +2277,9 @@
       return { ctx, width: rect.width, height: rect.height };
     }
 
-    const ARROW_GREEN = 'rgba(22,163,74,0.96)';
-    const ARROW_GREEN_SOFT = 'rgba(34,197,94,0.82)';
+    const ARROW_PLAYED = 'rgba(22, 163, 74, 0.96)';
+    const ARROW_ENGINE_BEST = 'rgba(59, 130, 246, 0.94)';
+    const ARROW_ENGINE_BEST_HALO = 'rgba(219, 234, 254, 0.58)';
 
     function squareCenter(square, boardEl, orientation = 'white') {
       const rect = boardEl.getBoundingClientRect();
@@ -1812,40 +2306,90 @@
       };
     }
 
-    function drawArrow(ctx, from, to, color, width = 8) {
-      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    function isKnightMove(from, to) {
+      const square = Math.max(from.size || 1, to.size || 1);
+      const dx = Math.abs(to.x - from.x) / square;
+      const dy = Math.abs(to.y - from.y) / square;
+      return Math.abs(dx - 1) < 0.35 && Math.abs(dy - 2) < 0.35
+        || Math.abs(dx - 2) < 0.35 && Math.abs(dy - 1) < 0.35;
+    }
+
+    function getArrowPath(from, to, piece = '') {
+      if (piece === 'n' || isKnightMove(from, to)) {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const elbow = Math.abs(dx) > Math.abs(dy)
+          ? { x: to.x, y: from.y, size: from.size }
+          : { x: from.x, y: to.y, size: from.size };
+        return [from, elbow, to];
+      }
+      return [from, to];
+    }
+
+    function unitVector(a, b) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const length = Math.hypot(dx, dy) || 1;
+      return { x: dx / length, y: dy / length, angle: Math.atan2(dy, dx), length };
+    }
+
+    function drawArrow(ctx, from, to, color, width = 8, options = {}) {
+      const path = getArrowPath(from, to, options.piece);
+      const first = unitVector(path[0], path[1]);
+      const last = unitVector(path[path.length - 2], path[path.length - 1]);
       const head = Math.max(14, from.size * 0.26);
       const startPad = from.size * 0.28;
       const tipPad = to.size * 0.18;
       const shaftOverlap = head * 0.72;
-      const sx = from.x + Math.cos(angle) * startPad;
-      const sy = from.y + Math.sin(angle) * startPad;
-      const tipX = to.x - Math.cos(angle) * tipPad;
-      const tipY = to.y - Math.sin(angle) * tipPad;
-      const ex = tipX - Math.cos(angle) * shaftOverlap;
-      const ey = tipY - Math.sin(angle) * shaftOverlap;
+      const sx = path[0].x + first.x * startPad;
+      const sy = path[0].y + first.y * startPad;
+      const tipX = to.x - last.x * tipPad;
+      const tipY = to.y - last.y * tipPad;
+      const ex = tipX - last.x * shaftOverlap;
+      const ey = tipY - last.y * shaftOverlap;
+      const lineWidth = Math.max(width, Math.min(width + 2, from.size * 0.16));
+
+      const drawShaft = () => {
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        for (let i = 1; i < path.length - 1; i++) {
+          ctx.lineTo(path[i].x, path[i].y);
+        }
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      };
 
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
+
+      if (options.haloColor) {
+        ctx.save();
+        ctx.strokeStyle = options.haloColor;
+        ctx.globalAlpha = options.haloAlpha ?? 0.78;
+        ctx.lineWidth = lineWidth + (options.haloWidth ?? 5);
+        ctx.setLineDash([]);
+        drawShaft();
+        ctx.restore();
+      }
+
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.globalAlpha = 0.96;
-      ctx.lineWidth = Math.max(width, Math.min(width + 2, from.size * 0.16));
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(ex, ey);
-      ctx.stroke();
+      ctx.globalAlpha = options.alpha ?? 0.96;
+      ctx.lineWidth = lineWidth;
+      ctx.setLineDash(options.dash || []);
+      drawShaft();
+      ctx.setLineDash([]);
 
       ctx.beginPath();
       ctx.moveTo(tipX, tipY);
       ctx.lineTo(
-        tipX - Math.cos(angle - Math.PI / 6) * head,
-        tipY - Math.sin(angle - Math.PI / 6) * head
+        tipX - Math.cos(last.angle - Math.PI / 6) * head,
+        tipY - Math.sin(last.angle - Math.PI / 6) * head
       );
       ctx.lineTo(
-        tipX - Math.cos(angle + Math.PI / 6) * head,
-        tipY - Math.sin(angle + Math.PI / 6) * head
+        tipX - Math.cos(last.angle + Math.PI / 6) * head,
+        tipY - Math.sin(last.angle + Math.PI / 6) * head
       );
       ctx.closePath();
       ctx.fill();
@@ -1861,6 +2405,19 @@
         if (!verbose) return null;
       }
       return verbose;
+    }
+
+    function getGameBeforeIndex(idx, list = getActiveMovesList()) {
+      const temp = new Chess();
+      for (let i = 0; i < idx && i < list.length; i++) {
+        if (!temp.move(list[i].san, { sloppy: true })) return null;
+      }
+      return temp;
+    }
+
+    function getPieceBeforeMove(idx, square) {
+      const game = getGameBeforeIndex(idx);
+      return game?.get(square)?.type || '';
     }
 
     function buildBlindSpotMap() {
@@ -1915,18 +2472,27 @@
         ctx,
         squareCenter(verbose.from, boardEl),
         squareCenter(verbose.to, boardEl),
-        ARROW_GREEN,
-        8
+        ARROW_PLAYED,
+        8,
+        { piece: verbose.piece }
       );
 
       const bad = ['mistake', 'blunder', 'miss'].includes(m.cat_key);
       if (bad && m.best_move && m.best_move.length >= 4) {
+        const bestFrom = m.best_move.slice(0, 2);
+        const bestTo = m.best_move.slice(2, 4);
         drawArrow(
           ctx,
-          squareCenter(m.best_move.slice(0, 2), boardEl),
-          squareCenter(m.best_move.slice(2, 4), boardEl),
-          ARROW_GREEN_SOFT,
-          7
+          squareCenter(bestFrom, boardEl),
+          squareCenter(bestTo, boardEl),
+          ARROW_ENGINE_BEST,
+          8,
+          {
+            piece: getPieceBeforeMove(currentIdx, bestFrom),
+            haloColor: ARROW_ENGINE_BEST_HALO,
+            haloWidth: 6,
+            alpha: 0.94
+          }
         );
       }
     }
@@ -1934,7 +2500,7 @@
     function setBlindfold(enabled) {
       blindfoldEnabled = enabled;
       document.body.classList.toggle('blindfold-mode', enabled);
-      document.getElementById('toggleBlindfold').classList.toggle('active', enabled);
+      document.getElementById('toggleBlindfold')?.classList.toggle('active', enabled);
     }
 
     function speakCoach(text) {
@@ -1954,16 +2520,6 @@
       arrowsEnabled = !arrowsEnabled;
       document.getElementById('toggleArrows').classList.toggle('active', arrowsEnabled);
       drawAnalysisEffects();
-    });
-
-    document.getElementById('toggleHeatmap').addEventListener('click', () => {
-      heatmapEnabled = !heatmapEnabled;
-      document.getElementById('toggleHeatmap').classList.toggle('active', heatmapEnabled);
-      drawAnalysisEffects();
-    });
-
-    document.getElementById('toggleBlindfold').addEventListener('click', () => {
-      setBlindfold(!blindfoldEnabled);
     });
 
     document.getElementById('toggleVoice').addEventListener('click', () => {
@@ -2003,23 +2559,176 @@
       return cp > 0 ? `+${val}` : val;
     }
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getEvalWhitePercent(m) {
+      if (!m) return 50;
+      const cp = Number(m.eval) || 0;
+      if (m.score_display && m.score_display.startsWith('#') && Math.abs(cp) > 0) {
+        return cp > 0 ? 98 : 2;
+      }
+      return clamp(50 + Math.tanh(cp / 450) * 49, 2, 98);
+    }
+
+    function getSideLabel(m) {
+      return m?.color === 'black' ? 'Черные' : 'Белые';
+    }
+
+    function getMoveNumberLabel(idx, m) {
+      const moveNum = Math.floor(idx / 2) + 1;
+      return `${moveNum}. ${getSideLabel(m)}`;
+    }
+
+    function getEvalNarrative(m) {
+      if (!m) return 'Равная позиция';
+      const display = formatEval(m);
+      const cp = Number(m.eval) || 0;
+      if (display.startsWith('#')) {
+        return cp >= 0 ? 'Матовая атака белых' : 'Матовая атака черных';
+      }
+      const abs = Math.abs(cp);
+      const side = cp >= 0 ? 'белых' : 'черных';
+      if (abs < 35) return 'Равная позиция';
+      if (abs < 120) return `Небольшой плюс ${side}`;
+      if (abs < 300) return `Преимущество ${side}`;
+      return `Большой перевес ${side}`;
+    }
+
+    function getChartMoveByIndex(idx) {
+      return getActiveMovesList()[idx] || movesData[idx] || null;
+    }
+
+    function getChartYValue(m) {
+      if (!m) return 0;
+      let e = parseFloat(m.eval) || 0;
+      if (m.score_display && (m.score_display.startsWith('#') || m.score_display.startsWith('M'))) {
+        e = (e > 0 || !m.score_display.includes('-')) ? 1000 : -1000;
+      }
+      return clamp(e / 100, -10, 10);
+    }
+
+    function getChartPointColor(m) {
+      const colors = {
+        brilliant: '#15bcac',
+        great: '#60a5fa',
+        best: '#98bc4b',
+        excellent: '#86efac',
+        good: '#97af8b',
+        book: '#a88652',
+        inaccuracy: '#fbbf24',
+        mistake: '#f97316',
+        miss: '#f87171',
+        blunder: '#ef4444',
+      };
+      return colors[m?.cat_key] || '#a78bfa';
+    }
+
+    function getChartPointRadius(m) {
+      if (!m) return 0;
+      if (['brilliant', 'great', 'mistake', 'miss', 'blunder'].includes(m.cat_key)) return 3.5;
+      if (m.cat_key === 'inaccuracy') return 2.5;
+      return 0;
+    }
+
+    function getMoveTooltipText(idx, m) {
+      if (!m) return 'Начальная позиция';
+      const lines = [
+        `${getMoveNumberLabel(idx, m)}: ${m.san}`,
+        `Оценка: ${formatEval(m)} · ${getEvalNarrative(m)}`,
+      ];
+      if (m.category) lines.push(`Категория: ${m.category}`);
+      if (m.cpl > 0) lines.push(`Потеря: ${m.cpl} cp`);
+      return lines.join('\n');
+    }
+
+    function setEvalChartSummary(idx, isHover = false) {
+      const el = document.getElementById('evalChartSummary');
+      if (!el) return;
+
+      if (idx < 0) {
+        el.innerHTML = `
+          <span>${isHover ? 'Наведение' : 'Начальная позиция'}</span>
+          <strong>0.0</strong>
+          <span>Равная позиция</span>
+        `;
+        return;
+      }
+
+      const m = getChartMoveByIndex(idx);
+      if (!m) return;
+      el.innerHTML = `
+        <span>${isHover ? 'На графике' : 'Текущий ход'} · ${escapeHtml(getMoveNumberLabel(idx, m))}</span>
+        <strong>${escapeHtml(m.san)} · ${escapeHtml(formatEval(m))}</strong>
+        <span>${escapeHtml(m.category || 'Ход')} · ${escapeHtml(getEvalNarrative(m))}</span>
+      `;
+    }
+
+    function applyEvalSliderPercent(slider, percent) {
+      evalSliderDisplayedPercent = clamp(percent, 2, 98);
+      slider.style.setProperty('--eval-white', `${evalSliderDisplayedPercent.toFixed(1)}%`);
+    }
+
+    function setEvalSliderPercent(slider, targetPercent, immediate = false) {
+      if (!slider) return;
+      const target = clamp(targetPercent, 2, 98);
+
+      if (evalSliderAnimationId) {
+        cancelAnimationFrame(evalSliderAnimationId);
+        evalSliderAnimationId = null;
+      }
+
+      const start = evalSliderDisplayedPercent;
+      const distance = Math.abs(target - start);
+      const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+      if (immediate || reducedMotion || distance < 0.2) {
+        applyEvalSliderPercent(slider, target);
+        return;
+      }
+
+      const duration = clamp(300 + distance * 7, 320, 720);
+      const startedAt = performance.now();
+      const ease = (t) => 1 - Math.pow(1 - t, 3);
+
+      const tick = (now) => {
+        const progress = clamp((now - startedAt) / duration, 0, 1);
+        const eased = ease(progress);
+        applyEvalSliderPercent(slider, start + (target - start) * eased);
+
+        if (progress < 1) {
+          evalSliderAnimationId = requestAnimationFrame(tick);
+        } else {
+          evalSliderAnimationId = null;
+          applyEvalSliderPercent(slider, target);
+        }
+      };
+
+      evalSliderAnimationId = requestAnimationFrame(tick);
+    }
+
     // ==================================================================
     // Eval display
     // ==================================================================
     function updateEvalDisplay() {
       const el = document.getElementById('evalScore');
       const bar = document.getElementById('evalBar');
+      const slider = document.getElementById('evalSlider');
       bar.style.visibility = 'visible';
+      if (slider) slider.style.visibility = 'visible';
 
-      if (currentIdx < 0) {
+      if (currentIdx < 0 || currentIdx >= getActiveMovesList().length) {
         el.textContent = '0.0';
         el.className = 'eval-score equal';
+        setEvalSliderPercent(slider, 50, true);
         return;
       }
       const m = getCurrentMoveData();
       if (!m) return;
       const display = formatEval(m);
       el.textContent = display;
+      setEvalSliderPercent(slider, getEvalWhitePercent(m));
 
       if (display.startsWith('#')) {
         el.className = 'eval-score mate';
@@ -2036,40 +2745,45 @@
     // Chart
     // ==================================================================
     function buildChart() {
-      const ctx = document.getElementById('evalChart').getContext('2d');
+      const chartCanvas = document.getElementById('evalChart');
+      const ctx = chartCanvas.getContext('2d');
       const activeMoves = getActiveMovesList();
       const labels = activeMoves.map((m, i) => {
         const num = Math.floor(i / 2) + 1;
-        return m.color === 'white' ? `${num}.` : `${num}…`;
+        return m.color === 'white' ? `${num}` : '';
       });
-      const data = activeMoves.map(m => {
-          let e = parseFloat(m.eval) || 0;
-          if (m.score_display && (m.score_display.startsWith('#') || m.score_display.startsWith('M'))) {
-              e = (e > 0 || !m.score_display.includes('-')) ? 1000 : -1000;
-          }
-          return Math.max(-1000, Math.min(1000, e)) / 100;
-      });
+      const data = activeMoves.map(getChartYValue);
 
       if (evalChart) {
           evalChart.data.labels = labels;
           evalChart.data.datasets[0].data = data;
+          setEvalChartSummary(currentIdx, false);
           evalChart.update('none');
       } else {
+          if (!chartCanvas.dataset.chartHoverBound) {
+            chartCanvas.addEventListener('mouseleave', () => setEvalChartSummary(currentIdx, false));
+            chartCanvas.dataset.chartHoverBound = 'true';
+          }
+
           evalChart = new Chart(ctx, {
             type: 'line',
             data: {
               labels,
               datasets: [{
                 data,
-                borderColor: '#a78bfa',
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHitRadius: 8,
-                tension: 0.3,
+                borderColor: '#9ca3ff',
+                borderWidth: 2.5,
+                pointRadius: (pointCtx) => getChartPointRadius(getChartMoveByIndex(pointCtx.dataIndex)),
+                pointHoverRadius: 5,
+                pointHitRadius: 12,
+                pointBackgroundColor: (pointCtx) => getChartPointColor(getChartMoveByIndex(pointCtx.dataIndex)),
+                pointBorderColor: '#12121a',
+                pointBorderWidth: 2,
+                tension: 0.32,
                 fill: {
                   target: { value: 0 },
-                  above: 'rgba(167,139,250,0.12)',
-                  below: 'rgba(239,68,68,0.12)',
+                  above: 'rgba(226,232,240,0.11)',
+                  below: 'rgba(167,139,250,0.13)',
                 },
               }],
             },
@@ -2077,16 +2791,42 @@
               responsive: true,
               maintainAspectRatio: false,
               animation: { duration: 300 },
+              interaction: { mode: 'index', intersect: false },
               plugins: {
                 legend: { display: false },
                 tooltip: {
-                  backgroundColor: '#1e1e2a',
-                  titleColor: '#e2e2e8',
-                  bodyColor: '#a0a0b4',
-                  borderColor: '#2a2a3a',
+                  backgroundColor: '#111118',
+                  titleColor: '#f8fafc',
+                  bodyColor: '#c4c4d4',
+                  footerColor: '#8d8da4',
+                  borderColor: '#3a3a50',
                   borderWidth: 1,
+                  padding: 11,
+                  displayColors: false,
+                  titleFont: { size: 12, weight: '800' },
+                  bodyFont: { size: 11, weight: '700' },
+                  footerFont: { size: 10, weight: '700' },
                   callbacks: {
-                    label: (ctx) => `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y.toFixed(1)}`,
+                    title: (items) => {
+                      if (!items.length) return '';
+                      const idx = items[0].dataIndex;
+                      const m = getChartMoveByIndex(idx);
+                      return `${getMoveNumberLabel(idx, m)}: ${m?.san || '—'}`;
+                    },
+                    label: (tooltipCtx) => {
+                      const m = getChartMoveByIndex(tooltipCtx.dataIndex);
+                      return `Оценка: ${m ? formatEval(m) : `${tooltipCtx.parsed.y}`}`;
+                    },
+                    afterLabel: (tooltipCtx) => {
+                      const m = getChartMoveByIndex(tooltipCtx.dataIndex);
+                      if (!m) return [];
+                      const lines = [
+                        getEvalNarrative(m),
+                        `Категория: ${m.category || 'Ход'}`,
+                      ];
+                      if (m.cpl > 0) lines.push(`Потеря: ${m.cpl} cp`);
+                      return lines;
+                    },
                   },
                 },
                 annotation: {
@@ -2094,7 +2834,7 @@
                     zeroLine: {
                       type: 'line',
                       yMin: 0, yMax: 0,
-                      borderColor: '#52526a',
+                      borderColor: 'rgba(110,231,183,.45)',
                       borderWidth: 1,
                       borderDash: [4, 4],
                     },
@@ -2110,25 +2850,56 @@
               },
               scales: {
                 x: {
-                  ticks: { color: '#52526a', font: { size: 9 }, maxTicksLimit: 20 },
-                  grid: { color: 'rgba(255,255,255,0.03)' },
+                  ticks: {
+                    color: '#737388',
+                    font: { size: 10, weight: '700' },
+                    maxTicksLimit: 12,
+                    maxRotation: 0,
+                    autoSkip: true,
+                    callback: (value, index) => labels[index] || '',
+                  },
+                  grid: { color: 'rgba(255,255,255,0.035)', drawTicks: false },
+                  border: { color: 'rgba(255,255,255,0.08)' },
                 },
                 y: {
+                  min: -10,
+                  max: 10,
                   ticks: {
-                    color: '#52526a', font: { size: 10 },
-                    callback: (v) => (v > 0 ? '+' : '') + v,
+                    color: '#737388',
+                    font: { size: 10, weight: '700' },
+                    stepSize: 5,
+                    callback: (v) => {
+                      if (v === 0) return '0';
+                      return v > 0 ? `+${v}` : `${v}`;
+                    },
                   },
-                  grid: { color: 'rgba(255,255,255,0.04)' },
-                  suggestedMin: -5, suggestedMax: 5,
+                  grid: {
+                    color: (gridCtx) => gridCtx.tick.value === 0
+                      ? 'rgba(110,231,183,.32)'
+                      : 'rgba(255,255,255,0.045)',
+                  },
+                  border: { color: 'rgba(255,255,255,0.08)' },
                 },
+              },
+              onHover: (evt, elements, chart) => {
+                chart.canvas.style.cursor = elements.length ? 'pointer' : 'default';
+                if (elements.length) {
+                  setEvalChartSummary(elements[0].index, true);
+                } else {
+                  setEvalChartSummary(currentIdx, false);
+                }
               },
               onClick: (evt) => {
                 const points = evalChart.getElementsAtEventForMode(evt, 'nearest', { intersect: false }, true);
-                if (points.length) goToIndex(points[0].index);
+                if (points.length) {
+                  const pointIndex = points[0].index;
+                  goToIndex(pointIndex, inVariation && pointIndex > branchPoint);
+                }
               },
             },
           });
       }
+      setEvalChartSummary(currentIdx, false);
     }
 
     function updateChartIndicator() {
@@ -2141,6 +2912,7 @@
         ann.xMin = currentIdx;
         ann.xMax = currentIdx;
       }
+      setEvalChartSummary(currentIdx, false);
       evalChart.update('none');
     }
 
@@ -2151,22 +2923,51 @@
       $('#board .square-55d63').removeClass('highlight-best-move');
     }
 
+    function keepActiveMoveChipVisible(activeChip) {
+      const container = document.getElementById('movesList');
+      if (!container || !activeChip || !container.contains(activeChip) || container.style.display === 'none') {
+        return;
+      }
+
+      const containerRect = container.getBoundingClientRect();
+      const chipRect = activeChip.getBoundingClientRect();
+      const padding = 8;
+      let nextScrollTop = container.scrollTop;
+
+      if (chipRect.top < containerRect.top + padding) {
+        nextScrollTop += chipRect.top - containerRect.top - padding;
+      } else if (chipRect.bottom > containerRect.bottom - padding) {
+        nextScrollTop += chipRect.bottom - containerRect.bottom + padding;
+      }
+
+      if (nextScrollTop !== container.scrollTop) {
+        container.scrollTo({
+          top: Math.max(0, nextScrollTop),
+          behavior: 'smooth',
+        });
+      }
+    }
+
     function updateInfoPanel() {
       clearBestMoveHighlight();
-      if (currentIdx < 0 || currentIdx >= movesData.length) {
+      const activeMovesLength = getActiveMovesList().length;
+      if (currentIdx < 0 || currentIdx >= activeMovesLength) {
         document.getElementById('moveSanText').textContent = '—';
         document.getElementById('moveBadge').style.display = 'none';
         document.getElementById('moveCpl').textContent = '';
         document.getElementById('geminiComment').textContent = 'Выберите ход для получения совета';
         document.getElementById('geminiComment').className = 'gemini-comment empty';
-        document.getElementById('moveCounter').textContent = `0 / ${getActiveMovesList().length}`;
+        document.getElementById('moveCounter').textContent = `0 / ${activeMovesLength}`;
         document.getElementById('openingName').style.display = 'none';
-        document.getElementById('infoCoachAvatar').textContent = '😐';
+        const idleCoachAvatar = document.getElementById('infoCoachAvatar');
+        idleCoachAvatar.textContent = 'AI';
+        idleCoachAvatar.className = 'info-coach-avatar coach-tone-neutral';
         
         updateEvalDisplay();
         updateChartIndicator();
         drawAnalysisEffects();
         document.getElementById('evalIdeaBtn').style.display = 'none';
+        refreshVariationUi();
         return;
       }
       
@@ -2186,7 +2987,11 @@
         badge.style.display = 'none';
       }
       
-      if (m.cpl > 0) {
+      if (m.pending) {
+        document.getElementById('moveCpl').textContent = 'Stockfish считает ход';
+      } else if (m.analysis_error) {
+        document.getElementById('moveCpl').textContent = 'Оценка не получена';
+      } else if (m.cpl > 0) {
         document.getElementById('moveCpl').textContent = `Потеря: ${m.cpl} cp`;
       } else {
         document.getElementById('moveCpl').textContent = 'Точный ход';
@@ -2200,9 +3005,12 @@
       }
 
       // Coach emotion
-      let emotion = '😐';
+      const infoCoachAvatar = document.getElementById('infoCoachAvatar');
+      let coachMark = 'AI';
+      let coachTone = 'neutral';
       if (m.cat_key === 'blunder' || m.cat_key === 'mistake') {
-        emotion = '😱';
+        coachMark = '!';
+        coachTone = 'bad';
         // Highlight best move if available
         if (m.best_move) {
           const fromSq = m.best_move.substring(0, 2);
@@ -2211,14 +3019,20 @@
           $('#board .square-' + toSq).addClass('highlight-best-move');
         }
       } else if (m.cat_key === 'book') {
-        emotion = '🤓';
+        coachMark = 'B';
+        coachTone = 'book';
       } else if (['brilliant', 'great', 'best', 'excellent'].includes(m.cat_key)) {
-        emotion = '😃';
+        coachMark = '✓';
+        coachTone = 'good';
       }
-      document.getElementById('infoCoachAvatar').textContent = emotion;
+      infoCoachAvatar.textContent = coachMark;
+      infoCoachAvatar.className = `info-coach-avatar coach-tone-${coachTone}`;
 
       const commEl = document.getElementById('geminiComment');
-      if (m.comment) {
+      if (m.pending) {
+        commEl.textContent = 'Оцениваю этот вариант...';
+        commEl.className = 'gemini-comment empty';
+      } else if (m.comment) {
         commEl.textContent = m.comment;
         commEl.className = 'gemini-comment';
         speakCoach(m.comment);
@@ -2235,11 +3049,11 @@
       const activeChip = document.querySelector(`.move-chip[data-index="${currentIdx}"]${inVariation ? '.variation-chip' : ':not(.variation-chip)'}`);
       if (activeChip) {
         activeChip.classList.add('active');
-        activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        keepActiveMoveChipVisible(activeChip);
       }
 
       const evalBtn = document.getElementById('evalIdeaBtn');
-      if (inVariation) {
+      if (inVariation && !m.pending) {
         evalBtn.style.display = 'block';
         evalBtn.onclick = async () => {
           evalBtn.disabled = true;
@@ -2270,7 +3084,7 @@
           } catch(e) { console.error(e); }
           finally {
             evalBtn.disabled = false;
-            evalBtn.textContent = '💡 Оценить мою идею';
+            evalBtn.textContent = '△ Оценить мою идею';
           }
         };
       } else {
@@ -2280,12 +3094,12 @@
       updateEvalDisplay();
       updateChartIndicator();
       drawAnalysisEffects();
-
       // Setup State 2 (Info Panel)
       if (document.getElementById('movesList').style.display !== 'none') {
           document.getElementById('reportCard').style.display = 'none';
           document.getElementById('infoCard').style.display = 'flex';
       }
+      refreshVariationUi();
     }
 
     // ==================================================================
@@ -2347,6 +3161,9 @@
           badgeHtml = `<span class="chip-badge ${cat.css}">${cat.icon}</span>`;
         }
         chip.innerHTML = `${badgeHtml}${m.san}`;
+        if (typeof getMoveTooltipText === 'function') {
+            chip.title = getMoveTooltipText(i, m);
+        }
         chip.addEventListener('click', () => goToIndex(i, isVar));
         return chip;
     }
@@ -2393,8 +3210,21 @@
     // ==================================================================
     // Nav buttons
     // ==================================================================
-    document.getElementById('btnStart').addEventListener('click', () => goToIndex(-1, false));
-    document.getElementById('btnPrev').addEventListener('click', () => {
+    function runBoardNavigation(event, action) {
+      event?.preventDefault();
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      action();
+      event?.currentTarget?.blur();
+      requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+    }
+
+    ['btnStart', 'btnPrev', 'btnNext', 'btnEnd'].forEach((id) => {
+      document.getElementById(id).addEventListener('mousedown', (event) => event.preventDefault());
+    });
+
+    document.getElementById('btnStart').addEventListener('click', (event) => runBoardNavigation(event, () => goToIndex(-1, false)));
+    document.getElementById('btnPrev').addEventListener('click', (event) => runBoardNavigation(event, () => {
       if (currentIdx > -1) {
           if (inVariation && currentIdx === branchPoint + 1) {
               exitVariation();
@@ -2402,8 +3232,8 @@
               goToIndex(currentIdx - 1, inVariation);
           }
       }
-    });
-    document.getElementById('btnNext').addEventListener('click', () => {
+    }));
+    document.getElementById('btnNext').addEventListener('click', (event) => runBoardNavigation(event, () => {
       if (inVariation) {
           if (currentIdx - branchPoint - 1 < variationMoves.length - 1) {
               goToIndex(currentIdx + 1, true);
@@ -2413,14 +3243,14 @@
               goToIndex(currentIdx + 1, false);
           }
       }
-    });
-    document.getElementById('btnEnd').addEventListener('click', () => {
+    }));
+    document.getElementById('btnEnd').addEventListener('click', (event) => runBoardNavigation(event, () => {
       if (inVariation) {
           if (variationMoves.length) goToIndex(branchPoint + variationMoves.length, true);
       } else {
           if (movesData.length) goToIndex(movesData.length - 1, false);
       }
-    });
+    }));
 
     document.addEventListener('keydown', (e) => {
       if (!document.getElementById('viewAnalyze').classList.contains('active')) return;
@@ -2429,6 +3259,45 @@
       if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
       if (e.key === 'Home')       document.getElementById('btnStart').click();
       if (e.key === 'End')        document.getElementById('btnEnd').click();
+    });
+
+    const PROFILE_PLATFORM_CONFIG = {
+      chesscom: {
+        label: 'Chess.com',
+        placeholder: 'Никнейм Chess.com',
+        hint: 'Загрузим профиль и последние партии с Chess.com.',
+      },
+      lichess: {
+        label: 'Lichess',
+        placeholder: 'Никнейм Lichess',
+        hint: 'Загрузим профиль и последние партии с Lichess.',
+      },
+    };
+
+    function getSelectedProfileConfig() {
+      return PROFILE_PLATFORM_CONFIG[selectedProfilePlatform] || PROFILE_PLATFORM_CONFIG.chesscom;
+    }
+
+    function getProfileUsername() {
+      return document.getElementById('profileUsernameInput').value.trim();
+    }
+
+    function setProfilePlatform(platform) {
+      selectedProfilePlatform = PROFILE_PLATFORM_CONFIG[platform] ? platform : 'chesscom';
+      const config = getSelectedProfileConfig();
+      document.querySelectorAll('.platform-option').forEach((button) => {
+        const active = button.dataset.profilePlatform === selectedProfilePlatform;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      document.getElementById('profileUsernameInput').placeholder = config.placeholder;
+      document.getElementById('profilePlatformHint').textContent = config.hint;
+      document.getElementById('recentGamesPicker').style.display = 'none';
+    }
+
+    document.querySelectorAll('.platform-option').forEach((button) => {
+      button.addEventListener('click', () => setProfilePlatform(button.dataset.profilePlatform));
     });
 
     // ==================================================================
@@ -2638,6 +3507,31 @@
       };
     }
 
+    function getLichessGameDetails(game, username) {
+      const lower = username.toLowerCase();
+      const whiteName = game.players?.white?.user?.name || game.players?.white?.userId || '';
+      const blackName = game.players?.black?.user?.name || game.players?.black?.userId || '';
+      const color = whiteName.toLowerCase() === lower ? 'white' : (blackName.toLowerCase() === lower ? 'black' : null);
+      if (!color) return null;
+
+      const player = game.players?.[color] || {};
+      const opponentColor = color === 'white' ? 'black' : 'white';
+      const opponent = game.players?.[opponentColor] || {};
+      const result = getLichessGameResult(game, username);
+      if (!result) return null;
+
+      return {
+        ...result,
+        color,
+        playerRating: player.rating || 0,
+        opponentRating: opponent.rating || 0,
+        endTime: game.lastMoveAt || game.createdAt || 0,
+        pgn: game.pgn || '',
+        url: game.id ? `https://lichess.org/${game.id}` : '',
+        rated: Boolean(game.rated),
+      };
+    }
+
     async function fetchLichessRecentResults(username, max = 10) {
       const url = `https://lichess.org/api/games/user/${encodeURIComponent(username)}?max=${max}&moves=false&clocks=false&evals=false&opening=false`;
       const resp = await fetch(url, { headers: { Accept: 'application/x-ndjson' } });
@@ -2650,6 +3544,21 @@
         .map((line) => JSON.parse(line))
         .map((game) => getLichessGameResult(game, username))
         .filter(Boolean)
+        .slice(0, max);
+    }
+
+    async function fetchLichessRecentGames(username, max = 10) {
+      const url = `https://lichess.org/api/games/user/${encodeURIComponent(username)}?max=${max}&moves=true&pgnInJson=true&clocks=false&evals=false&opening=false`;
+      const resp = await fetch(url, { headers: { Accept: 'application/x-ndjson' } });
+      if (!resp.ok) return [];
+      const text = await resp.text();
+      return text
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line))
+        .map((game) => getLichessGameDetails(game, username))
+        .filter((game) => game?.pgn)
         .slice(0, max);
     }
 
@@ -2766,7 +3675,7 @@
       container.style.display = 'block';
     }
 
-    function renderRecentGamesPicker(container, games, username) {
+    function renderRecentGamesPicker(container, games, username, platformLabel = 'Chess.com') {
       if (!games.length) {
         showRecentGamesMessage(container, 'Последние партии с PGN не найдены.', 'error');
         return;
@@ -2798,7 +3707,7 @@
 
       container.innerHTML = `
         <div class="recent-games-head">
-          <span class="recent-games-title">Последние партии Chess.com</span>
+          <span class="recent-games-title">Последние партии ${escapeHtml(platformLabel)}</span>
           <span class="recent-games-hint">${games.length} из 10</span>
         </div>
         <div class="recent-games-list">${buttons}</div>
@@ -2826,35 +3735,32 @@
     }
 
     document.getElementById('loadProfileBtn').addEventListener('click', async () => {
-      const cUser = document.getElementById('usernameInput').value.trim();
-      const lUser = document.getElementById('lichessInput').value.trim();
+      const username = getProfileUsername();
+      const config = getSelectedProfileConfig();
       const statsDiv = document.getElementById('profileStats');
       const btn = document.getElementById('loadProfileBtn');
       
-      if (!cUser && !lUser) {
-          showProfileMessage(statsDiv, 'Укажите хотя бы один никнейм.', 'error');
+      if (!username) {
+          showProfileMessage(statsDiv, `Укажите никнейм ${config.label}.`, 'error');
           return;
       }
       
       btn.disabled = true;
       btn.textContent = '⏳...';
-      showProfileMessage(statsDiv, 'Загружаю профиль и последние партии...');
+      showProfileMessage(statsDiv, `Загружаю профиль ${config.label}...`);
       
       playerRating = null;
       playerAvatar = null;
       
       try {
-          const profiles = [];
-          if (cUser) profiles.push(await loadChesscomProfile(cUser));
-          if (lUser) profiles.push(await loadLichessProfile(lUser));
+          const profile = selectedProfilePlatform === 'lichess'
+              ? await loadLichessProfile(username)
+              : await loadChesscomProfile(username);
 
-          if (profiles.length) {
-              const profileWithGames = profiles.find((profile) => profile.recent?.length);
-              const displayProfile = profileWithGames || profiles[0];
-              const maxRating = Math.max(...profiles.map((profile) => profile.rating || 0));
-              playerRating = maxRating > 0 ? maxRating : null;
-              playerAvatar = displayProfile.avatar || null;
-              statsDiv.innerHTML = renderProfileCard(displayProfile, profiles);
+          if (profile) {
+              playerRating = profile.rating > 0 ? profile.rating : null;
+              playerAvatar = profile.avatar || null;
+              statsDiv.innerHTML = renderProfileCard(profile, [profile]);
               wireProfileAvatarFallback(statsDiv);
               statsDiv.style.display = 'block';
           } else {
@@ -2864,12 +3770,13 @@
           showProfileMessage(statsDiv, e.message || 'Ошибка загрузки профиля.', 'error');
       } finally {
           btn.disabled = false;
-          btn.textContent = '👤 Профиль';
+          btn.textContent = 'ID Профиль';
       }
     });
 
     document.getElementById('loadChesscomBtn').addEventListener('click', async () => {
-      const username = document.getElementById('usernameInput').value.trim();
+      const username = getProfileUsername();
+      const config = getSelectedProfileConfig();
 
       const btn = document.getElementById('loadChesscomBtn');
       const status = document.getElementById('status');
@@ -2877,24 +3784,26 @@
 
       if (!username) {
         status.className = 'status error';
-        status.textContent = '✗ Укажите никнейм Chess.com.';
-        showRecentGamesMessage(picker, 'Введите ник Chess.com, чтобы выбрать партию.', 'error');
+        status.textContent = `✗ Укажите никнейм ${config.label}.`;
+        showRecentGamesMessage(picker, `Введите ник ${config.label}, чтобы выбрать партию.`, 'error');
         return;
       }
 
       btn.disabled = true;
       btn.textContent = '⏳…';
       status.className = 'status';
-      status.textContent = `Загружаю последние партии ${username}…`;
+      status.textContent = `Загружаю последние партии ${username} на ${config.label}…`;
       showRecentGamesMessage(picker, 'Ищу последние партии с PGN...');
 
       try {
-        const games = await fetchChesscomRecentGames(username, 10);
+        const games = selectedProfilePlatform === 'lichess'
+          ? await fetchLichessRecentGames(username, 10)
+          : await fetchChesscomRecentGames(username, 10);
         if (!games.length) {
           throw new Error(`У игрока '${username}' не найдено последних партий с PGN.`);
         }
 
-        renderRecentGamesPicker(picker, games, username);
+        renderRecentGamesPicker(picker, games, username, config.label);
         status.className = 'status success';
         status.textContent = '✓ Выберите партию из списка ниже';
       } catch (e) {
@@ -2903,7 +3812,7 @@
         showRecentGamesMessage(picker, e.message || 'Не удалось загрузить партии.', 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = '♟ PGN';
+        btn.textContent = '♟ Партии';
       }
     });
 
@@ -2944,10 +3853,14 @@
         inVariation = false;
         branchPoint = -1;
         variationMoves = [];
+        variationModeEnabled = false;
+        variationAnalysisPending = false;
         document.getElementById('returnMainBtn').style.display = 'none';
+        document.getElementById('clearVariationBtn').style.display = 'none';
 
         chess_game.reset();
         board.position('start', false);
+        refreshVariationUi();
 
         document.getElementById('pgnInputSection').style.display = 'none';
         document.getElementById('movesList').style.display = 'flex';
@@ -3034,7 +3947,7 @@
         status.textContent = `✗ ${e.message}`;
       } finally {
         btn.disabled = false;
-        btn.textContent = '🔍 Анализировать';
+        btn.textContent = '⌕ Анализировать';
       }
     });
 
@@ -3044,13 +3957,13 @@
     const CAT_DEFS = [
       { key: 'brilliant',  icon: '!!', label: 'Блестящий',     css: 'cat-brilliant' },
       { key: 'great',      icon: '!',  label: 'Замечательный', css: 'cat-great' },
-      { key: 'best',       icon: '⭐', label: 'Лучший',        css: 'cat-best' },
-      { key: 'excellent',  icon: '👍', label: 'Отлично',       css: 'cat-excellent' },
-      { key: 'good',       icon: '✅', label: 'Хорошо',        css: 'cat-good' },
-      { key: 'book',       icon: '📖', label: 'Теоретический', css: 'cat-book' },
+      { key: 'best',       icon: '★', label: 'Лучший',        css: 'cat-best' },
+      { key: 'excellent',  icon: '✓', label: 'Отлично',       css: 'cat-excellent' },
+      { key: 'good',       icon: '+',  label: 'Хорошо',        css: 'cat-good' },
+      { key: 'book',       icon: 'B',  label: 'Теоретический', css: 'cat-book' },
       { key: 'inaccuracy', icon: '?!', label: 'Неточность',    css: 'cat-inaccuracy' },
       { key: 'mistake',    icon: '?',  label: 'Ошибка',        css: 'cat-mistake' },
-      { key: 'miss',       icon: '❌', label: 'Упущение',      css: 'cat-miss' },
+      { key: 'miss',       icon: '×',  label: 'Упущение',      css: 'cat-miss' },
       { key: 'blunder',    icon: '??', label: 'Зевок',         css: 'cat-blunder' },
     ];
 
@@ -4030,8 +4943,9 @@
         ctx,
         squareCenter(move.from, boardEl),
         squareCenter(move.to, boardEl),
-        ARROW_GREEN,
-        8
+        ARROW_PLAYED,
+        8,
+        { piece: move.piece }
       );
     }
 
@@ -4147,8 +5061,8 @@
     document.getElementById('tabReport').addEventListener('click', () => showTab('report'));
 
     function stageIcon(status) {
-      if (status === 'check') return '<span class="stage-check">✔</span>';
-      if (status === 'thumb') return '<span class="stage-thumb">👍</span>';
+      if (status === 'check') return '<span class="stage-check">✓</span>';
+      if (status === 'thumb') return '<span class="stage-thumb">+</span>';
       return '<span class="stage-inacc">?!</span>';
     }
 
@@ -4200,7 +5114,7 @@
         row.className = 'cat-row';
         row.innerHTML =
           `<div class="cat-cnt-w">${wVal}</div>` +
-          `<div class="cat-icon-circle ${cat.css}">${cat.icon}</div>` +
+          `<div class="cat-icon-circle ${cat.css}" title="${cat.label}" aria-label="${cat.label}">${cat.icon}</div>` +
           `<div class="cat-cnt-b">${bVal}</div>`;
         grid.appendChild(row);
       });
