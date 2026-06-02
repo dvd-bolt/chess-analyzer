@@ -7,6 +7,7 @@ Chess Analyzer Backend — Этап 6 (Game Report)
 import io
 import json
 import os
+import shutil
 
 import urllib.request
 urllib.request.getproxies = lambda: {}
@@ -63,8 +64,36 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-STOCKFISH_PATH = "stockfish/stockfish.exe"
 BASE_DIR = Path(__file__).resolve().parent
+
+
+def resolve_stockfish_path() -> str:
+    """Find Stockfish across local, env-configured, and common system paths."""
+    env_path = os.getenv("STOCKFISH_PATH")
+    candidates = []
+    if env_path:
+        candidates.append(Path(env_path).expanduser())
+
+    candidates.extend([
+        BASE_DIR / "stockfish" / "stockfish.exe",
+        BASE_DIR / "stockfish" / "stockfish",
+        Path("/opt/homebrew/bin/stockfish"),
+        Path("/usr/local/bin/stockfish"),
+        Path("/usr/bin/stockfish"),
+    ])
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+
+    system_path = shutil.which("stockfish")
+    if system_path:
+        return system_path
+
+    return str(candidates[0] if candidates else BASE_DIR / "stockfish" / "stockfish.exe")
+
+
+STOCKFISH_PATH = resolve_stockfish_path()
 
 PIECE_VALUES = {
     chess.PAWN: 1,
@@ -281,6 +310,20 @@ def detect_stage(move_index: int, total_material: int) -> str:
     if total_material <= 24:  # мало фигур → эндшпиль
         return "endgame"
     return "middlegame"
+
+
+def infer_move_between(prev_board: chess.Board, target_board: chess.Board) -> Optional[chess.Move]:
+    """Restores the legal move that transforms prev_board into target_board."""
+    for move in prev_board.legal_moves:
+        candidate = prev_board.copy(stack=False)
+        candidate.push(move)
+        if (
+            candidate.board_fen() == target_board.board_fen()
+            and candidate.turn == target_board.turn
+            and candidate.castling_rights == target_board.castling_rights
+        ):
+            return move
+    return None
 
 
 def compute_stats(moves_data: list[dict]) -> dict:
@@ -649,6 +692,7 @@ def analyze_position(request: PositionRequest):
         
         cpl = 0
         category = "Хороший"
+        cat_key = "good"
         icon = "✅"
         comment = ""
         
@@ -659,7 +703,7 @@ def analyze_position(request: PositionRequest):
             cp_before = score_to_cp(info_before["score"], side_moved)
             
             cpl = max(0, cp_before - cp_after)
-            category, icon = categorize_move(cpl)
+            cat_key, category, icon = categorize_move(cpl)
             
             # Зевок (> 200 сантипешек) — достаём ход-опровержение из PV Stockfish
             if cpl > 200:
@@ -676,8 +720,13 @@ def analyze_position(request: PositionRequest):
                 
             # Проверка на бриллиант
             pv_after = info_after.get("pv", [])
-            is_sacrifice = check_is_sacrifice(prev_board, board, board.peek(), pv_after, side_moved)
+            played_move = infer_move_between(prev_board, board)
+            is_sacrifice = (
+                played_move is not None
+                and check_is_sacrifice(prev_board, board, played_move, pv_after, side_moved)
+            )
             if cpl <= 20 and is_sacrifice:
+                cat_key = "brilliant"
                 category = "Блестящий"
                 icon = "!!"
 
@@ -691,6 +740,7 @@ def analyze_position(request: PositionRequest):
             "eval": eval_white,
             "score_display": score_display,
             "category": category,
+            "cat_key": cat_key,
             "icon": icon,
             "comment": comment
         }
