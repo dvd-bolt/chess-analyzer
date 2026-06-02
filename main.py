@@ -516,6 +516,12 @@ def index():
     return FileResponse(BASE_DIR / "index.html", media_type="text/html")
 
 
+@app.get("/historic_games.json", response_class=FileResponse)
+def historic_games():
+    """Отдаёт локальную базу исторических партий для режима Guess The Move."""
+    return FileResponse(BASE_DIR / "historic_games.json", media_type="application/json")
+
+
 @app.get("/get_latest_game/{username}")
 def get_latest_game(username: str):
     """
