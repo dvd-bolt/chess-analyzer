@@ -1027,7 +1027,10 @@
             <div id="geminiComment" style="color:#d0d0dc; line-height:1.4;">—</div>
           </div>
 
-          <button id="evalIdeaBtn" style="display:none; margin-top: 6px; width: 100%; padding: 8px; border: 1px dashed #6ee7b7; border-radius: 6px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.8rem;">💡 Оценить мою идею</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 6px;">
+            <button id="evalIdeaBtn" style="display:none; flex:1; padding: 8px; border: 1px dashed #6ee7b7; border-radius: 6px; background: rgba(110,231,183,0.1); color: #6ee7b7; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.8rem; margin-right: 8px;">💡 Оценить мою идею</button>
+            <button id="backToReportBtn" onclick="document.getElementById('reportCard').style.display='flex'; document.getElementById('infoCard').style.display='none';" style="padding: 8px 12px; border: 1px solid #3b82f6; border-radius: 6px; background: rgba(59,130,246,.15); color: #60a5fa; font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s; white-space:nowrap;">↩ К общему обзору</button>
+          </div>
           
           <div id="moveCounter" style="font-size:0.7rem; color:#52526a; text-align:right;">— / —</div>
         </div>
@@ -1428,6 +1431,12 @@
       buildMoveChips();
       buildChart();
       updateInfoPanel();
+      
+      // Setup State 2 (Info Panel)
+      if (document.getElementById('movesList').style.display !== 'none') {
+          document.getElementById('reportCard').style.display = 'none';
+          document.getElementById('infoCard').style.display = 'flex';
+      }
 
       // Fire-and-forget async server call
       analyzeLastVariationMove(fen, prevFen, san);
@@ -2038,53 +2047,57 @@
       return CAT_DEFS.find(c => c.key === key) || { icon: '', css: '' };
     }
 
-    function buildMoveChips() {
-      const container = document.getElementById('movesList');
-      container.innerHTML = '';
-      const limit = inVariation ? branchPoint : movesData.length - 1;
-      for (let i = 0; i <= limit; i++) {
-        const m = movesData[i];
+    function createMoveChip(i, m, isVar) {
         const chip = document.createElement('span');
-        chip.className = 'move-chip';
+        chip.className = 'move-chip' + (isVar ? ' variation-chip' : '');
         chip.dataset.index = i;
-        const moveNum = Math.floor(i / 2) + 1;
-        const prefix = m.color === 'white' ? `${moveNum}. ` : (i === 0 ? `${moveNum}... ` : '');
-        
-        const cat = getCatDef(m.cat_key);
+        const cat = getCatDef(m.cat_key || (isVar ? 'good' : ''));
         let badgeHtml = '';
         if (cat.icon) {
           badgeHtml = `<span class="chip-badge ${cat.css}">${cat.icon}</span>`;
         }
+        chip.innerHTML = `${badgeHtml}${m.san}`;
+        chip.addEventListener('click', () => goToIndex(i, isVar));
+        return chip;
+    }
 
-        chip.innerHTML = `${badgeHtml}${prefix}${m.san}`;
-        chip.addEventListener('click', () => goToIndex(i, false));
-        container.appendChild(chip);
-      }
-
-      if (inVariation && variationMoves.length > 0) {
-        const div = document.createElement('div');
-        div.style.width = '100%'; div.style.height = '4px'; div.style.background = 'transparent';
-        container.appendChild(div);
+    function buildMoveChips() {
+      const container = document.getElementById('movesList');
+      container.innerHTML = '';
+      
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = '30px 1fr 1fr';
+      grid.style.gap = '4px';
+      grid.style.width = '100%';
+      grid.style.alignItems = 'center';
+      
+      const activeMoves = getActiveMovesList();
+      
+      for (let i = 0; i < activeMoves.length; i += 2) {
+        const numEl = document.createElement('div');
+        numEl.style.color = '#52526a';
+        numEl.style.fontSize = '0.75rem';
+        numEl.style.textAlign = 'right';
+        numEl.style.paddingRight = '4px';
+        numEl.textContent = (Math.floor(i / 2) + 1) + '.';
+        grid.appendChild(numEl);
         
-        for (let i = 0; i < variationMoves.length; i++) {
-          const m = variationMoves[i];
-          const chip = document.createElement('span');
-          chip.className = 'move-chip variation-chip';
-          const actualIndex = branchPoint + 1 + i;
-          const moveNum = Math.floor(actualIndex / 2) + 1;
-          const prefix = m.color === 'white' ? `${moveNum}. ` : (i === 0 ? `${moveNum}... ` : '');
-          
-          const cat = getCatDef(m.cat_key || 'good');
-          let badgeHtml = '';
-          if (cat.icon) {
-            badgeHtml = `<span class="chip-badge ${cat.css}">${cat.icon}</span>`;
-          }
-
-          chip.innerHTML = `${badgeHtml}${prefix}${m.san}`;
-          chip.addEventListener('click', () => goToIndex(actualIndex, true));
-          container.appendChild(chip);
+        if (i < activeMoves.length) {
+          const isVar = inVariation && i > branchPoint;
+          grid.appendChild(createMoveChip(i, activeMoves[i], isVar));
+        } else {
+          grid.appendChild(document.createElement('div'));
+        }
+        
+        if (i + 1 < activeMoves.length) {
+          const isVar = inVariation && (i + 1) > branchPoint;
+          grid.appendChild(createMoveChip(i + 1, activeMoves[i + 1], isVar));
+        } else {
+          grid.appendChild(document.createElement('div'));
         }
       }
+      container.appendChild(grid);
     }
 
     // ==================================================================
@@ -2317,7 +2330,12 @@
         goToIndex(0);
         
         buildMoveChips();
-        updateInfoPanel();
+        // Go back to move 0 internally but don't force infoCard yet
+        goToIndex(0, false, true); 
+        
+        // Setup State 1 (Report)
+        document.getElementById('reportCard').style.display = 'flex';
+        document.getElementById('infoCard').style.display = 'none';
 
         // Render Game Report
         if (data.stats) renderReport(data.stats, data.elo_verdict, data.coach_summary);
