@@ -197,6 +197,295 @@
       font-size: .8rem; font-weight: 600; text-transform: uppercase;
       letter-spacing: .8px; color: #737388;
     }
+    .profile-stats {
+      display: none;
+      margin-top: 8px;
+    }
+    .profile-card {
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      background: #101018;
+      padding: 12px;
+      color: #e2e2e8;
+    }
+    .profile-card.loading, .profile-card.error {
+      color: #a0a0b4;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+    .profile-card.error {
+      border-color: rgba(248, 113, 113, .45);
+      color: #fca5a5;
+    }
+    .profile-head {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+    .profile-avatar-wrap, .profile-avatar, .profile-avatar-fallback {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .profile-avatar-wrap {
+      position: relative;
+    }
+    .profile-avatar, .profile-avatar-fallback {
+      border: 2px solid rgba(255, 255, 255, .12);
+      background: #1e1e2a;
+    }
+    .profile-avatar {
+      object-fit: cover;
+      display: block;
+    }
+    .profile-avatar-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #86efac;
+      font-weight: 900;
+      font-size: .95rem;
+      text-transform: uppercase;
+    }
+    .profile-avatar-fallback.is-hidden {
+      display: none;
+    }
+    .profile-title {
+      min-width: 0;
+    }
+    .profile-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .profile-name {
+      color: #fff;
+      font-size: .98rem;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .profile-source {
+      border-radius: 5px;
+      padding: 2px 6px;
+      background: rgba(110, 231, 183, .11);
+      color: #86efac;
+      font-size: .62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+    .profile-subtitle {
+      margin-top: 3px;
+      color: #a0a0b4;
+      font-size: .75rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .profile-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 11px;
+    }
+    .profile-metric {
+      min-width: 0;
+      border-radius: 7px;
+      background: #16161f;
+      border: 1px solid rgba(255, 255, 255, .05);
+      padding: 8px;
+    }
+    .profile-metric span {
+      display: block;
+      color: #737388;
+      font-size: .62rem;
+      font-weight: 800;
+      letter-spacing: .45px;
+      text-transform: uppercase;
+    }
+    .profile-metric strong {
+      display: block;
+      margin-top: 3px;
+      color: #fff;
+      font-size: .88rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .recent-games-panel {
+      display: none;
+      margin-top: 8px;
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      background: #101018;
+      overflow: hidden;
+    }
+    .recent-games-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px;
+      border-bottom: 1px solid #242434;
+    }
+    .recent-games-title {
+      color: #e2e2e8;
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .55px;
+      text-transform: uppercase;
+    }
+    .recent-games-hint {
+      color: #737388;
+      font-size: .68rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .recent-games-list {
+      display: flex;
+      flex-direction: column;
+      max-height: 290px;
+      overflow-y: auto;
+    }
+    .recent-games-list::-webkit-scrollbar { width: 4px; }
+    .recent-games-list::-webkit-scrollbar-track { background: transparent; }
+    .recent-games-list::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
+    .recent-game-btn {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: center;
+      width: 100%;
+      min-height: 48px;
+      padding: 9px 11px;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, .04);
+      background: transparent;
+      color: #d0d0dc;
+      font-family: 'Inter', system-ui, sans-serif;
+      text-align: left;
+      cursor: pointer;
+    }
+    .recent-game-btn:hover {
+      background: rgba(255, 255, 255, .045);
+    }
+    .recent-game-btn.selected {
+      background: rgba(34, 197, 94, .1);
+      box-shadow: inset 3px 0 0 #22c55e;
+    }
+    .recent-game-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .76rem;
+      font-weight: 900;
+    }
+    .recent-game-mark.win {
+      background: rgba(34, 197, 94, .15);
+      color: #86efac;
+    }
+    .recent-game-mark.loss {
+      background: rgba(248, 113, 113, .16);
+      color: #fca5a5;
+    }
+    .recent-game-mark.draw {
+      background: rgba(148, 163, 184, .14);
+      color: #cbd5e1;
+    }
+    .recent-game-main {
+      min-width: 0;
+    }
+    .recent-game-opponent {
+      display: block;
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recent-game-meta {
+      display: block;
+      margin-top: 3px;
+      color: #8d8da4;
+      font-size: .7rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recent-game-rating {
+      color: #a0a0b4;
+      font-size: .72rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .recent-games-empty {
+      padding: 11px;
+      color: #a0a0b4;
+      font-size: .78rem;
+      line-height: 1.4;
+    }
+    .recent-games-empty.error {
+      color: #fca5a5;
+    }
+    .profile-form-label {
+      margin-top: 12px;
+      color: #737388;
+      font-size: .64rem;
+      font-weight: 800;
+      letter-spacing: .55px;
+      text-transform: uppercase;
+    }
+    .profile-form-row {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .profile-form-mark {
+      height: 24px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .74rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid transparent;
+    }
+    .profile-form-mark.win {
+      background: rgba(34, 197, 94, .14);
+      border-color: rgba(34, 197, 94, .3);
+      color: #86efac;
+    }
+    .profile-form-mark.loss {
+      background: rgba(248, 113, 113, .14);
+      border-color: rgba(248, 113, 113, .28);
+      color: #fca5a5;
+    }
+    .profile-form-mark.draw {
+      background: rgba(148, 163, 184, .12);
+      border-color: rgba(148, 163, 184, .24);
+      color: #cbd5e1;
+    }
+    .profile-note {
+      margin-top: 8px;
+      color: #a0a0b4;
+      font-size: .72rem;
+      line-height: 1.35;
+    }
     #pgnInput {
       width: 100%; height: 120px; padding: 12px 14px;
       border: 1px solid #2a2a3a; border-radius: 10px;
@@ -879,7 +1168,8 @@
               <button class="filter-btn active" id="loadChesscomBtn" title="Загрузить партию" style="background: linear-gradient(135deg, #059669, #047857); color:#fff;">♟ PGN</button>
             </div>
           </div>
-          <div id="profileStats" style="display:none; font-size:0.8rem; color:#6ee7b7; margin-top:4px; display:flex; align-items:center; gap:8px;"></div>
+          <div id="profileStats" class="profile-stats" aria-live="polite"></div>
+          <div id="recentGamesPicker" class="recent-games-panel" aria-live="polite"></div>
         </div>
 
         <div id="pgnInputSection">
@@ -2144,6 +2434,397 @@
     // ==================================================================
     // Load Profile Data
     // ==================================================================
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[char]));
+    }
+
+    function compactNumber(value) {
+      const number = Number(value || 0);
+      if (!Number.isFinite(number) || number <= 0) return '—';
+      return new Intl.NumberFormat('ru-RU', {
+        notation: number >= 10000 ? 'compact' : 'standard',
+        maximumFractionDigits: 1,
+      }).format(number);
+    }
+
+    function formatProfileDate(value) {
+      if (!value) return '—';
+      const timestamp = Number(value);
+      const ms = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+      return new Intl.DateTimeFormat('ru-RU', { month: 'short', year: 'numeric' }).format(new Date(ms));
+    }
+
+    function calcWinrate(wins, total) {
+      return total > 0 ? Math.round((wins / total) * 100) : 0;
+    }
+
+    function showProfileMessage(statsDiv, message, type = 'loading') {
+      statsDiv.innerHTML = `<div class="profile-card ${type}">${escapeHtml(message)}</div>`;
+      statsDiv.style.display = 'block';
+    }
+
+    function getInitials(username) {
+      const clean = String(username || '?').replace(/[^a-z0-9]/gi, '').slice(0, 2);
+      return clean || '?';
+    }
+
+    function getChesscomCoreStats(data) {
+      const modes = [
+        ['chess_rapid', 'Rapid'],
+        ['chess_blitz', 'Blitz'],
+        ['chess_bullet', 'Bullet'],
+      ];
+      const ratings = modes
+        .map(([key, label]) => ({ label, rating: data?.[key]?.last?.rating || 0 }))
+        .filter((mode) => mode.rating > 0)
+        .sort((a, b) => b.rating - a.rating);
+
+      const allModes = [...modes, ['chess_daily', 'Daily']];
+      const totals = allModes.reduce((acc, [key]) => {
+        const record = data?.[key]?.record || {};
+        acc.wins += record.win || 0;
+        acc.losses += record.loss || 0;
+        acc.draws += record.draw || 0;
+        return acc;
+      }, { wins: 0, losses: 0, draws: 0 });
+      totals.total = totals.wins + totals.losses + totals.draws;
+
+      return {
+        rating: ratings[0]?.rating || data?.chess_daily?.last?.rating || 0,
+        ratingLabel: ratings[0]?.label || 'Rating',
+        rapidRating: data?.chess_rapid?.last?.rating || 0,
+        blitzRating: data?.chess_blitz?.last?.rating || 0,
+        ...totals,
+        winrate: calcWinrate(totals.wins, totals.total),
+      };
+    }
+
+    function getChesscomGameResult(game, username) {
+      const lower = username.toLowerCase();
+      const isWhite = game.white?.username?.toLowerCase() === lower;
+      const isBlack = game.black?.username?.toLowerCase() === lower;
+      if (!isWhite && !isBlack) return null;
+
+      const side = isWhite ? game.white : game.black;
+      const opponent = isWhite ? game.black?.username : game.white?.username;
+      const result = side?.result || '';
+      const drawResults = new Set(['agreed', 'repetition', 'stalemate', 'insufficient', '50move', 'timevsinsufficient']);
+      const mark = result === 'win' ? 'W' : (drawResults.has(result) ? 'D' : 'L');
+      return {
+        mark,
+        opponent: opponent || 'opponent',
+        timeClass: game.time_class || '',
+      };
+    }
+
+    function getChesscomGameDetails(game, username) {
+      const lower = username.toLowerCase();
+      const isWhite = game.white?.username?.toLowerCase() === lower;
+      const isBlack = game.black?.username?.toLowerCase() === lower;
+      if (!isWhite && !isBlack) return null;
+
+      const player = isWhite ? game.white : game.black;
+      const opponent = isWhite ? game.black : game.white;
+      const result = getChesscomGameResult(game, username);
+      if (!result) return null;
+
+      return {
+        ...result,
+        color: isWhite ? 'white' : 'black',
+        playerRating: player?.rating || 0,
+        opponentRating: opponent?.rating || 0,
+        endTime: game.end_time || 0,
+        pgn: game.pgn || '',
+        url: game.url || '',
+        rated: Boolean(game.rated),
+      };
+    }
+
+    async function fetchChesscomRecentGames(username, max = 10) {
+      const archivesResp = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/archives`);
+      if (!archivesResp.ok) return [];
+      const archives = (await archivesResp.json()).archives || [];
+      const recent = [];
+
+      for (const archiveUrl of archives.slice(-4).reverse()) {
+        if (recent.length >= max) break;
+        const gamesResp = await fetch(archiveUrl);
+        if (!gamesResp.ok) continue;
+        const games = (await gamesResp.json()).games || [];
+        for (const game of games.slice().reverse()) {
+          const result = getChesscomGameDetails(game, username);
+          if (result && result.pgn) recent.push(result);
+          if (recent.length >= max) break;
+        }
+      }
+
+      return recent;
+    }
+
+    async function fetchChesscomRecentResults(username, max = 10) {
+      const games = await fetchChesscomRecentGames(username, max);
+      return games.map(({ mark, opponent, timeClass }) => ({ mark, opponent, timeClass }));
+    }
+
+    async function loadChesscomProfile(username) {
+      const [statsResp, profileResp] = await Promise.all([
+        fetch(`https://api.chess.com/pub/player/${encodeURIComponent(username)}/stats`),
+        fetch(`https://api.chess.com/pub/player/${encodeURIComponent(username)}`),
+      ]);
+      if (!statsResp.ok && !profileResp.ok) throw new Error('Chess.com профиль не найден.');
+
+      const statsData = statsResp.ok ? await statsResp.json() : {};
+      const profileData = profileResp.ok ? await profileResp.json() : {};
+      const core = getChesscomCoreStats(statsData);
+      const recent = await fetchChesscomRecentResults(username).catch(() => []);
+
+      return {
+        source: 'Chess.com',
+        username: profileData.username || username,
+        url: profileData.url || `https://www.chess.com/member/${encodeURIComponent(username)}`,
+        avatar: profileData.avatar || '',
+        joined: profileData.joined,
+        lastOnline: profileData.last_online,
+        extra: profileData.league ? `Лига ${profileData.league}` : (profileData.status || ''),
+        recent,
+        ...core,
+      };
+    }
+
+    function getLichessCoreStats(data) {
+      const modes = [
+        ['rapid', 'Rapid'],
+        ['blitz', 'Blitz'],
+        ['bullet', 'Bullet'],
+      ];
+      const ratings = modes
+        .map(([key, label]) => ({ label, rating: data?.perfs?.[key]?.rating || 0 }))
+        .filter((mode) => mode.rating > 0)
+        .sort((a, b) => b.rating - a.rating);
+      const count = data?.count || {};
+      const total = count.all || ((count.win || 0) + (count.loss || 0) + (count.draw || 0));
+
+      return {
+        rating: ratings[0]?.rating || 0,
+        ratingLabel: ratings[0]?.label || 'Rating',
+        rapidRating: data?.perfs?.rapid?.rating || 0,
+        blitzRating: data?.perfs?.blitz?.rating || 0,
+        wins: count.win || 0,
+        losses: count.loss || 0,
+        draws: count.draw || 0,
+        total,
+        winrate: calcWinrate(count.win || 0, total),
+      };
+    }
+
+    function getLichessGameResult(game, username) {
+      const lower = username.toLowerCase();
+      const whiteName = game.players?.white?.user?.name || game.players?.white?.userId || '';
+      const blackName = game.players?.black?.user?.name || game.players?.black?.userId || '';
+      const color = whiteName.toLowerCase() === lower ? 'white' : (blackName.toLowerCase() === lower ? 'black' : null);
+      if (!color) return null;
+      const opponent = color === 'white' ? blackName : whiteName;
+      const mark = !game.winner ? 'D' : (game.winner === color ? 'W' : 'L');
+      return {
+        mark,
+        opponent: opponent || 'opponent',
+        timeClass: game.perf || '',
+      };
+    }
+
+    async function fetchLichessRecentResults(username, max = 10) {
+      const url = `https://lichess.org/api/games/user/${encodeURIComponent(username)}?max=${max}&moves=false&clocks=false&evals=false&opening=false`;
+      const resp = await fetch(url, { headers: { Accept: 'application/x-ndjson' } });
+      if (!resp.ok) return [];
+      const text = await resp.text();
+      return text
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line))
+        .map((game) => getLichessGameResult(game, username))
+        .filter(Boolean)
+        .slice(0, max);
+    }
+
+    async function loadLichessProfile(username) {
+      const resp = await fetch(`https://lichess.org/api/user/${encodeURIComponent(username)}`);
+      if (!resp.ok) throw new Error('Lichess профиль не найден.');
+      const data = await resp.json();
+      const core = getLichessCoreStats(data);
+      const recent = await fetchLichessRecentResults(username).catch(() => []);
+
+      return {
+        source: 'Lichess',
+        username: data.username || username,
+        url: data.url || `https://lichess.org/@/${encodeURIComponent(username)}`,
+        avatar: data.profile?.picture || '',
+        joined: data.createdAt,
+        lastOnline: data.seenAt,
+        extra: data.title ? `Титул ${data.title}` : (data.online ? 'Сейчас онлайн' : ''),
+        recent,
+        ...core,
+      };
+    }
+
+    function renderProfileCard(profile, profiles = []) {
+      const recent = profile.recent || [];
+      const counts = recent.reduce((acc, game) => {
+        if (game.mark === 'W') acc.wins += 1;
+        if (game.mark === 'L') acc.losses += 1;
+        if (game.mark === 'D') acc.draws += 1;
+        return acc;
+      }, { wins: 0, losses: 0, draws: 0 });
+      const formHtml = recent.length
+        ? recent.map((game, index) => {
+            const cls = game.mark === 'W' ? 'win' : (game.mark === 'L' ? 'loss' : 'draw');
+            const title = `${index + 1}. ${game.mark} vs ${game.opponent}${game.timeClass ? ` · ${game.timeClass}` : ''}`;
+            return `<span class="profile-form-mark ${cls}" title="${escapeHtml(title)}">${game.mark}</span>`;
+          }).join('')
+        : '<span class="profile-note" style="grid-column:1/-1;">Последние игры не найдены.</span>';
+      const avatarHtml = profile.avatar
+        ? `<div class="profile-avatar-wrap"><img class="profile-avatar" src="${escapeHtml(profile.avatar)}" alt="" referrerpolicy="no-referrer" /><div class="profile-avatar-fallback is-hidden">${escapeHtml(getInitials(profile.username))}</div></div>`
+        : `<div class="profile-avatar-fallback">${escapeHtml(getInitials(profile.username))}</div>`;
+      const profileLink = profile.url
+        ? `<a class="profile-name" href="${escapeHtml(profile.url)}" target="_blank" rel="noreferrer">${escapeHtml(profile.username)}</a>`
+        : `<span class="profile-name">${escapeHtml(profile.username)}</span>`;
+      const sourceNote = profiles.length > 1
+        ? `Учтены источники: ${profiles.map((item) => item.source).join(', ')}`
+        : '';
+      const recentNote = recent.length
+        ? `Последние ${recent.length}: ${counts.wins}W ${counts.losses}L${counts.draws ? ` ${counts.draws}D` : ''}`
+        : '';
+      const lastOnlineNote = profile.lastOnline ? `Последний онлайн: ${formatProfileDate(profile.lastOnline)}` : '';
+      const note = [sourceNote, recentNote, lastOnlineNote].filter(Boolean).join(' · ');
+      const rapidRating = profile.rapidRating ? `~${profile.rapidRating}` : '—';
+      const blitzRating = profile.blitzRating ? `~${profile.blitzRating}` : '—';
+      const subtitleBits = [
+        `Rapid ${rapidRating}`,
+        `Blitz ${blitzRating}`,
+        profile.extra ? escapeHtml(profile.extra) : '',
+      ].filter(Boolean).join(' · ');
+
+      return `
+        <div class="profile-card">
+          <div class="profile-head">
+            ${avatarHtml}
+            <div class="profile-title">
+              <div class="profile-name-row">
+                ${profileLink}
+                <span class="profile-source">${escapeHtml(profile.source)}</span>
+              </div>
+              <div class="profile-subtitle">
+                ${subtitleBits}
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-metrics">
+            <div class="profile-metric"><span>Rapid</span><strong>${rapidRating}</strong></div>
+            <div class="profile-metric"><span>Blitz</span><strong>${blitzRating}</strong></div>
+            <div class="profile-metric"><span>Винрейт</span><strong>${profile.total ? `${profile.winrate}%` : '—'}</strong></div>
+            <div class="profile-metric"><span>Партий</span><strong>${compactNumber(profile.total)}</strong></div>
+          </div>
+
+          <div class="profile-form-label">Последние партии</div>
+          <div class="profile-form-row">${formHtml}</div>
+          <div class="profile-note">${escapeHtml(note)}</div>
+        </div>
+      `;
+    }
+
+    function wireProfileAvatarFallback(container) {
+      container.querySelectorAll('.profile-avatar').forEach((img) => {
+        const fallback = img.nextElementSibling;
+        const showFallback = () => {
+          img.style.display = 'none';
+          if (fallback) fallback.classList.remove('is-hidden');
+        };
+        if (img.complete && img.naturalWidth === 0) {
+          showFallback();
+        } else {
+          img.addEventListener('error', showFallback, { once: true });
+        }
+      });
+    }
+
+    function formatRecentGameDate(value) {
+      if (!value) return '—';
+      const timestamp = Number(value);
+      const ms = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+      return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(new Date(ms));
+    }
+
+    function showRecentGamesMessage(container, message, type = '') {
+      container.innerHTML = `<div class="recent-games-empty ${type}">${escapeHtml(message)}</div>`;
+      container.style.display = 'block';
+    }
+
+    function renderRecentGamesPicker(container, games, username) {
+      if (!games.length) {
+        showRecentGamesMessage(container, 'Последние партии с PGN не найдены.', 'error');
+        return;
+      }
+
+      const buttons = games.map((game, index) => {
+        const cls = game.mark === 'W' ? 'win' : (game.mark === 'L' ? 'loss' : 'draw');
+        const colorLabel = game.color === 'white' ? 'белыми' : 'черными';
+        const rating = game.playerRating ? `${game.playerRating}` : '—';
+        const opponentRating = game.opponentRating ? `${game.opponentRating}` : '—';
+        const meta = [
+          formatRecentGameDate(game.endTime),
+          game.timeClass || 'game',
+          game.rated ? 'rated' : 'casual',
+          colorLabel,
+        ].filter(Boolean).join(' · ');
+
+        return `
+          <button class="recent-game-btn" type="button" data-game-index="${index}">
+            <span class="recent-game-mark ${cls}">${game.mark}</span>
+            <span class="recent-game-main">
+              <span class="recent-game-opponent">vs ${escapeHtml(game.opponent)}</span>
+              <span class="recent-game-meta">${escapeHtml(meta)}</span>
+            </span>
+            <span class="recent-game-rating">${escapeHtml(rating)} / ${escapeHtml(opponentRating)}</span>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="recent-games-head">
+          <span class="recent-games-title">Последние партии Chess.com</span>
+          <span class="recent-games-hint">${games.length} из 10</span>
+        </div>
+        <div class="recent-games-list">${buttons}</div>
+      `;
+      container.style.display = 'block';
+      wireRecentGamesPicker(container, games, username);
+    }
+
+    function wireRecentGamesPicker(container, games, username) {
+      container.querySelectorAll('.recent-game-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+          const index = Number(button.dataset.gameIndex);
+          const game = games[index];
+          if (!game?.pgn) return;
+
+          document.getElementById('pgnInput').value = game.pgn;
+          container.querySelectorAll('.recent-game-btn').forEach((item) => item.classList.remove('selected'));
+          button.classList.add('selected');
+
+          const status = document.getElementById('status');
+          status.className = 'status success';
+          status.textContent = `✓ Выбрана партия ${username} vs ${game.opponent}`;
+        });
+      });
+    }
+
     document.getElementById('loadProfileBtn').addEventListener('click', async () => {
       const cUser = document.getElementById('usernameInput').value.trim();
       const lUser = document.getElementById('lichessInput').value.trim();
@@ -2151,57 +2832,36 @@
       const btn = document.getElementById('loadProfileBtn');
       
       if (!cUser && !lUser) {
-          statsDiv.textContent = 'Укажите хотя бы один никнейм.';
-          statsDiv.style.display = 'block';
+          showProfileMessage(statsDiv, 'Укажите хотя бы один никнейм.', 'error');
           return;
       }
       
       btn.disabled = true;
       btn.textContent = '⏳...';
-      statsDiv.textContent = 'Загрузка...';
-      statsDiv.style.display = 'block';
+      showProfileMessage(statsDiv, 'Загружаю профиль и последние партии...');
       
       playerRating = null;
       playerAvatar = null;
-      let maxRating = 0;
       
       try {
-          if (cUser) {
-              const resp = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(cUser)}/stats`);
-              if (resp.ok) {
-                  const data = await resp.json();
-                  const r1 = data.chess_blitz?.last?.rating || 0;
-                  const r2 = data.chess_rapid?.last?.rating || 0;
-                  maxRating = Math.max(maxRating, r1, r2);
-              }
-              const profResp = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(cUser)}`);
-              if (profResp.ok) {
-                  const pData = await profResp.json();
-                  if (pData.avatar) playerAvatar = pData.avatar;
-              }
-          }
-          if (lUser) {
-              const resp = await fetch(`https://lichess.org/api/user/${encodeURIComponent(lUser)}`);
-              if (resp.ok) {
-                  const data = await resp.json();
-                  const r1 = data.perfs?.blitz?.rating || 0;
-                  const r2 = data.perfs?.rapid?.rating || 0;
-                  maxRating = Math.max(maxRating, r1, r2);
-              }
-          }
-          
-          if (maxRating > 0) {
-              playerRating = maxRating;
-              let html = `<span>✅ Рейтинг: ~${maxRating} ELO</span>`;
-              if (playerAvatar) {
-                  html += `<img src="${playerAvatar}" style="width:24px;height:24px;border-radius:50%;" />`;
-              }
-              statsDiv.innerHTML = html;
+          const profiles = [];
+          if (cUser) profiles.push(await loadChesscomProfile(cUser));
+          if (lUser) profiles.push(await loadLichessProfile(lUser));
+
+          if (profiles.length) {
+              const profileWithGames = profiles.find((profile) => profile.recent?.length);
+              const displayProfile = profileWithGames || profiles[0];
+              const maxRating = Math.max(...profiles.map((profile) => profile.rating || 0));
+              playerRating = maxRating > 0 ? maxRating : null;
+              playerAvatar = displayProfile.avatar || null;
+              statsDiv.innerHTML = renderProfileCard(displayProfile, profiles);
+              wireProfileAvatarFallback(statsDiv);
+              statsDiv.style.display = 'block';
           } else {
-              statsDiv.textContent = 'Профиль не найден или нет рейтинга.';
+              showProfileMessage(statsDiv, 'Профиль не найден или нет рейтинга.', 'error');
           }
       } catch (e) {
-          statsDiv.textContent = 'Ошибка загрузки профиля.';
+          showProfileMessage(statsDiv, e.message || 'Ошибка загрузки профиля.', 'error');
       } finally {
           btn.disabled = false;
           btn.textContent = '👤 Профиль';
@@ -2210,29 +2870,37 @@
 
     document.getElementById('loadChesscomBtn').addEventListener('click', async () => {
       const username = document.getElementById('usernameInput').value.trim();
-      if (!username) return;
 
       const btn = document.getElementById('loadChesscomBtn');
       const status = document.getElementById('status');
+      const picker = document.getElementById('recentGamesPicker');
+
+      if (!username) {
+        status.className = 'status error';
+        status.textContent = '✗ Укажите никнейм Chess.com.';
+        showRecentGamesMessage(picker, 'Введите ник Chess.com, чтобы выбрать партию.', 'error');
+        return;
+      }
 
       btn.disabled = true;
       btn.textContent = '⏳…';
       status.className = 'status';
-      status.textContent = `Загружаю последнюю партию ${username}…`;
+      status.textContent = `Загружаю последние партии ${username}…`;
+      showRecentGamesMessage(picker, 'Ищу последние партии с PGN...');
 
       try {
-        const resp = await fetch(`/get_latest_game/${encodeURIComponent(username)}`);
-        if (!resp.ok) {
-          const err = await resp.json();
-          throw new Error(err.detail || `HTTP ${resp.status}`);
+        const games = await fetchChesscomRecentGames(username, 10);
+        if (!games.length) {
+          throw new Error(`У игрока '${username}' не найдено последних партий с PGN.`);
         }
-        const data = await resp.json();
-        document.getElementById('pgnInput').value = data.pgn;
+
+        renderRecentGamesPicker(picker, games, username);
         status.className = 'status success';
-        status.textContent = `✓ PGN загружен` + (data.url ? ` · ${data.url}` : '');
+        status.textContent = '✓ Выберите партию из списка ниже';
       } catch (e) {
         status.className = 'status error';
         status.textContent = `✗ ${e.message}`;
+        showRecentGamesMessage(picker, e.message || 'Не удалось загрузить партии.', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = '♟ PGN';

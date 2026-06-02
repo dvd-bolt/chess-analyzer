@@ -1,21 +1,54 @@
-# Python
+# Python caches / bytecode
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
 .venv/
+venv/
+env/
+ENV/
 
-# Local environment
+# Local environment and secrets
 .env
+.env.*
+!.env.example
 
-# macOS
+# OS junk: macOS / Windows
 .DS_Store
-._*
 .AppleDouble
 .LSOverride
+._*
 Icon?
 __MACOSX/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Local chess engines and engine weights
-stockfish/
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local chess engines. Each developer should install Stockfish locally
+# or set STOCKFISH_PATH in their own environment.
+stockfish/*
+!stockfish/.gitkeep
 engines/
 *.nnue

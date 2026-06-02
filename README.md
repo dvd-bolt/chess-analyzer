@@ -39,9 +39,16 @@ cd <имя_папки>
 pip install -r requirements.txt
 ```
 
-3. Убедись, что у тебя установлен движок Stockfish. На Mac удобнее всего:
+3. Убедись, что у тебя установлен движок Stockfish.
+
+На Mac удобнее всего:
 ```bash
 brew install stockfish
+```
+
+На Windows можно скачать Stockfish с официального сайта, положить `stockfish.exe` в локальную папку `stockfish/` или указать путь через переменную окружения:
+```bat
+set STOCKFISH_PATH=C:\path\to\stockfish.exe
 ```
 
 Если Stockfish установлен нестандартно, укажи путь через переменную окружения:
@@ -72,3 +79,12 @@ uvicorn main:app --reload
 ```
 
 Или двойным кликом по файлу `start.command` в Finder.
+
+### Быстрый запуск на Windows
+
+После установки Python 3.10+ можно запустить:
+```bat
+run_windows.bat
+```
+
+Локальные файлы `.venv`, `.env` и `stockfish/` не коммитятся в Git: у каждого разработчика они свои.
