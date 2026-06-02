@@ -1,7 +1,21 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
-.env
-stockfish/
 .venv/
+
+# Local environment
+.env
+
+# macOS
 .DS_Store
+._*
+.AppleDouble
+.LSOverride
+Icon?
+__MACOSX/
+
+# Local chess engines and engine weights
+stockfish/
+engines/
+*.nnue
