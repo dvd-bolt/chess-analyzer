@@ -1431,12 +1431,6 @@
       buildMoveChips();
       buildChart();
       updateInfoPanel();
-      
-      // Setup State 2 (Info Panel)
-      if (document.getElementById('movesList').style.display !== 'none') {
-          document.getElementById('reportCard').style.display = 'none';
-          document.getElementById('infoCard').style.display = 'flex';
-      }
 
       // Fire-and-forget async server call
       analyzeLastVariationMove(fen, prevFen, san);
@@ -1996,6 +1990,12 @@
       updateEvalDisplay();
       updateChartIndicator();
       drawAnalysisEffects();
+
+      // Setup State 2 (Info Panel)
+      if (document.getElementById('movesList').style.display !== 'none') {
+          document.getElementById('reportCard').style.display = 'none';
+          document.getElementById('infoCard').style.display = 'flex';
+      }
     }
 
     // ==================================================================
