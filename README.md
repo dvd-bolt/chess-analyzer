@@ -49,7 +49,13 @@ brew install stockfish
 export STOCKFISH_PATH=/path/to/stockfish
 ```
 
-4. Добавь свой API-ключ Gemini в переменные окружения.
+4. Добавь ключи в `.env`, если хочешь включить внешние сервисы:
+```bash
+GEMINI_API_KEY=твой_ключ_gemini
+LICHESS_TOKEN=твой_токен_lichess
+```
+
+`LICHESS_TOKEN` нужен для живой статистики Lichess Opening Explorer во вкладке дебютов.
 
 5. Запусти сервер:
 ```bash

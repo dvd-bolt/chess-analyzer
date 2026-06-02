@@ -24,7 +24,7 @@ from google import genai
 from google.genai import types
 import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -35,6 +35,7 @@ from pydantic import BaseModel
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+LICHESS_TOKEN = os.getenv("LICHESS_TOKEN", "")
 gemini_client = None
 if GEMINI_API_KEY and GEMINI_API_KEY != "PLACEHOLDER":
     gemini_client = genai.Client(
@@ -106,6 +107,11 @@ PIECE_VALUES = {
 MATE_SCORE = 10_000
 
 CHESSCOM_HEADERS = {
+    "User-Agent": "ChessAnalyzerApp/1.0 (educational project)",
+}
+
+LICHESS_EXPLORER_BASE = "https://explorer.lichess.org"
+LICHESS_HEADERS = {
     "User-Agent": "ChessAnalyzerApp/1.0 (educational project)",
 }
 
@@ -555,6 +561,70 @@ def get_latest_game(username: str):
         raise HTTPException(status_code=404, detail="PGN последней партии пуст")
 
     return {"pgn": pgn_text, "url": last_game.get("url", "")}
+
+
+@app.get("/opening_explorer")
+def opening_explorer(
+    fen: str,
+    source: str = Query("lichess", pattern="^(lichess|masters)$"),
+    speeds: str = "blitz,rapid,classical",
+    ratings: str = "1600,1800,2000,2200,2500",
+    moves: int = Query(8, ge=1, le=20),
+):
+    """Прокси к Lichess Opening Explorer, чтобы не светить токен в браузере."""
+    if not LICHESS_TOKEN:
+        raise HTTPException(
+            status_code=401,
+            detail="Lichess Explorer требует авторизацию. Добавьте LICHESS_TOKEN в .env.",
+        )
+
+    headers = dict(LICHESS_HEADERS)
+    headers["Authorization"] = f"Bearer {LICHESS_TOKEN}"
+
+    params = {
+        "fen": fen,
+        "moves": moves,
+    }
+    if source == "lichess":
+        params.update({
+            "variant": "standard",
+            "speeds": speeds,
+            "ratings": ratings,
+        })
+
+    try:
+        resp = requests.get(
+            f"{LICHESS_EXPLORER_BASE}/{source}",
+            headers=headers,
+            params=params,
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Не удалось подключиться к Lichess Explorer: {exc}",
+        )
+
+    if resp.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail="Lichess Explorer требует авторизацию. Добавьте LICHESS_TOKEN в .env.",
+        )
+    if resp.status_code == 429:
+        raise HTTPException(
+            status_code=429,
+            detail="Lichess Explorer ограничил частоту запросов. Подождите минуту.",
+        )
+
+    try:
+        resp.raise_for_status()
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Ошибка Lichess Explorer: {exc}",
+        )
+
+    return resp.json()
 
 
 @app.post("/analyze")
