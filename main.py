@@ -8,6 +8,7 @@ import io
 import json
 import os
 import shutil
+import sys
 
 import urllib.request
 urllib.request.getproxies = lambda: {}
@@ -75,13 +76,26 @@ def resolve_stockfish_path() -> str:
     if env_path:
         candidates.append(Path(env_path).expanduser())
 
-    candidates.extend([
-        BASE_DIR / "stockfish" / "stockfish.exe",
-        BASE_DIR / "stockfish" / "stockfish",
-        Path("/opt/homebrew/bin/stockfish"),
-        Path("/usr/local/bin/stockfish"),
-        Path("/usr/bin/stockfish"),
-    ])
+    local_engine_dir = BASE_DIR / "stockfish"
+    if os.name == "nt":
+        candidates.extend([
+            local_engine_dir / "stockfish.exe",
+            local_engine_dir / "stockfish",
+        ])
+    elif sys.platform == "darwin":
+        candidates.extend([
+            local_engine_dir / "stockfish",
+            Path("/opt/homebrew/bin/stockfish"),
+            Path("/usr/local/bin/stockfish"),
+            Path("/usr/bin/stockfish"),
+        ])
+    else:
+        candidates.extend([
+            local_engine_dir / "stockfish",
+            local_engine_dir / "stockfish.exe",
+            Path("/usr/local/bin/stockfish"),
+            Path("/usr/bin/stockfish"),
+        ])
 
     for candidate in candidates:
         if candidate.is_file():
@@ -91,7 +105,7 @@ def resolve_stockfish_path() -> str:
     if system_path:
         return system_path
 
-    return str(candidates[0] if candidates else BASE_DIR / "stockfish" / "stockfish.exe")
+    return str(candidates[0] if candidates else local_engine_dir / "stockfish")
 
 
 STOCKFISH_PATH = resolve_stockfish_path()
