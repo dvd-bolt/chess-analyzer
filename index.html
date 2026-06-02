@@ -28,23 +28,43 @@
     /* Header */
     .header {
       width: 100%;
-      padding: 24px 0 12px;
-      text-align: center;
+      padding: 16px 0;
       background: linear-gradient(180deg, #16161d 0%, #0f0f14 100%);
       border-bottom: 1px solid rgba(255,255,255,.06);
     }
+    .header-inner {
+      width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .brand { display: flex; flex-direction: column; gap: 3px; }
     .header h1 {
       font-size: 1.6rem; font-weight: 700;
       background: linear-gradient(135deg, #a78bfa, #6ee7b7);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      letter-spacing: -.5px;
+      letter-spacing: 0;
     }
     .header p { font-size: .85rem; color: #737388; margin-top: 4px; }
+    .app-tabs {
+      display: flex; gap: 4px; padding: 4px; border-radius: 10px;
+      background: #1e1e2a; border: 1px solid rgba(255,255,255,.06);
+    }
+    .app-tab {
+      min-width: 126px; padding: 10px 14px; border: none; border-radius: 7px;
+      background: transparent; color: #a0a0b4; cursor: pointer;
+      font-size: .9rem; font-weight: 700; transition: background .2s, color .2s;
+    }
+    .app-tab:hover { color: #e2e2e8; background: rgba(255,255,255,.04); }
+    .app-tab.active { background: #3a3a50; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+
+    .app-view { display: none; width: 100%; }
+    .app-view.active { display: block; }
 
     /* Layout */
     .container {
       display: flex; gap: 28px; padding: 32px 24px 48px;
       max-width: 1060px; width: 100%; flex-wrap: wrap; justify-content: center;
+      margin: 0 auto;
     }
 
     /* Board column */
@@ -377,7 +397,7 @@
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: .72rem; font-weight: 800; color: #fff;
-      margin: 0 auto; letter-spacing: -.5px;
+      margin: 0 auto; letter-spacing: 0;
     }
     .cat-brilliant  { background: #15bcac !important; box-shadow: 0 0 8px rgba(21, 188, 172, 0.6); color: #fff !important; }
     .cat-great      { background: #5c8bb0; }
@@ -443,17 +463,275 @@
     .btn-view-report {
       background: #81b64c; color: #fff;
     }
+
+    /* ============ Openings ============ */
+    .openings-container {
+      width: 100%; max-width: 1180px; margin: 0 auto;
+      padding: 28px 24px 48px;
+      display: grid; grid-template-columns: minmax(320px, 430px) minmax(360px, 1fr);
+      gap: 20px; align-items: start;
+    }
+    .openings-sidebar, .opening-guide {
+      background: #16161f; border: 1px solid #2a2a3a; border-radius: 12px;
+    }
+    .openings-sidebar {
+      display: flex; flex-direction: column; min-height: 680px; overflow: hidden;
+    }
+    .opening-filters {
+      display: flex; flex-direction: column; gap: 12px;
+      padding: 16px; border-bottom: 1px solid #2a2a3a;
+    }
+    .opening-search {
+      width: 100%; height: 42px; padding: 0 12px; border-radius: 8px;
+      border: 1px solid #2a2a3a; background: #0f0f14; color: #e2e2e8;
+      font-family: 'Inter', system-ui, sans-serif; font-size: .9rem;
+    }
+    .opening-search:focus { outline: none; border-color: #6ee7b7; }
+    .filter-label {
+      font-size: .68rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #737388; font-weight: 700; margin-bottom: 7px;
+    }
+    .segmented {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 4px; padding: 4px; border-radius: 9px; background: #1e1e2a;
+    }
+    .segmented.two { grid-template-columns: repeat(2, 1fr); }
+    .segmented.four { grid-template-columns: repeat(4, 1fr); }
+    .filter-btn {
+      min-height: 34px; padding: 7px 8px; border: none; border-radius: 7px;
+      background: transparent; color: #a0a0b4; cursor: pointer;
+      font-size: .78rem; font-weight: 700; transition: background .2s, color .2s;
+    }
+    .filter-btn:hover { color: #e2e2e8; }
+    .filter-btn.active { background: #3a3a50; color: #fff; }
+    .opening-select {
+      width: 100%; height: 38px; padding: 0 10px; border-radius: 8px;
+      border: 1px solid #2a2a3a; background: #0f0f14; color: #e2e2e8;
+      font-family: 'Inter', system-ui, sans-serif; font-size: .84rem;
+    }
+    .opening-select:focus { outline: none; border-color: #a78bfa; }
+    .openings-count {
+      font-size: .75rem; color: #737388; font-variant-numeric: tabular-nums;
+    }
+    .openings-list {
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 12px; overflow-y: auto; max-height: 560px;
+    }
+    .openings-list::-webkit-scrollbar, .opening-guide::-webkit-scrollbar { width: 4px; }
+    .openings-list::-webkit-scrollbar-track, .opening-guide::-webkit-scrollbar-track { background: transparent; }
+    .openings-list::-webkit-scrollbar-thumb, .opening-guide::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
+    .opening-card {
+      width: 100%; text-align: left; border: 1px solid transparent; border-radius: 8px;
+      background: #1e1e2a; color: #e2e2e8; padding: 12px;
+      cursor: pointer; transition: border-color .2s, background .2s, transform .1s;
+    }
+    .opening-card:hover { background: #242436; border-color: #3a3a50; }
+    .opening-card:active { transform: scale(.99); }
+    .opening-card.active { border-color: #6ee7b7; background: rgba(110,231,183,.08); }
+    .opening-card-title {
+      display: flex; justify-content: space-between; gap: 10px; align-items: start;
+      font-size: .95rem; font-weight: 800; line-height: 1.25;
+    }
+    .opening-card-line {
+      margin-top: 6px; color: #a0a0b4; font-size: .8rem; line-height: 1.35;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .opening-card-meta {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px;
+    }
+    .meta-pill {
+      display: inline-flex; align-items: center; min-height: 22px; padding: 3px 7px;
+      border-radius: 999px; background: rgba(255,255,255,.06); color: #a0a0b4;
+      font-size: .68rem; font-weight: 700;
+    }
+    .meta-white { color: #f1f5f9; background: rgba(241,245,249,.09); }
+    .meta-black { color: #c4b5fd; background: rgba(196,181,253,.12); }
+    .meta-easy { color: #86efac; background: rgba(134,239,172,.1); }
+    .meta-medium { color: #fbbf24; background: rgba(251,191,36,.1); }
+    .meta-hard { color: #f87171; background: rgba(248,113,113,.1); }
+    .opening-guide {
+      min-height: 680px; max-height: 760px; overflow-y: auto;
+      padding: 22px; display: flex; flex-direction: column; gap: 18px;
+    }
+    .guide-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 18px; border-bottom: 1px solid #2a2a3a; padding-bottom: 18px;
+    }
+    .guide-title { font-size: 1.55rem; line-height: 1.2; font-weight: 800; color: #fff; }
+    .guide-subtitle { margin-top: 8px; color: #a0a0b4; font-size: .92rem; line-height: 1.45; }
+    .guide-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; min-width: 170px; }
+    .guide-line {
+      padding: 14px 16px; border-radius: 8px; background: #0f0f14;
+      border: 1px solid #2a2a3a; color: #f8fafc; font-weight: 700;
+      line-height: 1.5;
+    }
+    .opening-study-grid {
+      display: grid; grid-template-columns: minmax(280px, 360px) minmax(280px, 1fr);
+      gap: 16px; align-items: start;
+    }
+    #openingBoard {
+      width: 360px; max-width: 100%; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,.38);
+    }
+    .opening-board-panel { display: flex; flex-direction: column; gap: 10px; }
+    .opening-nav {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px;
+    }
+    .opening-nav button {
+      min-height: 36px; border: none; border-radius: 8px;
+      background: #1e1e2a; color: #c4c4d4; cursor: pointer;
+      font-size: .95rem; font-weight: 800; transition: background .2s, transform .1s;
+    }
+    .opening-nav button:hover { background: #2d2d40; }
+    .opening-nav button:active { transform: scale(.96); }
+    .opening-move-strip {
+      min-height: 42px; display: flex; flex-wrap: wrap; gap: 5px;
+      padding: 9px; border-radius: 8px; background: #0f0f14;
+      border: 1px solid #2a2a3a;
+    }
+    .opening-move-chip {
+      padding: 4px 8px; border-radius: 6px; border: 1px solid transparent;
+      background: #1e1e2a; color: #a0a0b4; cursor: pointer;
+      font-size: .76rem; font-weight: 700;
+    }
+    .opening-move-chip:hover { color: #e2e2e8; background: #2d2d40; }
+    .opening-move-chip.active { color: #fff; border-color: #6ee7b7; }
+    .lichess-explorer {
+      border: 1px solid #2a2a3a; border-radius: 8px; background: #0f0f14;
+      overflow: hidden;
+    }
+    .explorer-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; padding: 10px 11px; border-bottom: 1px solid #2a2a3a;
+    }
+    .explorer-title {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #737388; font-weight: 800;
+    }
+    .explorer-refresh {
+      width: 30px; height: 30px; border-radius: 7px; border: none;
+      background: #1e1e2a; color: #c4c4d4; cursor: pointer;
+      font-size: .9rem; font-weight: 800;
+    }
+    .explorer-status {
+      padding: 10px 11px; color: #737388; font-size: .8rem; line-height: 1.4;
+    }
+    .explorer-status.error { color: #f87171; }
+    .explorer-moves { display: flex; flex-direction: column; }
+    .explorer-move {
+      display: grid; grid-template-columns: 46px 1fr 72px; gap: 9px; align-items: center;
+      width: 100%; text-align: left; border: none; border-top: 1px solid #202032;
+      background: transparent; color: #d0d0dc; padding: 9px 11px; cursor: pointer;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .explorer-move:hover { background: rgba(255,255,255,.04); }
+    .explorer-san { color: #fff; font-size: .9rem; font-weight: 800; }
+    .explorer-bar {
+      height: 7px; border-radius: 999px; overflow: hidden; display: flex;
+      background: #2a2a3a;
+    }
+    .explorer-bar span { display: block; height: 100%; }
+    .explorer-white { background: #e5e7eb; }
+    .explorer-draw { background: #737388; }
+    .explorer-black { background: #7c3aed; }
+    .explorer-total {
+      color: #a0a0b4; font-size: .72rem; text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .opening-line-list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .opening-line-card {
+      text-align: left; border: 1px solid #2a2a3a; border-radius: 8px;
+      background: #1e1e2a; color: #e2e2e8; padding: 11px;
+      cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .opening-line-card:hover { background: #242436; }
+    .opening-line-card.active { border-color: #a78bfa; background: rgba(167,139,250,.1); }
+    .opening-line-title {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      font-size: .86rem; font-weight: 800; margin-bottom: 6px;
+    }
+    .line-kind {
+      padding: 3px 7px; border-radius: 999px; font-size: .62rem;
+      text-transform: uppercase; letter-spacing: .6px; background: rgba(255,255,255,.07);
+      color: #a0a0b4;
+    }
+    .line-kind-trap { color: #f87171; background: rgba(248,113,113,.12); }
+    .line-kind-attack { color: #fbbf24; background: rgba(251,191,36,.12); }
+    .line-kind-main { color: #6ee7b7; background: rgba(110,231,183,.12); }
+    .opening-line-moves {
+      color: #a0a0b4; font-size: .78rem; line-height: 1.4;
+    }
+    .guide-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+    }
+    .guide-section {
+      border-top: 1px solid #2a2a3a; padding-top: 14px;
+    }
+    .guide-section h3 {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .9px;
+      color: #737388; margin-bottom: 10px;
+    }
+    .guide-section p, .guide-section li {
+      color: #d0d0dc; font-size: .9rem; line-height: 1.55;
+    }
+    .guide-section ul {
+      display: flex; flex-direction: column; gap: 8px; list-style: none;
+    }
+    .guide-section li::before {
+      content: ''; display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: #6ee7b7; margin-right: 8px;
+      transform: translateY(-1px);
+    }
+    .empty-openings {
+      color: #737388; font-size: .88rem; line-height: 1.45;
+      padding: 18px 12px;
+    }
+
+    @media (max-width: 900px) {
+      .header-inner { justify-content: center; text-align: center; }
+      .brand { align-items: center; }
+      .app-tabs { width: 100%; max-width: 420px; }
+      .app-tab { flex: 1; min-width: 0; }
+      .openings-container { grid-template-columns: 1fr; padding-top: 20px; }
+      .openings-sidebar { min-height: auto; }
+      .openings-list { max-height: 420px; }
+      .opening-guide { min-height: auto; max-height: none; }
+    }
+
+    @media (max-width: 560px) {
+      .container { padding: 20px 14px 36px; }
+      #board, .chart-wrap { width: min(100vw - 28px, 400px); }
+      .side-panel { min-width: 0; width: 100%; height: auto; }
+      .openings-container { padding: 18px 14px 36px; }
+      .segmented.four { grid-template-columns: repeat(2, 1fr); }
+      .guide-top { flex-direction: column; }
+      .guide-tags { justify-content: flex-start; min-width: 0; }
+      .opening-study-grid { grid-template-columns: 1fr; }
+      #openingBoard { width: min(100vw - 58px, 360px); }
+      .guide-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
   <!-- Header -->
-  <div class="header">
-    <h1>♔ Chess Analyzer</h1>
-    <p>Анализ партий с ИИ-тренером · Stockfish + Gemini</p>
-  </div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>♔ Chess Analyzer</h1>
+        <p>Анализ партий с ИИ-тренером · Stockfish + Gemini</p>
+      </div>
+      <nav class="app-tabs" aria-label="Основные разделы">
+        <button class="app-tab active" data-view="analyze">Анализ</button>
+        <button class="app-tab" data-view="openings">Дебюты</button>
+      </nav>
+    </div>
+  </header>
 
   <!-- Main -->
+  <main class="app-view active" id="viewAnalyze">
   <div class="container">
 
     <!-- Left: Board + Chart -->
@@ -620,6 +898,111 @@
       </div>
     </div>
   </div>
+  </main>
+
+  <main class="app-view" id="viewOpenings">
+    <div class="openings-container">
+      <aside class="openings-sidebar">
+        <div class="opening-filters">
+          <input class="opening-search" id="openingsSearch" type="search" placeholder="Поиск дебюта, линии, идеи" />
+
+          <div>
+            <div class="filter-label">Цвет</div>
+            <div class="segmented">
+              <button class="filter-btn active" data-opening-filter="color" data-value="all">Все</button>
+              <button class="filter-btn" data-opening-filter="color" data-value="white">Белые</button>
+              <button class="filter-btn" data-opening-filter="color" data-value="black">Черные</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="filter-label">Сложность</div>
+            <div class="segmented four">
+              <button class="filter-btn active" data-opening-filter="difficulty" data-value="all">Все</button>
+              <button class="filter-btn" data-opening-filter="difficulty" data-value="easy">Легко</button>
+              <button class="filter-btn" data-opening-filter="difficulty" data-value="medium">Средне</button>
+              <button class="filter-btn" data-opening-filter="difficulty" data-value="hard">Сложно</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="filter-label" for="ratingFilter">Рейтинг</label>
+            <select class="opening-select" id="ratingFilter">
+              <option value="all">Любой рейтинг</option>
+              <option value="600">до 800</option>
+              <option value="1000">800-1200</option>
+              <option value="1400">1200-1600</option>
+              <option value="1800">1600-2000</option>
+              <option value="2200">2000+</option>
+            </select>
+          </div>
+
+          <div class="openings-count" id="openingsCount">0 дебютов</div>
+        </div>
+
+        <div class="openings-list" id="openingsList"></div>
+      </aside>
+
+      <article class="opening-guide" id="openingGuide">
+        <div class="guide-top">
+          <div>
+            <h2 class="guide-title" id="guideTitle">—</h2>
+            <p class="guide-subtitle" id="guideSubtitle">—</p>
+          </div>
+          <div class="guide-tags" id="guideTags"></div>
+        </div>
+
+        <div class="guide-line" id="guideLine">—</div>
+
+        <div class="opening-study-grid">
+          <div class="opening-board-panel">
+            <div id="openingBoard"></div>
+            <div class="opening-nav">
+              <button id="openingStartBtn" title="В начало">⏮</button>
+              <button id="openingPrevBtn" title="Назад">◀</button>
+              <button id="openingNextBtn" title="Вперед">▶</button>
+              <button id="openingEndBtn" title="В конец">⏭</button>
+            </div>
+            <div class="opening-move-strip" id="openingMoveStrip"></div>
+            <div class="lichess-explorer">
+              <div class="explorer-head">
+                <span class="explorer-title">Lichess Explorer</span>
+                <button class="explorer-refresh" id="openingExplorerRefresh" title="Обновить">↻</button>
+              </div>
+              <div class="explorer-status" id="openingExplorerStatus">—</div>
+              <div class="explorer-moves" id="openingExplorerMoves"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="filter-label">Вариации и ловушки</div>
+            <div class="opening-line-list" id="openingLines"></div>
+          </div>
+        </div>
+
+        <div class="guide-section">
+          <h3>Идея</h3>
+          <p id="guideIdea">—</p>
+        </div>
+
+        <div class="guide-grid">
+          <div class="guide-section">
+            <h3>План</h3>
+            <ul id="guidePlan"></ul>
+          </div>
+          <div class="guide-section">
+            <h3>Риски</h3>
+            <ul id="guideRisks"></ul>
+          </div>
+        </div>
+
+        <div class="guide-section">
+          <h3>Ключевые позиции</h3>
+          <p id="guidePositions">—</p>
+        </div>
+      </article>
+    </div>
+  </main>
 
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -648,6 +1031,40 @@
     let pgnClocks = []; // Время на ход в секундах
     let impulsiveMoves = 0;
     let timeTroubleMistakes = 0;
+
+    let openingBoard = null;
+    let openingGame = new Chess();
+    let selectedOpeningId = null;
+    let selectedOpeningLine = 0;
+    let openingMoveIndex = -1;
+    let openingExplorerTimer = null;
+    let openingExplorerRequestId = 0;
+    const openingFilters = {
+      color: 'all',
+      difficulty: 'all',
+      rating: 'all',
+      search: '',
+    };
+
+    function setAppView(view) {
+      document.querySelectorAll('.app-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+      document.getElementById('viewAnalyze').classList.toggle('active', view === 'analyze');
+      document.getElementById('viewOpenings').classList.toggle('active', view === 'openings');
+
+      if (view === 'openings') {
+        ensureOpeningBoard();
+        setOpeningLine(selectedOpeningLine, false);
+        setTimeout(() => openingBoard && openingBoard.resize(), 0);
+      } else {
+        setTimeout(() => board && board.resize && board.resize(), 0);
+      }
+    }
+
+    document.querySelectorAll('.app-tab').forEach(btn => {
+      btn.addEventListener('click', () => setAppView(btn.dataset.view));
+    });
 
     // ==================================================================
     // Variations Logic
@@ -1257,6 +1674,7 @@
     });
 
     document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('viewAnalyze').classList.contains('active')) return;
       if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
       if (e.key === 'ArrowLeft')  document.getElementById('btnPrev').click();
       if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
@@ -1500,6 +1918,826 @@
       { key: 'miss',       icon: '❌', label: 'Упущение',      css: 'cat-miss' },
       { key: 'blunder',    icon: '??', label: 'Зевок',         css: 'cat-blunder' },
     ];
+
+    const OPENING_GUIDES = [
+      {
+        id: 'italian-game',
+        name: 'Итальянская партия',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 400,
+        maxRating: 1600,
+        tags: ['e4', 'атака', 'развитие'],
+        line: '1. e4 e5 2. Nf3 Nc6 3. Bc4',
+        idea: 'Быстрое развитие, давление на f7 и понятные планы с рокировкой, c3 и d4.',
+        plan: ['Вывести коня на f3 и слона на c4', 'Сделать рокировку до начала тактики', 'Готовить c3 и d4, если центр стабилен'],
+        risks: ['Ранние атаки ферзем без развития', 'Пешка e4 часто становится целью после Nf6', 'Не отдавать темп ходами одной фигурой'],
+        positions: 'Критические узлы: Bc5 или Nf6 у черных, момент c3-d4, жертва на e5 в тактических линиях.',
+        lines: [
+          { name: 'Спокойная главная линия', kind: 'main', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'O-O', 'Nf6', 'd3', 'O-O', 'c3'] },
+          { name: 'Атака Эванса', kind: 'attack', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'b4', 'Bxb4', 'c3', 'Ba5', 'd4'] },
+          { name: 'Ловушка Легаля', kind: 'trap', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'd6', 'Nc3', 'Bg4', 'h3', 'Bh5', 'Nxe5'] },
+        ],
+      },
+      {
+        id: 'ruy-lopez',
+        name: 'Испанская партия',
+        color: 'white',
+        difficulty: 'medium',
+        minRating: 900,
+        maxRating: 2400,
+        tags: ['e4', 'давление', 'позиционно'],
+        line: '1. e4 e5 2. Nf3 Nc6 3. Bb5',
+        idea: 'Белые давят на коня c6, укрепляют центр и часто играют долгую позиционную партию.',
+        plan: ['Сохранить пешку e4', 'Сделать рокировку и Re1', 'Выбрать c3-d4 или маневр Nbd2-f1-g3'],
+        risks: ['Не забирать e5 без расчета', 'После a6-Ba4 не терять слона на b5', 'Не раскрывать центр, пока король в центре'],
+        positions: 'Главные развилки: 3...a6, Берлин 3...Nf6, закрытая структура с b5 и d6.',
+        lines: [
+          { name: 'Закрытая Испанская', kind: 'main', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6', 'O-O', 'Be7', 'Re1', 'b5', 'Bb3', 'd6'] },
+          { name: 'Берлинская защита', kind: 'main', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'Nf6', 'O-O', 'Nxe4', 'd4', 'Nd6', 'Bxc6', 'dxc6'] },
+          { name: 'Ловушка на e5', kind: 'trap', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Bxc6', 'dxc6', 'Nxe5', 'Qd4'] },
+        ],
+      },
+      {
+        id: 'scotch-game',
+        name: 'Шотландская партия',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 500,
+        maxRating: 1800,
+        tags: ['e4', 'центр', 'открытая игра'],
+        line: '1. e4 e5 2. Nf3 Nc6 3. d4',
+        idea: 'Белые сразу вскрывают центр и получают активные фигуры без длинной теории.',
+        plan: ['Играть d4 до пассивных ходов', 'После exd4 развивать коня и слона', 'Использовать открытые линии для ферзя и ладей'],
+        risks: ['Ферзь на d4 может попадать под темпы', 'Не менять всех фигур без причины', 'Следить за тактикой на e4'],
+        positions: 'Основные позиции возникают после 3...exd4 4.Nxd4 и выбора черных Bc5 или Nf6.',
+        lines: [
+          { name: 'Главная линия', kind: 'main', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'd4', 'exd4', 'Nxd4', 'Bc5', 'Be3', 'Qf6', 'c3'] },
+          { name: 'Шотландский гамбит', kind: 'attack', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'd4', 'exd4', 'Bc4', 'Bc5', 'c3', 'Nf6'] },
+          { name: 'Ранний удар Nxc6', kind: 'trap', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'd4', 'exd4', 'Nxd4', 'Nf6', 'Nxc6', 'bxc6', 'e5'] },
+        ],
+      },
+      {
+        id: 'vienna-game',
+        name: 'Венская партия',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 400,
+        maxRating: 1700,
+        tags: ['e4', 'атака', 'гамбит'],
+        line: '1. e4 e5 2. Nc3',
+        idea: 'Гибкое развитие с идеями f4, Bc4 и быстрым давлением на короля.',
+        plan: ['Подготовить f4 или Bc4', 'Не закрывать слона c1 без причины', 'После Nf6 играть f4 только с расчетом'],
+        risks: ['Пешка f4 ослабляет короля', 'Ранний Qh5 часто теряет темпы', 'Не забывать про развитие коня g1'],
+        positions: 'Смотри позиции после 2...Nf6 3.f4 и спокойную систему с 3.Bc4.',
+        lines: [
+          { name: 'Венский гамбит', kind: 'attack', moves: ['e4', 'e5', 'Nc3', 'Nf6', 'f4', 'd5', 'fxe5', 'Nxe4', 'Nf3'] },
+          { name: 'Спокойное Bc4', kind: 'main', moves: ['e4', 'e5', 'Nc3', 'Nf6', 'Bc4', 'Bc5', 'd3', 'd6', 'f4'] },
+          { name: 'Ловушка с Qg4', kind: 'trap', moves: ['e4', 'e5', 'Nc3', 'Nf6', 'f4', 'exf4', 'e5', 'Qe7', 'Qe2'] },
+        ],
+      },
+      {
+        id: 'queens-gambit',
+        name: 'Ферзевый гамбит',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 600,
+        maxRating: 2200,
+        tags: ['d4', 'центр', 'позиционно'],
+        line: '1. d4 d5 2. c4',
+        idea: 'Белые атакуют центр черных и часто получают пространство без лишнего риска.',
+        plan: ['Давить на d5', 'Развивать Nc3, Nf3, Bg5 или Bf4', 'После cxd5 играть на открытой c-линии'],
+        risks: ['Не пытаться сразу вернуть пешку любой ценой', 'Слабая пешка c4 может стать целью', 'Следить за ...c5 и ...e5'],
+        positions: 'Главные структуры: отказанный гамбит, принятый гамбит, славянская защита.',
+        lines: [
+          { name: 'Отказанный гамбит', kind: 'main', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O'] },
+          { name: 'Принятый гамбит', kind: 'main', moves: ['d4', 'd5', 'c4', 'dxc4', 'e3', 'Nf6', 'Bxc4', 'e6', 'Nf3'] },
+          { name: 'Ловушка на b7', kind: 'trap', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O', 'Nf3'] },
+        ],
+      },
+      {
+        id: 'london-system',
+        name: 'Лондонская система',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 400,
+        maxRating: 1800,
+        tags: ['d4', 'система', 'надежно'],
+        line: '1. d4 2. Bf4 3. e3 4. Nf3',
+        idea: 'Универсальная схема развития с крепким центром и понятной атакой на королевском фланге.',
+        plan: ['Поставить слона на f4 до e3', 'Развить Nf3, Bd3, c3 и Nbd2', 'Атаковать h7 через Ne5, Qf3 и Qh3'],
+        risks: ['Не играть автоматически против любой структуры', 'Слон f4 может попасть под ...Nh5', 'Не закрывать центр без плана'],
+        positions: 'Ключевые схемы: классический Лондон, Jobava London с Nc3, атака на h7.',
+        lines: [
+          { name: 'Классический Лондон', kind: 'main', moves: ['d4', 'd5', 'Bf4', 'Nf6', 'e3', 'e6', 'Nf3', 'Bd6', 'Bd3', 'O-O'] },
+          { name: 'Атака на h7', kind: 'attack', moves: ['d4', 'd5', 'Bf4', 'Nf6', 'e3', 'e6', 'Nf3', 'Bd6', 'Bd3', 'O-O', 'Ne5'] },
+          { name: 'Jobava London', kind: 'attack', moves: ['d4', 'd5', 'Nc3', 'Nf6', 'Bf4', 'e6', 'Nb5', 'Na6', 'e3'] },
+        ],
+      },
+      {
+        id: 'english-opening',
+        name: 'Английское начало',
+        color: 'white',
+        difficulty: 'medium',
+        minRating: 900,
+        maxRating: 2400,
+        tags: ['c4', 'фланг', 'гибко'],
+        line: '1. c4',
+        idea: 'Белые контролируют d5 с фланга и часто переводят игру в позиционные структуры.',
+        plan: ['Давить на d5', 'Развивать g3, Bg2, Nc3 и Nf3', 'Выбирать d4 только в выгодный момент'],
+        risks: ['Не дать черным легко сыграть ...d5-d4', 'Позиции требуют терпения', 'Ранний b4 может ослабить поля'],
+        positions: 'Типовые структуры похожи на Сицилианскую с лишним темпом, Каталон или ферзевые позиции.',
+        lines: [
+          { name: 'Симметричная Английская', kind: 'main', moves: ['c4', 'c5', 'Nc3', 'Nc6', 'g3', 'g6', 'Bg2', 'Bg7', 'Nf3'] },
+          { name: 'Против 1...e5', kind: 'main', moves: ['c4', 'e5', 'Nc3', 'Nf6', 'g3', 'd5', 'cxd5', 'Nxd5', 'Bg2'] },
+          { name: 'Ботвинник-система', kind: 'attack', moves: ['c4', 'c5', 'Nc3', 'Nc6', 'g3', 'g6', 'Bg2', 'Bg7', 'e4'] },
+        ],
+      },
+      {
+        id: 'kings-indian-attack',
+        name: 'Староиндийская атака',
+        color: 'white',
+        difficulty: 'medium',
+        minRating: 800,
+        maxRating: 2000,
+        tags: ['система', 'атака', 'королевский фланг'],
+        line: '1. Nf3 2. g3 3. Bg2 4. d3',
+        idea: 'Белые строят крепкую схему и затем атакуют короля через e4, Re1, Nbd2 и h4.',
+        plan: ['Фианкеттировать слона', 'Провести e4', 'Перевести коня на f1-g3 или c4'],
+        risks: ['Пассивная игра без e4', 'Слабое поле d4', 'Черные могут быстро занять центр'],
+        positions: 'Полезна против Французской, Каро-Канн и структур с ...e6.',
+        lines: [
+          { name: 'Базовая схема', kind: 'main', moves: ['Nf3', 'd5', 'g3', 'Nf6', 'Bg2', 'e6', 'O-O', 'Be7', 'd3', 'O-O', 'Nbd2'] },
+          { name: 'Атака e4-h4', kind: 'attack', moves: ['Nf3', 'd5', 'g3', 'Nf6', 'Bg2', 'e6', 'O-O', 'Be7', 'd3', 'O-O', 'Nbd2', 'c5', 'e4'] },
+          { name: 'Против Французской', kind: 'main', moves: ['e4', 'e6', 'd3', 'd5', 'Nd2', 'Nf6', 'Ngf3', 'Be7', 'g3'] },
+        ],
+      },
+      {
+        id: 'sicilian-defense',
+        name: 'Сицилианская защита',
+        color: 'black',
+        difficulty: 'medium',
+        minRating: 800,
+        maxRating: 2400,
+        tags: ['e4', 'асимметрия', 'контратака'],
+        line: '1. e4 c5',
+        idea: 'Черные не зеркалят e5, а бьют по центру с фланга и играют на контратаку.',
+        plan: ['Давить на d4 пешкой c5', 'Развить Nc6 или d6-Nf6', 'Искать контригру по c-линии'],
+        risks: ['Король может застрять в центре', 'Нужно знать типовые жертвы на d5/e6', 'Ферзевый фланг раскрывается быстро'],
+        positions: 'Главный выбор: открытая Сицилианская, Алапин, закрытые системы и антисицилианки.',
+        lines: [
+          { name: 'Открытая Сицилианская', kind: 'main', moves: ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3'] },
+          { name: 'Дракон', kind: 'attack', moves: ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'g6'] },
+          { name: 'Ловушка в Алапине', kind: 'trap', moves: ['e4', 'c5', 'c3', 'd5', 'exd5', 'Qxd5', 'd4', 'Nf6', 'Nf3'] },
+        ],
+      },
+      {
+        id: 'french-defense',
+        name: 'Французская защита',
+        color: 'black',
+        difficulty: 'easy',
+        minRating: 600,
+        maxRating: 2200,
+        tags: ['e4', 'структура', 'контрудар'],
+        line: '1. e4 e6',
+        idea: 'Черные строят прочный центр и атакуют цепь белых ходами ...d5 и ...c5.',
+        plan: ['Сразу играть ...d5', 'Подрывать центр ...c5', 'Решить проблему слона c8'],
+        risks: ['Слон c8 может стать плохим', 'Королевский фланг иногда под атакой', 'Пассивность без ...c5'],
+        positions: 'Главные структуры: продвинутый вариант, разменный, классический и Винавер.',
+        lines: [
+          { name: 'Продвинутый вариант', kind: 'main', moves: ['e4', 'e6', 'd4', 'd5', 'e5', 'c5', 'c3', 'Nc6', 'Nf3', 'Qb6'] },
+          { name: 'Винавер', kind: 'attack', moves: ['e4', 'e6', 'd4', 'd5', 'Nc3', 'Bb4', 'e5', 'c5', 'a3', 'Bxc3'] },
+          { name: 'Ловушка на d4', kind: 'trap', moves: ['e4', 'e6', 'd4', 'd5', 'Nd2', 'c5', 'exd5', 'exd5', 'Ngf3'] },
+        ],
+      },
+      {
+        id: 'caro-kann',
+        name: 'Защита Каро-Канн',
+        color: 'black',
+        difficulty: 'easy',
+        minRating: 500,
+        maxRating: 2200,
+        tags: ['e4', 'надежно', 'структура'],
+        line: '1. e4 c6',
+        idea: 'Черные готовят ...d5, получают крепкую позицию и часто здоровую пешечную структуру.',
+        plan: ['Играть ...d5 без ослабления e6', 'Развить слона c8 до ...e6', 'Давить на центр белых'],
+        risks: ['Можно получить мало пространства', 'Не медлить с развитием короля', 'Белые часто атакуют в продвинутом варианте'],
+        positions: 'Базовые узлы: продвинутый вариант, классика с dxe4 и разменная структура.',
+        lines: [
+          { name: 'Классическая Каро-Канн', kind: 'main', moves: ['e4', 'c6', 'd4', 'd5', 'Nc3', 'dxe4', 'Nxe4', 'Bf5', 'Ng3', 'Bg6'] },
+          { name: 'Продвинутый вариант', kind: 'main', moves: ['e4', 'c6', 'd4', 'd5', 'e5', 'Bf5', 'Nf3', 'e6', 'Be2', 'c5'] },
+          { name: 'Ловушка в Фантазии', kind: 'trap', moves: ['e4', 'c6', 'd4', 'd5', 'f3', 'dxe4', 'fxe4', 'e5', 'Nf3'] },
+        ],
+      },
+      {
+        id: 'scandinavian',
+        name: 'Скандинавская защита',
+        color: 'black',
+        difficulty: 'easy',
+        minRating: 400,
+        maxRating: 1600,
+        tags: ['e4', 'просто', 'быстрый центр'],
+        line: '1. e4 d5',
+        idea: 'Черные сразу атакуют e4 и получают понятную расстановку фигур.',
+        plan: ['Вернуть ферзя на a5 или d6', 'Развить коней и слона c8', 'Не гоняться ферзем за пешками'],
+        risks: ['Ферзь может терять темпы', 'Пешка c7 иногда слабая', 'Нужно быстро закончить развитие'],
+        positions: 'Чаще всего игра идет через 2.exd5 Qxd5 3.Nc3 Qa5.',
+        lines: [
+          { name: 'Классика Qa5', kind: 'main', moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6', 'Nf3', 'c6'] },
+          { name: 'Система Qd6', kind: 'main', moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qd6', 'd4', 'Nf6', 'Nf3', 'c6'] },
+          { name: 'Ловушка на b2', kind: 'trap', moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6', 'Bd2'] },
+        ],
+      },
+      {
+        id: 'kings-indian-defense',
+        name: 'Староиндийская защита',
+        color: 'black',
+        difficulty: 'medium',
+        minRating: 900,
+        maxRating: 2400,
+        tags: ['d4', 'атака', 'фланг'],
+        line: '1. d4 Nf6 2. c4 g6 3. Nc3 Bg7',
+        idea: 'Черные отдают центр на время, затем атакуют его и часто начинают штурм короля.',
+        plan: ['Фианкеттировать слона g7', 'Сделать рокировку и ...d6', 'Бить по центру через ...e5 или ...c5'],
+        risks: ['Если центр закрыт, нужно успеть с атакой', 'Слабые поля на ферзевом фланге', 'Пассивная игра быстро наказывается'],
+        positions: 'Классика: белые играют e4, черные отвечают ...e5 и затем ...f5.',
+        lines: [
+          { name: 'Классическая система', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'Bg7', 'e4', 'd6', 'Nf3', 'O-O', 'Be2', 'e5'] },
+          { name: 'Атака Мар-дель-Плата', kind: 'attack', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'Bg7', 'e4', 'd6', 'Nf3', 'O-O', 'Be2', 'e5', 'O-O', 'Nc6', 'd5', 'Ne7'] },
+          { name: 'Ловушка на e4', kind: 'trap', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'Bg7', 'e4', 'd6', 'f3', 'O-O', 'Be3', 'c5'] },
+        ],
+      },
+      {
+        id: 'slav-defense',
+        name: 'Славянская защита',
+        color: 'black',
+        difficulty: 'medium',
+        minRating: 800,
+        maxRating: 2300,
+        tags: ['d4', 'надежно', 'ферзевый гамбит'],
+        line: '1. d4 d5 2. c4 c6',
+        idea: 'Черные держат центр и не закрывают слона c8 пешкой e6.',
+        plan: ['Поддержать d5 ходом ...c6', 'Развить Bf5 или Bg4', 'При случае взять c4 и удерживать пешку'],
+        risks: ['Пассивность без ...c5 или ...e5', 'Ферзевый фланг может отстать', 'Не застревать с королем в центре'],
+        positions: 'Ключевые ветки: спокойная славянка, принятая структура с ...dxc4, ...Bf5.',
+        lines: [
+          { name: 'Классическая Славянка', kind: 'main', moves: ['d4', 'd5', 'c4', 'c6', 'Nf3', 'Nf6', 'Nc3', 'dxc4', 'a4', 'Bf5'] },
+          { name: 'Спокойная схема', kind: 'main', moves: ['d4', 'd5', 'c4', 'c6', 'Nf3', 'Nf6', 'e3', 'Bf5', 'Nc3', 'e6'] },
+          { name: 'Ловушка с ...Bf5', kind: 'trap', moves: ['d4', 'd5', 'c4', 'c6', 'Nc3', 'Nf6', 'Nf3', 'dxc4', 'a4', 'Bf5'] },
+        ],
+      },
+      {
+        id: 'nimzo-indian',
+        name: 'Защита Нимцовича',
+        color: 'black',
+        difficulty: 'hard',
+        minRating: 1200,
+        maxRating: 2600,
+        tags: ['d4', 'контроль', 'структура'],
+        line: '1. d4 Nf6 2. c4 e6 3. Nc3 Bb4',
+        idea: 'Черные связывают коня c3, контролируют e4 и готовы портить структуру белых.',
+        plan: ['Давить на e4', 'Решить, когда менять Bxc3', 'Бить по центру через ...c5 или ...d5'],
+        risks: ['Отдать слона без компенсации', 'Пассивный ферзевый фланг', 'Нужно понимать пешечные структуры'],
+        positions: 'Типовые структуры: сдвоенные пешки c3/c4, изолятор, центр с e3 и Bd3.',
+        lines: [
+          { name: 'Классика с e3', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'e6', 'Nc3', 'Bb4', 'e3', 'O-O', 'Bd3', 'd5'] },
+          { name: 'Вариант Рубинштейна', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'e6', 'Nc3', 'Bb4', 'e3', 'O-O', 'Nge2', 'd5'] },
+          { name: 'Удар ...c5', kind: 'attack', moves: ['d4', 'Nf6', 'c4', 'e6', 'Nc3', 'Bb4', 'Qc2', 'O-O', 'e4', 'd5'] },
+        ],
+      },
+      {
+        id: 'pirc-defense',
+        name: 'Защита Пирца',
+        color: 'black',
+        difficulty: 'medium',
+        minRating: 800,
+        maxRating: 2100,
+        tags: ['e4', 'гибко', 'контратака'],
+        line: '1. e4 d6 2. d4 Nf6 3. Nc3 g6',
+        idea: 'Черные провоцируют большой центр белых и атакуют его позже.',
+        plan: ['Фианкеттировать слона g7', 'Давить по диагонали h8-a1', 'Подрывать центр ...c5 или ...e5'],
+        risks: ['Белые могут быстро атаковать h-пешкой', 'Нужно знать Австрийскую атаку', 'Пассивность опасна'],
+        positions: 'Важны структуры с f4 у белых и момент контрудара ...c5.',
+        lines: [
+          { name: 'Классическая схема', kind: 'main', moves: ['e4', 'd6', 'd4', 'Nf6', 'Nc3', 'g6', 'Nf3', 'Bg7', 'Be2', 'O-O'] },
+          { name: 'Австрийская атака', kind: 'attack', moves: ['e4', 'd6', 'd4', 'Nf6', 'Nc3', 'g6', 'f4', 'Bg7', 'Nf3', 'O-O'] },
+          { name: 'Контрудар ...c5', kind: 'main', moves: ['e4', 'd6', 'd4', 'Nf6', 'Nc3', 'g6', 'Be3', 'Bg7', 'Qd2', 'c6'] },
+        ],
+      },
+      {
+        id: 'dutch-defense',
+        name: 'Голландская защита',
+        color: 'black',
+        difficulty: 'hard',
+        minRating: 1100,
+        maxRating: 2400,
+        tags: ['d4', 'атака', 'асимметрия'],
+        line: '1. d4 f5',
+        idea: 'Черные сразу борются за e4 и готовят активную игру на королевском фланге.',
+        plan: ['Контролировать e4', 'Развивать Nf6, e6, Be7 или g6', 'Играть на атаку после рокировки'],
+        risks: ['Ослабление диагонали e8-h5', 'Поля e6 и g6 требуют точности', 'Белые могут вскрыть центр'],
+        positions: 'Основные системы: Ленинград с g6, Каменная стена с d5-e6-c6.',
+        lines: [
+          { name: 'Ленинградская система', kind: 'main', moves: ['d4', 'f5', 'g3', 'Nf6', 'Bg2', 'g6', 'Nf3', 'Bg7', 'O-O', 'O-O'] },
+          { name: 'Каменная стена', kind: 'main', moves: ['d4', 'f5', 'c4', 'Nf6', 'Nf3', 'e6', 'g3', 'd5', 'Bg2', 'c6'] },
+          { name: 'Ловушка на h5', kind: 'trap', moves: ['d4', 'f5', 'Bg5', 'h6', 'Bh4', 'g5', 'e4'] },
+        ],
+      },
+      {
+        id: 'queens-gambit-declined',
+        name: 'Отказанный ферзевый гамбит',
+        color: 'black',
+        difficulty: 'easy',
+        minRating: 700,
+        maxRating: 2400,
+        tags: ['d4', 'надежно', 'классика'],
+        line: '1. d4 d5 2. c4 e6',
+        idea: 'Черные защищают d5 и строят крепкую классическую позицию.',
+        plan: ['Развить Nf6 и Be7', 'Сделать рокировку', 'Освободиться ходом ...c5 или ...e5'],
+        risks: ['Плохой слон c8', 'Пассивность без подрывов', 'Давление по c-линии'],
+        positions: 'Ключевой момент: когда играть ...c5 и как решить проблему слона c8.',
+        lines: [
+          { name: 'Классическая схема', kind: 'main', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O'] },
+          { name: 'Тартаковер', kind: 'main', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O', 'Nf3', 'h6'] },
+          { name: 'Освобождение ...c5', kind: 'attack', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Nf3', 'Be7', 'Bg5', 'O-O', 'e3', 'c5'] },
+        ],
+      },
+      {
+        id: 'petrov-defense',
+        name: 'Русская партия',
+        color: 'black',
+        difficulty: 'medium',
+        minRating: 900,
+        maxRating: 2400,
+        tags: ['e4', 'надежно', 'симметрия'],
+        line: '1. e4 e5 2. Nf3 Nf6',
+        idea: 'Черные отвечают контратакой на e4 и быстро упрощают центр.',
+        plan: ['Атаковать e4 вместо защиты e5', 'Вернуть коня в центр', 'Развиваться без лишнего риска'],
+        risks: ['Нельзя автоматически брать e4 без знания линии', 'Симметрия не значит ничья', 'Белые могут атаковать быстро d4'],
+        positions: 'Главные позиции после 3.Nxe5 d6 4.Nf3 Nxe4.',
+        lines: [
+          { name: 'Главная линия', kind: 'main', moves: ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5', 'd6', 'Nf3', 'Nxe4', 'd4', 'd5'] },
+          { name: 'Атака с d4', kind: 'attack', moves: ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5', 'd6', 'Nf3', 'Nxe4', 'd4', 'Be7'] },
+          { name: 'Ловушка копирования', kind: 'trap', moves: ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5', 'Nxe4', 'Qe2'] },
+        ],
+      },
+      {
+        id: 'grunfeld-defense',
+        name: 'Защита Грюнфельда',
+        color: 'black',
+        difficulty: 'hard',
+        minRating: 1400,
+        maxRating: 2600,
+        tags: ['d4', 'динамика', 'центр'],
+        line: '1. d4 Nf6 2. c4 g6 3. Nc3 d5',
+        idea: 'Черные разрешают белым построить центр и затем атакуют его фигурами и пешками.',
+        plan: ['Играть ...d5 быстро', 'Давить по диагонали g7-a1', 'Подрывать центр ...c5'],
+        risks: ['Требует точного знания теории', 'Большой центр белых может покатиться вперед', 'Эндшпили часто тонкие'],
+        positions: 'Главная структура после cxd5 Nxd5 e4 Nxc3 bxc3.',
+        lines: [
+          { name: 'Разменный вариант', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'cxd5', 'Nxd5', 'e4', 'Nxc3', 'bxc3'] },
+          { name: 'Русская система', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'Nf3', 'Bg7', 'Qb3'] },
+          { name: 'Контрудар ...c5', kind: 'attack', moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'cxd5', 'Nxd5', 'e4', 'Nxc3', 'bxc3', 'c5'] },
+        ],
+      },
+      {
+        id: 'benko-gambit',
+        name: 'Гамбит Бенко',
+        color: 'black',
+        difficulty: 'hard',
+        minRating: 1200,
+        maxRating: 2400,
+        tags: ['d4', 'гамбит', 'давление'],
+        line: '1. d4 Nf6 2. c4 c5 3. d5 b5',
+        idea: 'Черные жертвуют пешку за долговременное давление по a- и b-линиям.',
+        plan: ['Отдать b-пешку за активность', 'Фианкеттировать слона g7', 'Давить ладьями по открытым линиям'],
+        risks: ['Если активности нет, пешки просто не хватает', 'Нужно играть энергично', 'Белые могут отказаться от гамбита'],
+        positions: 'Ключевой мотив: давление на b2 и a2 после ...g6, ...Bg7 и ...O-O.',
+        lines: [
+          { name: 'Принятый гамбит', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'c5', 'd5', 'b5', 'cxb5', 'a6', 'bxa6', 'Bxa6'] },
+          { name: 'Фианкетто-давление', kind: 'attack', moves: ['d4', 'Nf6', 'c4', 'c5', 'd5', 'b5', 'cxb5', 'a6', 'bxa6', 'g6', 'Nc3', 'Bxa6'] },
+          { name: 'Отказанный Бенко', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'c5', 'd5', 'b5', 'Nf3', 'g6', 'cxb5', 'a6'] },
+        ],
+      },
+      {
+        id: 'alapin-sicilian',
+        name: 'Сицилианская Алапина',
+        color: 'white',
+        difficulty: 'easy',
+        minRating: 500,
+        maxRating: 1800,
+        tags: ['антисицилианка', 'e4', 'центр'],
+        line: '1. e4 c5 2. c3',
+        idea: 'Белые готовят d4 и обходят большую теорию открытой Сицилианской.',
+        plan: ['Поддержать d4 ходом c3', 'После ...d5 спокойно раскрывать центр', 'Развить фигуры на активные поля'],
+        risks: ['Изолированная пешка d4 требует активности', 'Не терять темпы ферзем', 'Черные быстро бьют по центру'],
+        positions: 'Главные ответы черных: 2...d5 и 2...Nf6.',
+        lines: [
+          { name: 'Против ...d5', kind: 'main', moves: ['e4', 'c5', 'c3', 'd5', 'exd5', 'Qxd5', 'd4', 'Nf6', 'Nf3'] },
+          { name: 'Против ...Nf6', kind: 'main', moves: ['e4', 'c5', 'c3', 'Nf6', 'e5', 'Nd5', 'd4', 'cxd4', 'Nf3'] },
+          { name: 'Ловушка с d4', kind: 'trap', moves: ['e4', 'c5', 'c3', 'd5', 'exd5', 'Qxd5', 'd4', 'Nf6', 'Nf3', 'Bg4'] },
+        ],
+      },
+      {
+        id: 'catalan',
+        name: 'Каталонское начало',
+        color: 'white',
+        difficulty: 'hard',
+        minRating: 1200,
+        maxRating: 2600,
+        tags: ['d4', 'фианкетто', 'давление'],
+        line: '1. d4 Nf6 2. c4 e6 3. g3',
+        idea: 'Белые совмещают ферзевый гамбит и фианкетто, давя по большой диагонали.',
+        plan: ['Фианкеттировать слона g2', 'Давить на c6/d5', 'Играть на долгую инициативу'],
+        risks: ['Пешка c4 часто жертвуется', 'Нужна точность в компенсации', 'Черные могут быстро упростить игру'],
+        positions: 'Главная тема: открытая Каталонская с ...dxc4 и возврат пешки.',
+        lines: [
+          { name: 'Открытая Каталонская', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'e6', 'g3', 'd5', 'Bg2', 'dxc4', 'Nf3', 'Be7', 'O-O'] },
+          { name: 'Закрытая Каталонская', kind: 'main', moves: ['d4', 'Nf6', 'c4', 'e6', 'g3', 'd5', 'Bg2', 'Be7', 'Nf3', 'O-O', 'O-O'] },
+          { name: 'Давление на c6', kind: 'attack', moves: ['d4', 'Nf6', 'c4', 'e6', 'g3', 'd5', 'Bg2', 'Be7', 'Nf3', 'O-O', 'O-O', 'dxc4'] },
+        ],
+      },
+    ];
+
+    const DIFFICULTY_LABELS = {
+      easy: 'Легко',
+      medium: 'Средне',
+      hard: 'Сложно',
+    };
+
+    const KIND_LABELS = {
+      main: 'Линия',
+      trap: 'Ловушка',
+      attack: 'Атака',
+    };
+
+    function getSelectedOpening() {
+      return OPENING_GUIDES.find(item => item.id === selectedOpeningId) || OPENING_GUIDES[0];
+    }
+
+    function openingMatchesFilters(opening) {
+      const search = openingFilters.search.toLowerCase();
+      const rating = openingFilters.rating === 'all' ? null : Number(openingFilters.rating);
+      const haystack = [
+        opening.name,
+        opening.line,
+        opening.idea,
+        opening.tags.join(' '),
+        ...opening.lines.map(line => `${line.name} ${line.moves.join(' ')}`),
+      ].join(' ').toLowerCase();
+
+      return (
+        (openingFilters.color === 'all' || opening.color === openingFilters.color)
+        && (openingFilters.difficulty === 'all' || opening.difficulty === openingFilters.difficulty)
+        && (!rating || (opening.minRating <= rating && opening.maxRating >= rating))
+        && (!search || haystack.includes(search))
+      );
+    }
+
+    function formatMoves(moves) {
+      const chunks = [];
+      for (let i = 0; i < moves.length; i += 2) {
+        const moveNumber = Math.floor(i / 2) + 1;
+        chunks.push(`${moveNumber}. ${moves[i]}${moves[i + 1] ? ' ' + moves[i + 1] : ''}`);
+      }
+      return chunks.join(' ');
+    }
+
+    function metaClass(opening) {
+      if (opening.difficulty === 'easy') return 'meta-easy';
+      if (opening.difficulty === 'medium') return 'meta-medium';
+      return 'meta-hard';
+    }
+
+    function renderOpenings() {
+      const list = document.getElementById('openingsList');
+      const count = document.getElementById('openingsCount');
+      const filtered = OPENING_GUIDES.filter(openingMatchesFilters);
+
+      count.textContent = `${filtered.length} дебютов`;
+      list.innerHTML = '';
+
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-openings">Ничего не найдено</div>';
+        return;
+      }
+
+      if (!filtered.some(item => item.id === selectedOpeningId)) {
+        selectedOpeningId = filtered[0].id;
+        selectedOpeningLine = 0;
+        openingMoveIndex = -1;
+      }
+
+      filtered.forEach(opening => {
+        const card = document.createElement('button');
+        card.className = 'opening-card' + (opening.id === selectedOpeningId ? ' active' : '');
+        card.type = 'button';
+        card.innerHTML = `
+          <div class="opening-card-title">
+            <span>${opening.name}</span>
+            <span class="meta-pill ${opening.color === 'white' ? 'meta-white' : 'meta-black'}">${opening.color === 'white' ? 'Белые' : 'Черные'}</span>
+          </div>
+          <div class="opening-card-line">${opening.line}</div>
+          <div class="opening-card-meta">
+            <span class="meta-pill ${metaClass(opening)}">${DIFFICULTY_LABELS[opening.difficulty]}</span>
+            <span class="meta-pill">${opening.minRating}-${opening.maxRating}</span>
+            <span class="meta-pill">${opening.lines.length} линии</span>
+          </div>
+        `;
+        card.addEventListener('click', () => selectOpening(opening.id));
+        list.appendChild(card);
+      });
+
+      renderOpeningGuide();
+    }
+
+    function renderOpeningGuide() {
+      const opening = getSelectedOpening();
+      if (!opening) return;
+
+      document.getElementById('guideTitle').textContent = opening.name;
+      document.getElementById('guideSubtitle').textContent = opening.idea;
+      document.getElementById('guideLine').textContent = opening.line;
+      document.getElementById('guideIdea').textContent = opening.idea;
+      document.getElementById('guidePositions').textContent = opening.positions;
+      document.getElementById('guidePlan').innerHTML = opening.plan.map(item => `<li>${item}</li>`).join('');
+      document.getElementById('guideRisks').innerHTML = opening.risks.map(item => `<li>${item}</li>`).join('');
+      document.getElementById('guideTags').innerHTML = [
+        `<span class="meta-pill ${opening.color === 'white' ? 'meta-white' : 'meta-black'}">${opening.color === 'white' ? 'За белых' : 'За черных'}</span>`,
+        `<span class="meta-pill ${metaClass(opening)}">${DIFFICULTY_LABELS[opening.difficulty]}</span>`,
+        `<span class="meta-pill">${opening.minRating}-${opening.maxRating}</span>`,
+        ...opening.tags.map(tag => `<span class="meta-pill">${tag}</span>`),
+      ].join('');
+
+      renderOpeningLines();
+    }
+
+    function renderOpeningLines() {
+      const opening = getSelectedOpening();
+      const linesEl = document.getElementById('openingLines');
+      linesEl.innerHTML = '';
+
+      opening.lines.forEach((line, idx) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'opening-line-card' + (idx === selectedOpeningLine ? ' active' : '');
+        card.innerHTML = `
+          <div class="opening-line-title">
+            <span>${line.name}</span>
+            <span class="line-kind line-kind-${line.kind}">${KIND_LABELS[line.kind] || 'Линия'}</span>
+          </div>
+          <div class="opening-line-moves">${formatMoves(line.moves)}</div>
+        `;
+        card.addEventListener('click', () => setOpeningLine(idx, true));
+        linesEl.appendChild(card);
+      });
+    }
+
+    function selectOpening(id) {
+      selectedOpeningId = id;
+      selectedOpeningLine = 0;
+      openingMoveIndex = -1;
+      renderOpenings();
+      if (document.getElementById('viewOpenings').classList.contains('active')) {
+        setOpeningLine(0, false);
+      }
+    }
+
+    function ensureOpeningBoard() {
+      if (openingBoard) return;
+      openingGame = new Chess();
+      openingBoard = Chessboard('openingBoard', {
+        draggable: true,
+        position: 'start',
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+        appearSpeed: 120,
+        moveSpeed: 140,
+        onDragStart: onOpeningDragStart,
+        onDrop: onOpeningDrop,
+        onSnapEnd: () => openingBoard.position(openingGame.fen(), false),
+      });
+    }
+
+    function onOpeningDragStart(source, piece) {
+      if (openingGame.game_over()) return false;
+      if ((openingGame.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (openingGame.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+      return true;
+    }
+
+    function onOpeningDrop(source, target) {
+      const move = openingGame.move({
+        from: source,
+        to: target,
+        promotion: 'q',
+      });
+      if (move === null) return 'snapback';
+
+      openingMoveIndex = openingGame.history().length - 1;
+      renderOpeningMoveStrip();
+      scheduleOpeningExplorerLoad();
+      return undefined;
+    }
+
+    function getCurrentOpeningLine() {
+      const opening = getSelectedOpening();
+      return opening.lines[selectedOpeningLine] || opening.lines[0];
+    }
+
+    function setOpeningLine(lineIndex, resetBoard = true) {
+      const opening = getSelectedOpening();
+      selectedOpeningLine = Math.max(0, Math.min(lineIndex, opening.lines.length - 1));
+      renderOpeningLines();
+      if (resetBoard) {
+        playOpeningTo(-1);
+      } else {
+        playOpeningTo(openingMoveIndex);
+      }
+    }
+
+    function playOpeningTo(targetIndex) {
+      ensureOpeningBoard();
+      const line = getCurrentOpeningLine();
+      openingGame.reset();
+      openingMoveIndex = Math.max(-1, Math.min(targetIndex, line.moves.length - 1));
+
+      for (let i = 0; i <= openingMoveIndex; i++) {
+        const result = openingGame.move(line.moves[i], { sloppy: true });
+        if (!result) {
+          console.warn('Invalid opening move', line.moves[i], line);
+          openingMoveIndex = i - 1;
+          break;
+        }
+      }
+
+      openingBoard.position(openingGame.fen(), true);
+      renderOpeningMoveStrip();
+      scheduleOpeningExplorerLoad();
+    }
+
+    function renderOpeningMoveStrip() {
+      const strip = document.getElementById('openingMoveStrip');
+      const history = openingGame.history();
+      if (!history.length) {
+        strip.innerHTML = '<span class="meta-pill">Начальная позиция</span>';
+        return;
+      }
+
+      strip.innerHTML = history.map((move, idx) => {
+        const moveNumber = Math.floor(idx / 2) + 1;
+        const prefix = idx % 2 === 0 ? `${moveNumber}. ` : '';
+        return `<button class="opening-move-chip ${idx === history.length - 1 ? 'active' : ''}" data-opening-move="${idx}">${prefix}${move}</button>`;
+      }).join('');
+
+      strip.querySelectorAll('[data-opening-move]').forEach(btn => {
+        btn.addEventListener('click', () => playOpeningTo(Number(btn.dataset.openingMove)));
+      });
+    }
+
+    function explorerRatingParam() {
+      const rating = openingFilters.rating;
+      if (rating === '600') return '0,1000';
+      if (rating === '1000') return '1000,1200';
+      if (rating === '1400') return '1400,1600';
+      if (rating === '1800') return '1800,2000';
+      if (rating === '2200') return '2200,2500';
+      return '1000,1200,1400,1600,1800,2000,2200,2500';
+    }
+
+    function scheduleOpeningExplorerLoad() {
+      if (!document.getElementById('viewOpenings').classList.contains('active')) return;
+      clearTimeout(openingExplorerTimer);
+      openingExplorerTimer = setTimeout(loadOpeningExplorer, 450);
+    }
+
+    async function loadOpeningExplorer() {
+      const status = document.getElementById('openingExplorerStatus');
+      const movesEl = document.getElementById('openingExplorerMoves');
+      const requestId = ++openingExplorerRequestId;
+
+      status.className = 'explorer-status';
+      status.textContent = 'Загружаю позиции...';
+      movesEl.innerHTML = '';
+
+      try {
+        const params = new URLSearchParams({
+          fen: openingGame.fen(),
+          source: 'lichess',
+          speeds: 'blitz,rapid,classical',
+          ratings: explorerRatingParam(),
+          moves: '8',
+        });
+        const resp = await fetch(`/opening_explorer?${params.toString()}`);
+        if (requestId !== openingExplorerRequestId) return;
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderExplorerMoves(data.moves || []);
+      } catch (e) {
+        if (requestId !== openingExplorerRequestId) return;
+        status.className = 'explorer-status error';
+        status.textContent = e.message;
+      }
+    }
+
+    function renderExplorerMoves(moves) {
+      const status = document.getElementById('openingExplorerStatus');
+      const movesEl = document.getElementById('openingExplorerMoves');
+
+      if (!moves.length) {
+        status.className = 'explorer-status';
+        status.textContent = 'Нет данных по этой позиции';
+        movesEl.innerHTML = '';
+        return;
+      }
+
+      status.className = 'explorer-status';
+      status.textContent = `${moves.length} популярных ходов`;
+      movesEl.innerHTML = '';
+
+      moves.forEach(move => {
+        const white = move.white || 0;
+        const draws = move.draws || 0;
+        const black = move.black || 0;
+        const total = Math.max(white + draws + black, 1);
+        const whitePct = Math.round((white / total) * 100);
+        const drawPct = Math.round((draws / total) * 100);
+        const blackPct = Math.max(0, 100 - whitePct - drawPct);
+
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'explorer-move';
+        row.innerHTML = `
+          <span class="explorer-san">${move.san || move.uci}</span>
+          <span class="explorer-bar" aria-hidden="true">
+            <span class="explorer-white" style="width:${whitePct}%"></span>
+            <span class="explorer-draw" style="width:${drawPct}%"></span>
+            <span class="explorer-black" style="width:${blackPct}%"></span>
+          </span>
+          <span class="explorer-total">${total.toLocaleString('ru-RU')}</span>
+        `;
+        row.addEventListener('click', () => playExplorerMove(move));
+        movesEl.appendChild(row);
+      });
+    }
+
+    function playExplorerMove(move) {
+      const san = move.san || move.uci;
+      const played = openingGame.move(san, { sloppy: true });
+      if (!played && move.uci) {
+        openingGame.move({
+          from: move.uci.slice(0, 2),
+          to: move.uci.slice(2, 4),
+          promotion: move.uci.slice(4, 5) || 'q',
+        });
+      }
+      openingMoveIndex = openingGame.history().length - 1;
+      openingBoard.position(openingGame.fen(), true);
+      renderOpeningMoveStrip();
+      scheduleOpeningExplorerLoad();
+    }
+
+    document.getElementById('openingStartBtn').addEventListener('click', () => playOpeningTo(-1));
+    document.getElementById('openingPrevBtn').addEventListener('click', () => playOpeningTo(openingMoveIndex - 1));
+    document.getElementById('openingNextBtn').addEventListener('click', () => playOpeningTo(openingMoveIndex + 1));
+    document.getElementById('openingEndBtn').addEventListener('click', () => {
+      const line = getCurrentOpeningLine();
+      playOpeningTo(line.moves.length - 1);
+    });
+    document.getElementById('openingExplorerRefresh').addEventListener('click', loadOpeningExplorer);
+
+    document.getElementById('openingsSearch').addEventListener('input', (e) => {
+      openingFilters.search = e.target.value.trim();
+      renderOpenings();
+      if (document.getElementById('viewOpenings').classList.contains('active')) setOpeningLine(selectedOpeningLine, false);
+    });
+
+    document.getElementById('ratingFilter').addEventListener('change', (e) => {
+      openingFilters.rating = e.target.value;
+      renderOpenings();
+      if (document.getElementById('viewOpenings').classList.contains('active')) setOpeningLine(selectedOpeningLine, false);
+    });
+
+    document.querySelectorAll('[data-opening-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const group = btn.dataset.openingFilter;
+        openingFilters[group] = btn.dataset.value;
+        document.querySelectorAll(`[data-opening-filter="${group}"]`).forEach(item => {
+          item.classList.toggle('active', item === btn);
+        });
+        renderOpenings();
+        if (document.getElementById('viewOpenings').classList.contains('active')) setOpeningLine(selectedOpeningLine, false);
+      });
+    });
+
+    selectedOpeningId = OPENING_GUIDES[0].id;
+    renderOpenings();
 
     function showTab(tabName) {
       if (tabName === 'moves') {
