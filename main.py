@@ -38,6 +38,14 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 LICHESS_TOKEN = os.getenv("LICHESS_TOKEN", "")
+
+# --- Startup diagnostics ---
+if not LICHESS_TOKEN:
+    print("[WARNING] LICHESS_TOKEN не найден в переменных окружения! "
+          "Opening Explorer будет работать без авторизации (с ограниченным rate-limit).")
+else:
+    print(f"[INFO] LICHESS_TOKEN загружен ({LICHESS_TOKEN[:8]}...)")
+
 gemini_client = None
 if GEMINI_API_KEY and GEMINI_API_KEY != "PLACEHOLDER":
     gemini_client = genai.Client(
@@ -539,6 +547,9 @@ class BotMoveRequest(BaseModel):
     mode: str = "classic"
     skill: int = 10
     think_ms: int = 220
+class ExplainOpeningRequest(BaseModel):
+    opening_name: str
+    moves: str
 
 
 # ---------------------------------------------------------------------------
@@ -549,7 +560,7 @@ class BotMoveRequest(BaseModel):
 @app.get("/", response_class=FileResponse)
 def index():
     """Отдаёт главную HTML-страницу."""
-    return FileResponse(BASE_DIR / "index.html", media_type="text/html")
+    return FileResponse(BASE_DIR / "index.html", media_type="text/html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
 @app.get("/get_latest_game/{username}")
@@ -607,15 +618,14 @@ def opening_explorer(
     ratings: str = "1600,1800,2000,2200,2500",
     moves: int = Query(8, ge=1, le=20),
 ):
-    """Прокси к Lichess Opening Explorer, чтобы не светить токен в браузере."""
-    if not LICHESS_TOKEN:
-        raise HTTPException(
-            status_code=401,
-            detail="Lichess Explorer требует авторизацию. Добавьте LICHESS_TOKEN в .env.",
-        )
-
+    """
+    Прокси к Lichess Opening Explorer.
+    Работает и без токена (публичный API), но с токеном получает более высокий rate-limit.
+    """
     headers = dict(LICHESS_HEADERS)
-    headers["Authorization"] = f"Bearer {LICHESS_TOKEN}"
+    # Добавляем токен только если он есть — API публичный и работает без авторизации
+    if LICHESS_TOKEN:
+        headers["Authorization"] = f"Bearer {LICHESS_TOKEN}"
 
     params = {
         "fen": fen,
@@ -641,11 +651,6 @@ def opening_explorer(
             detail=f"Не удалось подключиться к Lichess Explorer: {exc}",
         )
 
-    if resp.status_code == 401:
-        raise HTTPException(
-            status_code=401,
-            detail="Lichess Explorer требует авторизацию. Добавьте LICHESS_TOKEN в .env.",
-        )
     if resp.status_code == 429:
         raise HTTPException(
             status_code=429,
@@ -657,7 +662,7 @@ def opening_explorer(
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Ошибка Lichess Explorer: {exc}",
+            detail=f"Ошибка Lichess Explorer ({resp.status_code}): {exc}",
         )
 
     return resp.json()
@@ -1077,5 +1082,39 @@ def commentator_summary(request: CommentatorRequest):
             contents=prompt
         )
         return {"summary": response.text.strip()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+@app.post("/explain_opening")
+def explain_opening(request: ExplainOpeningRequest):
+    """Генерирует энциклопедическое описание дебюта."""
+    if gemini_client is None:
+        raise HTTPException(status_code=503, detail="Gemini API ключ не настроен.")
+
+    prompt = (
+        f"Ты — топовый гроссмейстер-тренер. Расскажи про дебют \"{request.opening_name}\" (начальные ходы: {request.moves}). "
+        "Выдай ответ строго в формате JSON со следующими полями:\n"
+        "- `main_idea`: Главный стратегический план (за что борются белые/черные, куда ставить фигуры).\n"
+        "- `how_to_play`: Пошаговые советы, как разыгрывать эту структуру.\n"
+        "- `traps`: Список из 1-2 популярных тактических ловушек в этом дебюте. Это должен быть массив объектов с полями `description` (описание ловушки и к какому зевку она ведет) и `moves` (массив строго PGN ходов, приводящих к ловушке, начиная с первого хода партии, например [\"e4\", \"e5\", \"Nf3\"]).\n"
+        "- `mistakes`: Типичные ошибки новичков в этой позиции.\n"
+        "\nПример формата для traps: [{\"description\": \"Детский мат...\", \"moves\": [\"e4\", \"e5\", \"Bc4\", \"Nc6\", \"Qh5\", \"Nf6\", \"Qxf7#\"]}]\n"
+        "Ответ должен содержать ТОЛЬКО валидный JSON, без маркдауна и оберток."
+    )
+
+    try:
+        response = gemini_client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt
+        )
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.startswith("```"):
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        import json
+        return json.loads(text.strip())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
