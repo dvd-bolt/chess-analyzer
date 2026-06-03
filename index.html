@@ -2754,9 +2754,7 @@
               <span class="badge-icon">📖</span>
               <span class="badge-text" id="trainingBadgeText">—</span>
             </div>
-            <div id="openingBoard">
-              <div class="board-flash-overlay" id="boardFlashOverlay"></div>
-            </div>
+            <div id="openingBoard"></div>
             <div class="opening-nav" id="openingNavBar">
               <button id="openingStartBtn" title="В начало">⏮</button>
               <button id="openingPrevBtn" title="Назад">◀</button>
@@ -6096,11 +6094,14 @@
     }
 
     function flashBoard(type) {
-      const overlay = document.getElementById('boardFlashOverlay');
-      overlay.className = 'board-flash-overlay';
-      void overlay.offsetWidth;
-      overlay.classList.add(type === 'correct' ? 'flash-correct' : 'flash-wrong');
-      setTimeout(() => { overlay.className = 'board-flash-overlay'; }, 550);
+      const boardEl = document.getElementById('openingBoard');
+      if (!boardEl) return;
+      // Remove any existing overlays
+      boardEl.querySelectorAll('.board-flash-overlay').forEach(el => el.remove());
+      const overlay = document.createElement('div');
+      overlay.className = 'board-flash-overlay ' + (type === 'correct' ? 'flash-correct' : 'flash-wrong');
+      boardEl.appendChild(overlay);
+      setTimeout(() => overlay.remove(), 600);
     }
 
     function setTrainingMessage(text, type) {
