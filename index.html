@@ -1798,7 +1798,227 @@
     .explorer-bar span { display: block; height: 100%; }
     .explorer-white { background: #e5e7eb; }
     .explorer-draw { background: #737388; }
-    .explorer-black { background: #7c3aed; }
+    .explorer-black { background: #4a4a5a; }
+    .explorer-count { font-size: .78rem; text-align: right; color: #a0a0b4; }
+    
+    /* ============ AI Opening Cards ============ */
+    .ai-opening-card {
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .ai-opening-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+    }
+    .ai-opening-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #6ee7b7;
+    }
+    .ai-opening-card.ai-card-traps::before {
+      background: #facc15;
+    }
+    .ai-opening-card.ai-card-mistakes::before {
+      background: #f87171;
+    }
+    .ai-opening-card-title {
+      font-size: .85rem; text-transform: uppercase; letter-spacing: .8px;
+      color: #6ee7b7; font-weight: 800; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ai-opening-card-title.warn { color: #facc15; }
+    .ai-opening-card-title.error { color: #f87171; }
+    .ai-opening-card-content {
+      color: #cbd5e1; font-size: .88rem; line-height: 1.6;
+    }
+    .ai-opening-card-content ul {
+      margin: 0; padding-left: 18px;
+    }
+    .ai-opening-card-content li { margin-bottom: 4px; }
+    .ai-trap-item {
+      background: rgba(30, 30, 42, 0.6); padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ai-trap-desc { margin-bottom: 8px; font-size: .85rem; color: #e2e2e8; line-height: 1.45; }
+    .ai-trap-moves { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ai-trap-move-btn {
+      background: rgba(45, 45, 64, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff;
+      border-radius: 6px; padding: 4px 8px; font-size: .75rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .ai-trap-move-btn:hover { background: #facc15; color: #000; border-color: #facc15; transform: scale(1.02); }
+    
+    /* Skeletons */
+    .skeleton-box {
+      background: linear-gradient(90deg, #1e1e2a 25%, #2a2a3a 50%, #1e1e2a 75%);
+      background-size: 200% 100%;
+      animation: skeleton-load 1.5s infinite;
+      border-radius: 4px; height: 16px; margin-bottom: 6px;
+    }
+    .skeleton-title { width: 40%; height: 20px; margin-bottom: 12px; }
+    .skeleton-line-1 { width: 90%; }
+    .skeleton-line-2 { width: 75%; }
+    .skeleton-line-3 { width: 85%; }
+    @keyframes skeleton-load {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ============ Opening Training Mode ============ */
+    .training-position-badge {
+      display: none;
+      align-items: center; justify-content: center; gap: 8px;
+      width: 100%; min-height: 38px; padding: 8px 14px;
+      border-radius: 10px;
+      background: rgba(20, 20, 30, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(110, 231, 183, 0.15);
+      color: #a0a0b4; font-size: .82rem; font-weight: 700;
+      transition: all .3s ease;
+    }
+    .training-position-badge.visible { display: flex; }
+    .training-position-badge .badge-icon {
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .training-position-badge .badge-text {
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .training-position-badge.theory { border-color: rgba(110, 231, 183, 0.3); color: #6ee7b7; }
+    .training-position-badge.out-of-book { border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+
+    .training-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; min-height: 44px; padding: 10px 18px;
+      border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      color: #fff; font-size: .92rem; font-weight: 800; letter-spacing: .02em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,.15);
+      transition: transform .15s ease, box-shadow .2s ease, opacity .2s ease;
+      position: relative; overflow: hidden;
+    }
+    .training-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,.12) 50%, transparent 100%);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+    .training-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255,255,255,.18); }
+    .training-btn:hover::before { opacity: 1; }
+    .training-btn:active { transform: translateY(0) scale(.98); }
+    .training-btn.stop {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+    }
+    .training-btn:disabled {
+      opacity: .5; cursor: not-allowed; transform: none !important;
+    }
+
+    .training-progress {
+      display: none;
+      width: 100%; height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      overflow: hidden;
+    }
+    .training-progress.visible { display: block; }
+    .training-progress-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      transition: width .35s cubic-bezier(.4, 0, .2, 1);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+    }
+
+    .training-message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: .84rem; font-weight: 600; line-height: 1.45;
+      animation: trainingMsgIn .3s ease;
+    }
+    .training-message.visible { display: block; }
+    .training-message.error {
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: #fca5a5;
+    }
+    .training-message.success {
+      background: rgba(110, 231, 183, 0.08);
+      border: 1px solid rgba(110, 231, 183, 0.2);
+      color: #6ee7b7;
+    }
+    .training-message.celebration {
+      background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(168,85,247,.1));
+      border: 1px solid rgba(168,85,247,.25);
+      color: #c4b5fd;
+      text-align: center; font-size: .95rem;
+    }
+    @keyframes trainingMsgIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Board flash overlays */
+    #openingBoard { position: relative; }
+    .board-flash-overlay {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 50;
+      border-radius: 10px;
+      opacity: 0;
+      transition: opacity .15s ease;
+    }
+    .board-flash-overlay.flash-correct {
+      background: rgba(110, 231, 183, 0.18);
+      box-shadow: inset 0 0 40px rgba(110, 231, 183, 0.25);
+      animation: boardFlashCorrect .5s ease;
+    }
+    .board-flash-overlay.flash-wrong {
+      background: rgba(248, 113, 113, 0.18);
+      box-shadow: inset 0 0 40px rgba(248, 113, 113, 0.25);
+      animation: boardFlashWrong .5s ease;
+    }
+    @keyframes boardFlashCorrect {
+      0% { opacity: 0; }
+      30% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes boardFlashWrong {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      40% { opacity: 0.3; }
+      60% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Training completion confetti */
+    .training-confetti {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 55;
+      overflow: hidden; border-radius: 10px;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      animation: confettiFall 1.8s ease-out forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: translateY(400px) rotate(720deg) scale(0.3); opacity: 0; }
+    }
+
     .explorer-total {
       color: #a0a0b4; font-size: .72rem; text-align: right;
       font-variant-numeric: tabular-nums;
@@ -2530,19 +2750,33 @@
 
         <div class="opening-study-grid">
           <div class="opening-board-panel">
-            <div id="openingBoard"></div>
-            <div class="opening-nav">
+            <div class="training-position-badge" id="trainingPositionBadge">
+              <span class="badge-icon">📖</span>
+              <span class="badge-text" id="trainingBadgeText">—</span>
+            </div>
+            <div id="openingBoard">
+              <div class="board-flash-overlay" id="boardFlashOverlay"></div>
+            </div>
+            <div class="opening-nav" id="openingNavBar">
               <button id="openingStartBtn" title="В начало">⏮</button>
               <button id="openingPrevBtn" title="Назад">◀</button>
               <button id="openingNextBtn" title="Вперед">▶</button>
               <button id="openingEndBtn" title="В конец">⏭</button>
             </div>
             <div class="opening-move-strip" id="openingMoveStrip"></div>
+            <div class="training-progress" id="trainingProgress">
+              <div class="training-progress-fill" id="trainingProgressFill" style="width:0%"></div>
+            </div>
+            <button class="training-btn" id="trainingBtn" type="button">🎓 Запустить тренировку</button>
+            <div class="training-message" id="trainingMessage"></div>
           </div>
 
           <div class="opening-lines-panel">
             <div class="filter-label">Вариации и ловушки</div>
             <div class="opening-line-list" id="openingLines"></div>
+            <div id="aiOpeningInsights" style="margin-top: 8px; margin-bottom: 8px;">
+              <!-- AI cards will be rendered here -->
+            </div>
             <div class="lichess-explorer">
               <div class="explorer-head">
                 <span class="explorer-title">Lichess Explorer</span>
@@ -2552,27 +2786,6 @@
               <div class="explorer-moves" id="openingExplorerMoves"></div>
             </div>
           </div>
-        </div>
-
-        <div class="guide-section">
-          <h3>Идея</h3>
-          <p id="guideIdea">—</p>
-        </div>
-
-        <div class="guide-grid">
-          <div class="guide-section">
-            <h3>План</h3>
-            <ul id="guidePlan"></ul>
-          </div>
-          <div class="guide-section">
-            <h3>Риски</h3>
-            <ul id="guideRisks"></ul>
-          </div>
-        </div>
-
-        <div class="guide-section">
-          <h3>Ключевые позиции</h3>
-          <p id="guidePositions">—</p>
         </div>
       </article>
     </div>
@@ -2705,10 +2918,19 @@
     let openingBoard = null;
     let openingGame = new Chess();
     let selectedOpeningId = null;
+    const cachedOpeningExplanations = {};
     let selectedOpeningLine = 0;
     let openingMoveIndex = -1;
     let openingExplorerTimer = null;
     let openingExplorerRequestId = 0;
+
+    // Training mode state (isolated from analysis tab)
+    let isTrainingMode = false;
+    let trainingMoveIndex = 0;
+    let trainingMoves = [];
+    let trainingPlayerColor = 'w'; // 'w' or 'b' — which color the player practices
+    let trainingCompleted = false;
+    let trainingDebounce = false;
     let duelBoard = null;
     let miniGame = new Chess();
     let miniMode = 'classic';
@@ -5461,10 +5683,6 @@
       document.getElementById('guideTitle').textContent = opening.name;
       document.getElementById('guideSubtitle').textContent = opening.idea;
       document.getElementById('guideLine').textContent = opening.line;
-      document.getElementById('guideIdea').textContent = opening.idea;
-      document.getElementById('guidePositions').textContent = opening.positions;
-      document.getElementById('guidePlan').innerHTML = opening.plan.map(item => `<li>${item}</li>`).join('');
-      document.getElementById('guideRisks').innerHTML = opening.risks.map(item => `<li>${item}</li>`).join('');
       document.getElementById('guideTags').innerHTML = [
         `<span class="meta-pill ${opening.color === 'white' ? 'meta-white' : 'meta-black'}">${opening.color === 'white' ? 'За белых' : 'За черных'}</span>`,
         `<span class="meta-pill ${metaClass(opening)}">${DIFFICULTY_LABELS[opening.difficulty]}</span>`,
@@ -5473,7 +5691,155 @@
       ].join('');
 
       renderOpeningLines();
+      
+      // AI Insights
+      if (cachedOpeningExplanations[opening.id]) {
+        renderAIInsights(cachedOpeningExplanations[opening.id]);
+      } else {
+        renderAIInsightsSkeletons();
+        fetchOpeningExplanation(opening);
+      }
     }
+
+    async function fetchOpeningExplanation(opening) {
+      try {
+        const resp = await fetch('/explain_opening', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            opening_name: opening.name,
+            moves: opening.line
+          })
+        });
+        if (!resp.ok) throw new Error('Ошибка сети');
+        const data = await resp.json();
+        cachedOpeningExplanations[opening.id] = data;
+        
+        // Render only if user hasn't switched to another opening
+        if (selectedOpeningId === opening.id) {
+          renderAIInsights(data);
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки AI insights:", err);
+        const container = document.getElementById('aiOpeningInsights');
+        if (container && selectedOpeningId === opening.id) {
+          container.innerHTML = `
+            <div class="ai-opening-card ai-card-mistakes">
+              <div class="ai-opening-card-title error">⚠️ Ошибка загрузки ИИ-Тренера</div>
+              <div class="ai-opening-card-content">Не удалось загрузить разбор дебюта. Убедитесь, что API-ключ Gemini настроен, и попробуйте обновить страницу.</div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function renderAIInsightsSkeletons() {
+      const container = document.getElementById('aiOpeningInsights');
+      container.innerHTML = `
+        <div class="ai-opening-card">
+          <div class="ai-opening-card-title">ИИ-Тренер анализирует...</div>
+          <div class="skeleton-box skeleton-line-1"></div>
+          <div class="skeleton-box skeleton-line-2"></div>
+          <div class="skeleton-box skeleton-line-3"></div>
+        </div>
+      `;
+    }
+
+    function renderAIInsights(data) {
+      const container = document.getElementById('aiOpeningInsights');
+      
+      const formatList = (val) => {
+        if (!val) return '';
+        if (Array.isArray(val)) {
+          return `<ul style="margin: 0; padding-left: 18px; list-style-type: disc;">` + 
+                 val.map(item => `<li style="margin-bottom: 4px;">${item}</li>`).join('') + 
+                 `</ul>`;
+        }
+        if (typeof val === 'string') {
+          const lines = val.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          if (lines.length > 1) {
+            return `<ul style="margin: 0; padding-left: 18px; list-style-type: disc;">` + 
+                   lines.map(item => `<li style="margin-bottom: 4px;">${item.replace(/^-\s*/, '')}</li>`).join('') + 
+                   `</ul>`;
+          }
+          return `<p>${val}</p>`;
+        }
+        return '';
+      };
+
+      let html = '';
+      
+      // Strategic Plan
+      if (data.main_idea || data.how_to_play) {
+        html += `
+          <div class="ai-opening-card ai-card-strategy">
+            <div class="ai-opening-card-title">🎯 Стратегический план</div>
+            <div class="ai-opening-card-content">
+              ${data.main_idea ? `<p style="margin-bottom:8px">${data.main_idea}</p>` : ''}
+              ${data.how_to_play ? formatList(data.how_to_play) : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      // Traps
+      if (data.traps && data.traps.length > 0) {
+        let trapsHtml = data.traps.map((trap, index) => {
+          const movesJson = JSON.stringify(trap.moves || []).replace(/"/g, '&quot;');
+          return `
+            <div class="ai-trap-item">
+              <div class="ai-trap-desc">${trap.description || 'Ловушка ' + (index+1)}</div>
+              ${trap.moves && trap.moves.length > 0 ? `
+                <div class="ai-trap-moves">
+                  <button class="ai-trap-move-btn" onclick="playTrapLine(${movesJson})">Проиграть на доске ▶</button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+        
+        html += `
+          <div class="ai-opening-card ai-card-traps">
+            <div class="ai-opening-card-title warn">⚠️ Опасные ловушки</div>
+            <div class="ai-opening-card-content">${trapsHtml}</div>
+          </div>
+        `;
+      }
+      
+      // Mistakes
+      if (data.mistakes) {
+        html += `
+          <div class="ai-opening-card ai-card-mistakes">
+            <div class="ai-opening-card-title error">❌ Так делать нельзя</div>
+            <div class="ai-opening-card-content">${formatList(data.mistakes)}</div>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = html;
+    }
+
+    window.playTrapLine = function(moves) {
+      if (!openingGame || !openingBoard) return;
+      openingGame.reset();
+      
+      for (let i = 0; i < moves.length; i++) {
+        const res = openingGame.move(moves[i], { sloppy: true });
+        if (!res) {
+          console.warn('Некорректный ход ловушки:', moves[i]);
+          break;
+        }
+      }
+      
+      openingBoard.position(openingGame.fen(), true);
+      openingMoveIndex = openingGame.history().length - 1;
+      renderOpeningMoveStrip();
+      scheduleOpeningExplorerLoad();
+      
+      // Scroll up to the board
+      document.getElementById('openingBoard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
 
     function renderOpeningLines() {
       const opening = getSelectedOpening();
@@ -5497,6 +5863,7 @@
     }
 
     function selectOpening(id) {
+      if (isTrainingMode) stopTraining();
       selectedOpeningId = id;
       selectedOpeningLine = 0;
       openingMoveIndex = -1;
@@ -5527,10 +5894,61 @@
           (openingGame.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
       }
+      // In training mode, only allow the player to move their color
+      if (isTrainingMode && !trainingCompleted) {
+        if (openingGame.turn() !== trainingPlayerColor) return false;
+      }
       return true;
     }
 
     function onOpeningDrop(source, target) {
+      // --- Training mode logic ---
+      if (isTrainingMode && !trainingCompleted && !trainingDebounce) {
+        const expectedMove = trainingMoves[trainingMoveIndex];
+        if (!expectedMove) return 'snapback';
+
+        // Try the move on a temp board to get SAN
+        const testBoard = new Chess(openingGame.fen());
+        const testResult = testBoard.move({ from: source, to: target, promotion: 'q' });
+        if (!testResult) return 'snapback';
+
+        // Check if SAN matches expected
+        const expectedBoard = new Chess(openingGame.fen());
+        const expMoveObj = expectedBoard.move(expectedMove, { sloppy: true });
+        if (!expMoveObj) {
+          console.warn('Training: expected move invalid:', expectedMove);
+          return 'snapback';
+        }
+
+        if (testResult.san === expMoveObj.san) {
+          // CORRECT move
+          openingGame.move({ from: source, to: target, promotion: 'q' });
+          openingMoveIndex = openingGame.history().length - 1;
+          renderOpeningMoveStrip();
+          flashBoard('correct');
+          setTrainingMessage('');
+          trainingMoveIndex++;
+          updateTrainingProgress();
+
+          if (trainingMoveIndex >= trainingMoves.length) {
+            setTimeout(() => completeTraining(), 400);
+          } else {
+            trainingDebounce = true;
+            setTimeout(() => {
+              trainingAutoPlayOpponent();
+              trainingDebounce = false;
+            }, 350);
+          }
+          return undefined;
+        } else {
+          // WRONG move
+          flashBoard('wrong');
+          setTrainingMessage('Ход не по теории! Попробуй еще раз или загляни в стратегический план. 💡', 'error');
+          return 'snapback';
+        }
+      }
+
+      // --- Normal (non-training) mode ---
       const move = openingGame.move({
         from: source,
         to: target,
@@ -5541,8 +5959,218 @@
       openingMoveIndex = openingGame.history().length - 1;
       renderOpeningMoveStrip();
       scheduleOpeningExplorerLoad();
+      fetchPositionName();
       return undefined;
     }
+
+    // ---- Training mode helpers ----
+
+    function startTraining() {
+      ensureOpeningBoard();
+      const opening = getSelectedOpening();
+      const line = getCurrentOpeningLine();
+
+      if (!line || !line.moves || line.moves.length < 2) {
+        setTrainingMessage('Эта линия слишком короткая для тренировки.', 'error');
+        return;
+      }
+
+      isTrainingMode = true;
+      trainingCompleted = false;
+      trainingDebounce = false;
+      trainingMoves = [...line.moves];
+      trainingMoveIndex = 0;
+      trainingPlayerColor = opening.color === 'white' ? 'w' : 'b';
+
+      openingGame.reset();
+      openingMoveIndex = -1;
+      openingBoard.position('start', true);
+      renderOpeningMoveStrip();
+
+      const btn = document.getElementById('trainingBtn');
+      btn.textContent = '⏹ Остановить тренировку';
+      btn.classList.add('stop');
+
+      document.getElementById('openingNavBar').style.display = 'none';
+      document.getElementById('trainingProgress').classList.add('visible');
+      updateTrainingProgress();
+
+      const badge = document.getElementById('trainingPositionBadge');
+      badge.className = 'training-position-badge visible theory';
+      document.getElementById('trainingBadgeText').textContent =
+        'Тренировка: ' + opening.name + ' — ' + line.name;
+
+      setTrainingMessage(
+        'Сделай первый ход за ' + (opening.color === 'white' ? 'белых' : 'чёрных') + '! 🎯',
+        'success'
+      );
+
+      if (trainingPlayerColor === 'b') {
+        trainingDebounce = true;
+        setTimeout(() => {
+          trainingAutoPlayOpponent();
+          trainingDebounce = false;
+        }, 500);
+      }
+    }
+
+    function stopTraining() {
+      isTrainingMode = false;
+      trainingCompleted = false;
+      trainingDebounce = false;
+      trainingMoveIndex = 0;
+      trainingMoves = [];
+
+      const btn = document.getElementById('trainingBtn');
+      btn.textContent = '🎓 Запустить тренировку';
+      btn.classList.remove('stop');
+
+      document.getElementById('openingNavBar').style.display = '';
+      document.getElementById('trainingProgress').classList.remove('visible');
+      document.getElementById('trainingPositionBadge').classList.remove('visible', 'theory', 'out-of-book');
+      setTrainingMessage('');
+
+      playOpeningTo(-1);
+    }
+
+    function trainingAutoPlayOpponent() {
+      if (!isTrainingMode || trainingMoveIndex >= trainingMoves.length) return;
+
+      const nextMove = trainingMoves[trainingMoveIndex];
+      const result = openingGame.move(nextMove, { sloppy: true });
+      if (!result) {
+        console.warn('Training: opponent auto-move failed:', nextMove);
+        return;
+      }
+
+      trainingMoveIndex++;
+      openingMoveIndex = openingGame.history().length - 1;
+      openingBoard.position(openingGame.fen(), true);
+      renderOpeningMoveStrip();
+      updateTrainingProgress();
+
+      if (trainingMoveIndex >= trainingMoves.length) {
+        setTimeout(() => completeTraining(), 400);
+      }
+    }
+
+    function completeTraining() {
+      trainingCompleted = true;
+
+      const btn = document.getElementById('trainingBtn');
+      btn.textContent = '🎓 Запустить тренировку';
+      btn.classList.remove('stop');
+
+      document.getElementById('openingNavBar').style.display = '';
+      document.getElementById('trainingProgress').classList.remove('visible');
+
+      const badge = document.getElementById('trainingPositionBadge');
+      badge.className = 'training-position-badge visible theory';
+      document.getElementById('trainingBadgeText').textContent = '🏆 Тренировка завершена!';
+
+      setTrainingMessage(
+        '🎉 Отличная работа! Ты прошёл всю цепочку дебюта. Изучи стратегический план и ловушки ниже! ↓',
+        'celebration'
+      );
+      flashBoard('correct');
+      spawnConfetti();
+
+      const insightsEl = document.getElementById('aiOpeningInsights');
+      if (insightsEl) {
+        insightsEl.style.transition = 'box-shadow .5s ease';
+        insightsEl.style.boxShadow = '0 0 30px rgba(99,102,241,.3)';
+        setTimeout(() => { insightsEl.style.boxShadow = ''; }, 2500);
+        setTimeout(() => {
+          insightsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 600);
+      }
+
+      isTrainingMode = false;
+    }
+
+    function updateTrainingProgress() {
+      const fill = document.getElementById('trainingProgressFill');
+      if (!trainingMoves.length) { fill.style.width = '0%'; return; }
+      const pct = Math.round((trainingMoveIndex / trainingMoves.length) * 100);
+      fill.style.width = pct + '%';
+    }
+
+    function flashBoard(type) {
+      const overlay = document.getElementById('boardFlashOverlay');
+      overlay.className = 'board-flash-overlay';
+      void overlay.offsetWidth;
+      overlay.classList.add(type === 'correct' ? 'flash-correct' : 'flash-wrong');
+      setTimeout(() => { overlay.className = 'board-flash-overlay'; }, 550);
+    }
+
+    function setTrainingMessage(text, type) {
+      const el = document.getElementById('trainingMessage');
+      if (!text) {
+        el.className = 'training-message';
+        el.textContent = '';
+        return;
+      }
+      el.className = 'training-message visible ' + (type || '');
+      el.textContent = text;
+    }
+
+    function spawnConfetti() {
+      const boardEl = document.getElementById('openingBoard');
+      const confetti = document.createElement('div');
+      confetti.className = 'training-confetti';
+      const colors = ['#6366f1', '#a855f7', '#ec4899', '#6ee7b7', '#facc15', '#60a5fa', '#f87171'];
+      for (let i = 0; i < 40; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.top = '-10px';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.6) + 's';
+        piece.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        piece.style.width = (5 + Math.random() * 6) + 'px';
+        piece.style.height = (5 + Math.random() * 6) + 'px';
+        confetti.appendChild(piece);
+      }
+      boardEl.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
+    }
+
+    let positionNameTimer = null;
+    function fetchPositionName() {
+      if (isTrainingMode) return;
+      clearTimeout(positionNameTimer);
+      positionNameTimer = setTimeout(async () => {
+        const badge = document.getElementById('trainingPositionBadge');
+        const badgeText = document.getElementById('trainingBadgeText');
+        try {
+          const params = new URLSearchParams({
+            fen: openingGame.fen(),
+            source: 'lichess',
+            speeds: 'blitz,rapid,classical',
+            ratings: '1600,1800,2000,2200',
+            moves: '1',
+          });
+          const resp = await fetch(`/opening_explorer?${params.toString()}`);
+          if (!resp.ok) throw new Error();
+          const data = await resp.json();
+          const total = (data.white || 0) + (data.draws || 0) + (data.black || 0);
+
+          if (data.opening && data.opening.name) {
+            badge.className = 'training-position-badge visible theory';
+            badgeText.innerHTML = '<span class="badge-icon">📖</span> Текущая позиция: <strong>' + data.opening.name + '</strong>';
+          } else if (total > 100) {
+            badge.className = 'training-position-badge visible theory';
+            badgeText.textContent = 'Теоретическая позиция';
+          } else {
+            badge.className = 'training-position-badge visible out-of-book';
+            badgeText.textContent = 'Нестандартная позиция (Миттельшпиль)';
+          }
+        } catch (e) {
+          badge.classList.remove('visible');
+        }
+      }, 500);
+    }
+
 
     function getCurrentOpeningLine() {
       const opening = getSelectedOpening();
@@ -5714,6 +6342,15 @@
       playOpeningTo(line.moves.length - 1);
     });
     document.getElementById('openingExplorerRefresh').addEventListener('click', loadOpeningExplorer);
+
+    // Training button
+    document.getElementById('trainingBtn').addEventListener('click', () => {
+      if (isTrainingMode && !trainingCompleted) {
+        stopTraining();
+      } else {
+        startTraining();
+      }
+    });
 
     document.getElementById('openingsSearch').addEventListener('input', (e) => {
       openingFilters.search = e.target.value.trim();
